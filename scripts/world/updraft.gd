@@ -78,6 +78,12 @@ func reveal() -> void:
 	AudioManager.play_sfx("gust")
 
 
+## Where Piko should hover when sensing this current (its upper part,
+## at the height Kieran actually flies past).
+func sense_position() -> Vector2:
+	return global_position + Vector2(0, -size.y * 0.6)
+
+
 func is_revealed() -> bool:
 	return not concealed
 

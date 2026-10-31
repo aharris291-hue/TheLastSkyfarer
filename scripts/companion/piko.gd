@@ -67,9 +67,10 @@ func _process(delta: float) -> void:
 			if not is_instance_valid(_sense_target):
 				_mode = "follow"
 			else:
-				target = _sense_target.global_position + Vector2(0, -120 + sin(_t * 4.0) * 12.0)
+				var sp := _sense_pos(_sense_target)
+				target = sp + Vector2(0, -120 + sin(_t * 4.0) * 12.0)
 				_sense_time += delta
-				var near_player := player.global_position.distance_to(_sense_target.global_position) < 750.0
+				var near_player := player.global_position.distance_to(sp) < 750.0
 				if _sense_time > 1.2 and near_player and _sense_target.has_method("reveal"):
 					_sense_target.reveal()
 					_show_emote("✦")
@@ -139,11 +140,15 @@ func _nearest_sense() -> Node2D:
 	for n in get_tree().get_nodes_in_group("piko_sense"):
 		if n.has_method("is_revealed") and n.is_revealed():
 			continue
-		var d := global_position.distance_to(n.global_position)
+		var d := global_position.distance_to(_sense_pos(n))
 		if d < best_d:
 			best_d = d
 			best = n
 	return best
+
+
+func _sense_pos(n: Node2D) -> Vector2:
+	return n.sense_position() if n.has_method("sense_position") else n.global_position
 
 
 func _think() -> void:
