@@ -93,7 +93,7 @@ func _build_quests() -> void:
 			Color(0.98, 0.86, 0.58) if state == "active" else Color(0.65, 0.8, 0.65))
 		title.focus_mode = Control.FOCUS_ALL
 		v.add_child(title)
-		v.add_child(make_label(def.get("desc", ""), 26, Color(0.85, 0.8, 0.72)))
+		v.add_child(make_label(def.get("desc", ""), 26, Color(0.85, 0.8, 0.72), true))
 		for o in def.get("objectives", []):
 			if o.has("hidden_until") and not GameState.check(o["hidden_until"]) and state != "complete":
 				continue
@@ -101,7 +101,7 @@ func _build_quests() -> void:
 			var txt: String = ("✔ " if done else "○ ") + o["text"]
 			if o.get("count", 1) > 1 and not done:
 				txt += " (%d/%d)" % [GameState.quests[qid]["obj"].get(o["id"], 0), o["count"]]
-			v.add_child(make_label("      " + txt, 26, Color(0.7, 0.85, 0.7) if done else Color(0.95, 0.92, 0.85)))
+			v.add_child(make_label("      " + txt, 26, Color(0.7, 0.85, 0.7) if done else Color(0.95, 0.92, 0.85), true))
 		v.add_child(HSeparator.new())
 
 

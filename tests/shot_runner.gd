@@ -6,6 +6,7 @@ extends Node
 var out_dir := "user://shots"
 
 const SHOTS := [
+	["00_title", "res://scenes/ui/title_screen.tscn", Vector2.ZERO, "dawn", [], ""],
 	# name, scene, position, time of day, flags, extra
 	["01_bluff_dawn", "res://scenes/world/windrest.tscn", Vector2(9060, 820), "dawn", ["opening_done"], ""],
 	["02_village_square", "res://scenes/world/windrest.tscn", Vector2(4850, 900), "day", ["opening_done"], ""],
@@ -16,8 +17,9 @@ const SHOTS := [
 	["07_cloud_edge", "res://scenes/world/windrest.tscn", Vector2(700, 900), "day", ["opening_done"], ""],
 	["08_workshop", "res://scenes/world/workshop.tscn", Vector2(1300, 900), "night", ["opening_done", "deed_received", "workshop_entered"], ""],
 	["09_piko_glider", "res://scenes/world/windrest.tscn", Vector2(9600, 820), "dawn", ["opening_done", "deed_received", "compass_active", "has_glider", "chapter3_banner"], ""],
-	["10_gliding", "res://scenes/world/windrest.tscn", Vector2(11050, 700), "dawn", ["opening_done", "deed_received", "compass_active", "has_glider", "piko_joined", "chapter3_banner"], "glide"],
+	["10_gliding", "res://scenes/world/windrest.tscn", Vector2(11000, 600), "dawn", ["opening_done", "deed_received", "compass_active", "has_glider", "piko_joined", "chapter3_banner"], "glide"],
 	["11_fog", "res://scenes/world/windrest.tscn", Vector2(16700, 500), "dawn", ["opening_done", "deed_received", "compass_active", "has_glider", "piko_joined", "chapter3_banner", "reached_fog"], "glide"],
+	["13_journal_quests", "res://scenes/world/windrest.tscn", Vector2(6000, 900), "day", ["opening_done"], "quests"],
 	["12_journal_map", "res://scenes/world/windrest.tscn", Vector2(6000, 900), "day", ["opening_done"], "map"],
 ]
 
@@ -77,6 +79,10 @@ func _shot(s: Array) -> void:
 				var m: Node = level.world.get_node_or_null("maren")
 				if m:
 					m.interact(level.player)
+			"quests":
+				GameState.add_journal("note_wind", true)
+				GameState.give_item("parcel_tessa", 1, true)
+				level.open_menu(preload("res://scripts/ui/journal_menu.gd").new())
 			"map":
 				var j := preload("res://scripts/ui/journal_menu.gd").new()
 				j.start_tab = 3

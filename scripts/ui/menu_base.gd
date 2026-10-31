@@ -49,10 +49,12 @@ func make_title(text: String, size := 52) -> Label:
 	return l
 
 
-func make_label(text: String, size := 28, color := Color(0.95, 0.9, 0.82)) -> Label:
+func make_label(text: String, size := 28, color := Color(0.95, 0.9, 0.82), wrap := false) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if wrap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	return l

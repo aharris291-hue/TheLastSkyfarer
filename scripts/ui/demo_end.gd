@@ -17,7 +17,7 @@ func _ready() -> void:
 		"Thank you for playing.",
 	]
 	for l in lines:
-		var lab := make_label(l, 30)
+		var lab := make_label(l, 30, Color(0.95, 0.9, 0.82), true)
 		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.add_child(lab)
 	add_button(b, "Keep exploring", close)
