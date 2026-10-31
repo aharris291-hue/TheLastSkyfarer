@@ -1,0 +1,59 @@
+; Engine configuration file.
+; The Last Skyfarer — Godot 4.3 project
+
+config_version=5
+
+[application]
+
+config/name="The Last Skyfarer"
+config/description="A 2D fantasy adventure across floating islands above an endless sea of clouds."
+config/version="0.1.0-demo"
+run/main_scene="res://scenes/ui/title_screen.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+boot_splash/bg_color=Color(0.07, 0.09, 0.14, 1)
+boot_splash/show_image=false
+config/icon="res://assets/ui/icon.png"
+
+[autoload]
+
+Settings="*res://scripts/systems/settings.gd"
+GameState="*res://scripts/systems/game_state.gd"
+SaveManager="*res://scripts/systems/save_manager.gd"
+AudioManager="*res://scripts/systems/audio_manager.gd"
+Router="*res://scripts/systems/router.gd"
+DialogueDB="*res://scripts/dialogue/dialogue_db.gd"
+DialogueUI="*res://scenes/ui/dialogue_ui.tscn"
+HUD="*res://scenes/ui/hud.tscn"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[gui]
+
+theme/custom="res://assets/ui/skyfarer_theme.tres"
+
+[physics]
+
+common/physics_ticks_per_second=60
+2d/default_gravity=2600.0
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="player"
+2d_physics/layer_3="interact"
+2d_physics/layer_4="wind"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=1
+environment/defaults/default_clear_color=Color(0.07, 0.09, 0.14, 1)
+2d/snap/snap_2d_transforms_to_pixel=false

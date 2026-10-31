@@ -1,0 +1,10 @@
+{
+  "kieran": {"name": "Kieran", "portrait": "kieran", "default": "neutral", "color": "#9fd3ff"},
+  "piko": {"name": "Piko", "portrait": "piko", "default": "curious", "color": "#cfe9ff"},
+  "maren": {"name": "Maren Holt", "portrait": "maren", "default": "neutral", "color": "#f2c38b"},
+  "tessa": {"name": "Tessa Reed", "portrait": "tessa", "default": "neutral", "color": "#e9a08f"},
+  "tavern": {"name": "Tavern Keeper", "portrait": "bram", "default": "neutral", "color": "#e6d39a"},
+  "villager": {"name": "Flower Grower", "portrait": "elara", "default": "neutral", "color": "#b9e3a4"},
+  "elias": {"name": "Elias Thorn", "portrait": "elias", "default": "portrait", "color": "#e8d7a8"},
+  "narrator": {"name": "", "portrait": "", "color": "#d8d0c0"}
+}

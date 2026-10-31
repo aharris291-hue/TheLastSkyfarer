@@ -1,0 +1,99 @@
+{
+  "opening": [
+    {"s": "narrator", "t": "Old Cartographer's Bluff, Brindle Isle. Sunrise."},
+    {"s": "kieran", "p": "hopeful", "t": "There has to be more out there than this.", "canon": true},
+    {"s": "kieran", "p": "smile", "t": "...Right. Deliveries first. Maren will have my head if I'm late again."},
+    {"do": [{"quest_start": "morning_deliveries"}, {"quest_start": "elias_was_here"}, {"set": "opening_done"}]}
+  ],
+
+  "maren_intro": [
+    {"s": "maren", "t": "Don't tell me you've been staring at the horizon again.", "canon": true},
+    {"s": "kieran", "p": "smile", "t": "Only a little. The fog lifted off the eastern isles at dawn. You could see three of them."},
+    {"s": "maren", "t": "The parcels won't deliver themselves. Three today."},
+    {"s": "maren", "t": "Spice tins for the Windsong Tavern. A box for Tessa, up at Skywatch Point. And seed packets for the flower terraces by the Cloud Edge."},
+    {"s": "maren", "t": "And Kieran? Stay back from the edge. I mean it."},
+    {"s": "kieran", "p": "content", "t": "Door to door, before noon. Courier's honor."},
+    {"do": [{"objective": "morning_deliveries:report"}, {"give": "parcel_tavern"}, {"give": "parcel_tessa"}, {"give": "parcel_cliffs"}, {"time": "day"}]}
+  ],
+  "maren_waiting": [
+    {"s": "maren", "t": "The tavern, Skywatch Point and the Cloud Edge. The parcels are in your satchel, not on the horizon."}
+  ],
+  "maren_return": [
+    {"s": "maren", "t": "All three? And nobody complained? I'll write that down somewhere."},
+    {"s": "maren", "t": "Here. A morning's wages. Don't spend it all on map paper."},
+    {"do": [{"quest_complete": "morning_deliveries"}]},
+    {"s": "narrator", "t": "The rest of the day passes the way days on Brindle Isle always do."},
+    {"do": [{"event": "sunset_fade"}]}
+  ],
+  "maren_deed": [
+    {"s": "maren", "t": "Kieran. Before you go. This came up from the registry this afternoon."},
+    {"s": "kieran", "p": "surprised", "t": "That's... the deed to Grandpa's workshop."},
+    {"s": "maren", "t": "It's officially yours now. Signed and sealed."},
+    {"s": "kieran", "p": "worried", "t": "I've lived there half my life. It still feels like it's his."},
+    {"s": "maren", "t": "Your grandfather left you more questions than answers. That seems appropriate.", "canon": true},
+    {"s": "maren", "t": "Go home. The workshop's been waiting long enough."},
+    {"do": [{"give": "deed"}, {"quest_start": "hidden_workshop"}, {"chapter": 2}, {"set": "deed_received"}, {"autosave": true}]}
+  ],
+  "maren_after": [
+    {"s": "maren", "t": "Go home, Kieran. And get some sleep. You look like you've been reading weather logs again."}
+  ],
+
+  "tavern_deliver": [
+    {"s": "tavern", "t": "Another clear day.", "canon": true},
+    {"s": "kieran", "p": "smile", "t": "Spice tins, from the Post House."},
+    {"s": "tavern", "t": "You're Elias's grandson, right?", "canon": true},
+    {"s": "kieran", "p": "skeptical", "t": "Depends who is asking.", "canon": true},
+    {"s": "tavern", "t": "Someone carrying a package.", "canon": true},
+    {"s": "tavern", "t": "Half the folk in here will tell you the Skyfarers were a bedtime story. Your grandfather never once let them finish that argument."},
+    {"do": [{"take": "parcel_tavern"}, {"objective": "morning_deliveries:tavern"}]}
+  ],
+  "tavern_after": [
+    {"s": "tavern", "t": "That's what people say right before the weather changes, you know. 'Another clear day.'", "canon": true}
+  ],
+
+  "tessa_deliver": [
+    {"s": "tessa", "t": "You climbed all the way up here? You could have left it at the bottom of the steps."},
+    {"s": "kieran", "p": "content", "t": "Courier's honor. Door to door."},
+    {"s": "kieran", "p": "hopeful", "t": "Look, though. You can see the eastern isles from up here. Grandpa used to say some of them move."},
+    {"s": "tessa", "t": "Islands don't move, Kieran. The registry has had the same charts for two hundred years."},
+    {"s": "tessa", "t": "One day you're going to disappear chasing one of those stories.", "canon": true},
+    {"s": "kieran", "p": "laugh", "t": "Then I'll send you a postcard."},
+    {"do": [{"take": "parcel_tessa"}, {"objective": "morning_deliveries:tessa"}]}
+  ],
+  "tessa_after": [
+    {"s": "tessa", "t": "Skywatch logs say clear skies all week. No moving islands. I checked."}
+  ],
+
+  "villager_deliver": [
+    {"s": "villager", "t": "The seed packets! Just in time for planting. Mind your step out here."},
+    {"s": "narrator", "t": "Below the terraces, the sea of clouds rolls on toward the horizon."},
+    {"s": "kieran", "p": "hopeful", "t": "You ever wonder if we're all just looking in the wrong direction?", "canon": true},
+    {"s": "villager", "t": "Every day. Then I get back to work.", "canon": true},
+    {"do": [{"take": "parcel_cliffs"}, {"objective": "morning_deliveries:cliffs"}]}
+  ],
+  "villager_after": [
+    {"s": "villager", "t": "Elias used to sit right there on the wall with his notebook. Said the wind out here talks if you listen."}
+  ],
+
+  "board": [
+    {"s": "narrator", "t": "The village bulletin board."},
+    {"s": "narrator", "t": "'LOST: one copper kettle. Last seen near the fountain. Reward: soup.'"},
+    {"s": "narrator", "t": "'SKYWATCH POINT reports: clear skies, steady winds. Traders expected from the north at month's end.'"},
+    {"s": "narrator", "t": "'Storytelling night at the Windsong Tavern. No Skyfarer stories, please. — R. Finch, Village Elder'"}
+  ],
+  "fountain": [
+    {"s": "kieran", "p": "content", "t": "The fountain's older than the village. Grandpa said the carvings on the basin aren't decorations. They're wind charts."}
+  ],
+  "windmill": [
+    {"s": "kieran", "p": "neutral", "t": "The Whispermill sails never stop turning. Strong steady wind, every day of the year."}
+  ],
+  "workshop_locked_ch1": [
+    {"s": "kieran", "p": "smile", "t": "Home. The deliveries come first, though."}
+  ],
+  "edge_warning": [
+    {"s": "kieran", "p": "worried", "t": "That's a long way down. Even I'm not that curious. Yet."}
+  ],
+  "skywatch_hint": [
+    {"s": "kieran", "p": "neutral", "t": "Skywatch Point is up on the ridge. The quickest way is over the market stalls and up the old scaffolding."}
+  ]
+}

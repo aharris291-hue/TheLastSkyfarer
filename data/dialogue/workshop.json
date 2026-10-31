@@ -1,0 +1,61 @@
+{
+  "workshop_enter": [
+    {"s": "kieran", "p": "content", "t": "Home."},
+    {"s": "kieran", "p": "worried", "t": "Everything's exactly where he left it. Like he just stepped out to check the wind."},
+    {"s": "kieran", "p": "neutral", "t": "If the workshop's mine now... then so are his questions."},
+    {"do": [{"objective": "hidden_workshop:enter"}]}
+  ],
+  "inspect_maps": [
+    {"s": "kieran", "p": "doubt", "t": "These can't all be right. The same island, drawn in three different places..."},
+    {"s": "kieran", "p": "surprised", "t": "'Not an error. It moved.' That's his handwriting."},
+    {"do": [{"journal": "workshop_maps"}, {"objective": "hidden_workshop:search"}, {"set": "searched_maps"}]}
+  ],
+  "inspect_sketches": [
+    {"s": "kieran", "p": "smile", "t": "Skyfarer fliers. Markings. Brass instruments I've never seen in any shop."},
+    {"s": "kieran", "p": "skeptical", "t": "And this... a little white creature with long feathered ears. He drew it over and over, always from far away."},
+    {"do": [{"journal": "workshop_sketches"}, {"objective": "hidden_workshop:search"}, {"set": "searched_sketches"}]}
+  ],
+  "inspect_notes": [
+    {"s": "kieran", "p": "neutral", "t": "Weather logs. Decades of them."},
+    {"s": "kieran", "p": "doubt", "t": "Every strange wind on Brindle Isle, marked and dated. One current circled so many times the paper's worn through."},
+    {"do": [{"journal": "workshop_notes"}, {"objective": "hidden_workshop:search"}, {"set": "searched_notes"}]}
+  ],
+  "search_done": [
+    {"s": "kieran", "p": "surprised", "t": "Wait. The board by the desk. It's always been loose... and the scratches around it are fresh-ish. He's been opening it."}
+  ],
+  "inspect_portrait": [
+    {"s": "kieran", "p": "worried", "t": "Grandpa."},
+    {"s": "kieran", "p": "content", "t": "You always said the sky was a map too. I just never knew how to read it."}
+  ],
+  "inspect_instruments": [
+    {"s": "kieran", "p": "smile", "t": "His ancient weather instruments. He never let me touch these."},
+    {"s": "kieran", "p": "laugh", "t": "...He's not here to stop me now. Sorry, Grandpa."}
+  ],
+  "inspect_shelf": [
+    {"s": "kieran", "p": "neutral", "t": "Atlases, almanacs, a book on Aerian script with half the pages pinned with notes. Grandpa read everything twice."}
+  ],
+  "compartment": [
+    {"s": "narrator", "t": "The board lifts away. Beneath it, a hidden compartment runs the length of the floor."},
+    {"s": "kieran", "p": "surprised", "t": "A glider. An actual glider."},
+    {"s": "kieran", "p": "doubt", "t": "These brass fittings... nothing in Windrest is made like this. Nothing anywhere is."},
+    {"s": "narrator", "t": "Beside it: a pair of antique flight goggles, and a worn leather journal."},
+    {"do": [{"objective": "hidden_workshop:compartment"}, {"give": "ancient_glider"}, {"give": "flight_goggles"}, {"give": "elias_journal"}, {"set": "compartment_open"}]}
+  ],
+  "final_entry": [
+    {"s": "narrator", "t": "The last page is dated only weeks before Elias died."},
+    {"s": "elias", "t": "The maps are wrong. They always have been.", "canon": true},
+    {"s": "elias", "t": "If you're reading this, look where the wind refuses to go.", "canon": true},
+    {"do": [{"journal": "final_entry"}, {"event": "compass_awakens"}]}
+  ],
+  "compass_awakens": [
+    {"s": "kieran", "p": "surprised", "t": "Every window's shut. Where is that wind coming from?"},
+    {"s": "narrator", "t": "On the desk, the brass compass begins to move by itself."},
+    {"s": "narrator", "t": "Its needle swings past north, past east, and settles on a direction that isn't on any map."},
+    {"s": "kieran", "p": "hopeful", "t": "A wind current... off the edge of the Bluff. That's impossible."},
+    {"s": "kieran", "p": "content", "t": "...Look where the wind refuses to go. Okay, Grandpa. First light."},
+    {"do": [{"give": "brass_compass"}, {"objective": "hidden_workshop:journal"}, {"set": "has_glider"}, {"set": "compass_active"}, {"event": "next_morning"}]}
+  ],
+  "workshop_leave_night": [
+    {"s": "kieran", "p": "neutral", "t": "Not in the dark. First light."}
+  ]
+}
