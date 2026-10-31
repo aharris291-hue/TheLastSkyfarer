@@ -1,0 +1,35 @@
+{
+  "piko_meeting": [
+    {"s": "narrator", "t": "Something is sitting on the glider."},
+    {"s": "narrator", "t": "Not hiding. Not startled. Simply sitting there, as if it has always belonged."},
+    {"s": "kieran", "p": "surprised", "t": "...Hello?"},
+    {"s": "piko", "p": "curious", "t": "(curious chirp)"},
+    {"s": "kieran", "p": "skeptical", "t": "Where did you come from? Nobody comes up to the Bluff."},
+    {"s": "piko", "p": "curious", "t": "(Piko tilts his head. One feathered ear lifts. He does not move.)"},
+    {"s": "kieran", "p": "doubt", "t": "Wait. Long ears, white fur... You're the creature in Grandpa's sketches."},
+    {"s": "piko", "p": "happy", "t": "(happy trill)"},
+    {"s": "kieran", "p": "smile", "t": "You're sitting on my glider, you know."},
+    {"s": "piko", "p": "determined", "t": "(Piko settles in more comfortably.)"},
+    {"s": "kieran", "p": "laugh", "t": "...Fine. You can come. But if we fall, it's your fault."},
+    {"do": [{"set": "piko_joined"}, {"journal": "piko_first"}, {"objective": "into_the_clouds:bluff"}, {"event": "piko_joins"}]}
+  ],
+  "launch_ready": [
+    {"s": "kieran", "p": "hopeful", "t": "The compass points straight out past the edge. Into the open sky."},
+    {"s": "kieran", "p": "worried", "t": "Jump, then hold on and glide. Simple. Probably."}
+  ],
+  "piko_found_wind": [
+    {"s": "kieran", "p": "surprised", "t": "Piko, your markings are glowing! And that current wasn't there a second ago."},
+    {"s": "piko", "p": "happy", "t": "(proud chirp)"},
+    {"do": [{"journal": "piko_wind"}]}
+  ],
+  "wind_refuses": [
+    {"s": "kieran", "p": "doubt", "t": "The wind... it just stops. Like it's refusing to go any further."},
+    {"s": "piko", "p": "determined", "t": "(Piko's markings glow faintly. He stares into the fog and goes very still.)"},
+    {"s": "narrator", "t": "Deep in the mist, the shape of an island drifts where no island should be."},
+    {"s": "kieran", "p": "hopeful", "t": "Look where the wind refuses to go... Grandpa, what did you find?"},
+    {"do": [{"objective": "into_the_clouds:glide"}, {"objective": "into_the_clouds:edge"}, {"set": "demo_complete"}, {"event": "demo_end"}]}
+  ],
+  "fell": [
+    {"s": "piko", "p": "surprised", "t": "(alarmed squeak)"}
+  ]
+}

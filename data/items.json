@@ -1,0 +1,11 @@
+{
+  "parcel_tessa": {"name": "Parcel for Tessa", "category": "quest", "desc": "A small box addressed to Tessa Reed, Skywatch Point. Heavier than it looks."},
+  "parcel_tavern": {"name": "Parcel for the Windsong Tavern", "category": "quest", "desc": "A crate of spice tins for the Windsong Tavern's kitchen."},
+  "parcel_cliffs": {"name": "Parcel for the Cloud Edge", "category": "quest", "desc": "Seed packets for the flower terraces near the Cloud Edge."},
+  "deed": {"name": "Deed to the Workshop", "category": "key", "desc": "The deed to Elias Thorn's workshop on Old Cartographer's Bluff, now in Kieran's name."},
+  "elias_journal": {"name": "Elias's Final Journal", "category": "key", "desc": "'The maps are wrong. They always have been. If you're reading this, look where the wind refuses to go.'"},
+  "brass_compass": {"name": "Brass Compass", "category": "key", "desc": "Inherited from Elias. Since the night in the workshop its needle points along a wind current that isn't on any map."},
+  "ancient_glider": {"name": "Ancient Glider", "category": "key", "desc": "Found beneath the workshop floor. Brass components unlike any modern technology. Hold Glide in the air to use it."},
+  "flight_goggles": {"name": "Antique Flight Goggles", "category": "key", "desc": "Discovered alongside the ancient glider."},
+  "courier_wages": {"name": "Courier Wages", "category": "misc", "desc": "A morning's pay from the Post House. Maren counted it twice."}
+}

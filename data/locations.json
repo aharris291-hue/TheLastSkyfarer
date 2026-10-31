@@ -1,0 +1,12 @@
+{
+  "cloud_edge": {"name": "Cloud Edge", "subtitle": "Brindle Isle", "map": [0.86, 0.66]},
+  "whispermill": {"name": "Whispermill Fields", "subtitle": "Brindle Isle", "map": [0.31, 0.27]},
+  "windrest": {"name": "Windrest Village", "subtitle": "Brindle Isle", "map": [0.52, 0.46]},
+  "post_house": {"name": "Post House", "subtitle": "Windrest Village", "map": [0.64, 0.45]},
+  "tavern": {"name": "Windsong Tavern", "subtitle": "Windrest Village", "map": [0.71, 0.58]},
+  "skywatch": {"name": "Skywatch Point", "subtitle": "Brindle Isle", "map": [0.59, 0.11]},
+  "upper_cliffs": {"name": "Upper Cliffs", "subtitle": "Brindle Isle", "map": [0.70, 0.21]},
+  "bluff": {"name": "Old Cartographer's Bluff", "subtitle": "Elias Thorn's Workshop", "map": [0.86, 0.33]},
+  "workshop": {"name": "Elias's Workshop", "subtitle": "Old Cartographer's Bluff", "map": [0.86, 0.33]},
+  "open_sky": {"name": "The Open Sky", "subtitle": "Beyond the courier routes", "map": [0.97, 0.45]}
+}

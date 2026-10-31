@@ -1,0 +1,6 @@
+.godot/
+*.import.tmp
+builds/*
+!builds/.gdignore
+export_credentials.cfg
+*.tmp

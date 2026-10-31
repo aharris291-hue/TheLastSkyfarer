@@ -1,0 +1,55 @@
+{
+  "morning_deliveries": {
+    "title": "Morning Deliveries",
+    "chapter": 1,
+    "main": true,
+    "desc": "Maren has three parcels that need delivering before noon. The usual route, the usual faces.",
+    "objectives": [
+      {"id": "report", "text": "Report to Maren at the Post House"},
+      {"id": "tavern", "text": "Deliver the parcel to the Windsong Tavern", "hidden_until": "obj:morning_deliveries:report"},
+      {"id": "tessa", "text": "Deliver Tessa's parcel to Skywatch Point", "hidden_until": "obj:morning_deliveries:report"},
+      {"id": "cliffs", "text": "Deliver the seed parcel to the Cloud Edge", "hidden_until": "obj:morning_deliveries:report"},
+      {"id": "return", "text": "Return to Maren at the Post House", "hidden_until": ["obj:morning_deliveries:tavern", "obj:morning_deliveries:tessa", "obj:morning_deliveries:cliffs"]}
+    ],
+    "rewards": ["courier_wages"],
+    "auto_complete": false
+  },
+  "hidden_workshop": {
+    "title": "The Hidden Workshop",
+    "chapter": 2,
+    "main": true,
+    "desc": "The workshop on Old Cartographer's Bluff officially belongs to Kieran now. Elias left more questions than answers.",
+    "objectives": [
+      {"id": "enter", "text": "Return to the workshop on Old Cartographer's Bluff"},
+      {"id": "search", "text": "Search Elias's workshop for clues", "count": 3},
+      {"id": "compartment", "text": "Investigate the loose floorboard", "hidden_until": "obj:hidden_workshop:search"},
+      {"id": "journal", "text": "Read Elias's final journal entry", "hidden_until": "obj:hidden_workshop:compartment"}
+    ],
+    "rewards": [],
+    "auto_complete": true
+  },
+  "into_the_clouds": {
+    "title": "Into the Clouds",
+    "chapter": 3,
+    "main": true,
+    "desc": "'Look where the wind refuses to go.' The compass points past the edge of the Bluff, along a current no map has ever shown.",
+    "objectives": [
+      {"id": "bluff", "text": "Take the glider to the edge of the Bluff"},
+      {"id": "glide", "text": "Follow the impossible wind current", "hidden_until": "obj:into_the_clouds:bluff"},
+      {"id": "edge", "text": "Find where the wind refuses to go", "hidden_until": "obj:into_the_clouds:bluff"}
+    ],
+    "rewards": [],
+    "auto_complete": true
+  },
+  "elias_was_here": {
+    "title": "Elias Was Here",
+    "chapter": 1,
+    "main": false,
+    "desc": "Elias scribbled notes everywhere he went. Some of them must still be around Brindle Isle.",
+    "objectives": [
+      {"id": "notes", "text": "Find Elias's notes around Brindle Isle", "count": 4}
+    ],
+    "rewards": [],
+    "auto_complete": true
+  }
+}
