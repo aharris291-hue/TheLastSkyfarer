@@ -20,7 +20,11 @@ Version: 0.1.0-demo. Engine: Godot 4.3 (GDScript, Compatibility renderer). Targe
 | Remappable keyboard and controller controls | Done | Remap tests; controller not tested on hardware |
 | Windows export | Built (95 MB exe, pack embedded) | Not run on Windows |
 
-Automated suite: **331 passed, 0 failed** (`tests/test_runner.tscn`), including a bot that plays the whole demo from New Game to the end card.
+Automated suite: **346 passed, 0 failed** (`tests/test_runner.tscn`), including a bot that plays the whole demo from New Game to the end card.
+
+## Visual fixes (after first playtest)
+
+High-definition sprites, opaque Kieran with unclipped jump frames, grounded props without white gaps, ambient motion and crisp NPCs. Details in DEVELOPMENT_LOG.md. The art is still upscaled from small source sheets: it is much sharper but cannot add detail the sheets never had, and Kieran's walk and run cycles keep the source's 6 frames.
 
 ## Placeholder or missing
 
