@@ -10,7 +10,7 @@ class_name Piko
 
 signal sensed(target: Node)
 
-const SCALE := 0.3
+const SCALE := 0.93               # piko_side.png is pre-sized for the game
 const SENSE_RADIUS := 900.0
 
 @export var follow_offset := Vector2(-95, -205)
@@ -41,7 +41,7 @@ func _ready() -> void:
 	body = Sprite2D.new()
 	body.texture = load("res://assets/characters/piko/piko_side.png")
 	body.scale = Vector2.ONE * SCALE
-	body.offset = Vector2(-40, 0)   # pivot near the body rather than the tail
+	body.offset = Vector2(-13, 0)   # pivot near the body rather than the tail
 	add_child(body)
 	emote = Label.new()
 	emote.add_theme_font_size_override("font_size", 46)
@@ -102,7 +102,7 @@ func _process(delta: float) -> void:
 	if absf(_vel.x) > 40.0:
 		_facing = 1 if _vel.x > 0 else -1
 	body.flip_h = _facing > 0
-	body.offset.x = 40 if _facing > 0 else -40
+	body.offset.x = 13 if _facing > 0 else -13
 	# Tail sway and a little tilt with speed.
 	body.skew = sin(_t * 3.2) * 0.04
 	body.rotation = clampf(_vel.x / 4000.0, -0.25, 0.25)
