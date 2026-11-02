@@ -1,6 +1,6 @@
 # Master World Map (Phase 1 draft)
 
-![World map](world_map.png)
+![World map](world_map.svg)
 
 Source: [world_map.svg](world_map.svg) (editable). Built from Adam's "The Last Skyfarer: World Above the Clouds" map, read as concentric rings around Brindle Isle (D-9). Distances are relative; real scale is set in the Phase 2 technical plan.
 
