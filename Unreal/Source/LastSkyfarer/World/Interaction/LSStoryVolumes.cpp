@@ -1,4 +1,5 @@
 #include "LSStoryVolumes.h"
+#include "TimerManager.h"
 
 #include "LSInteractableComponent.h"
 #include "LSStorySubsystem.h"
@@ -39,6 +40,13 @@ void ALSStoryTrigger::BeginPlay()
 {
 	Super::BeginPlay();
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ALSStoryTrigger::HandleOverlap);
+	// The player can spawn inside the box before this overlap is bound: check once the frame after.
+	GetWorldTimerManager().SetTimerForNextTick([this]()
+	{
+		TArray<AActor*> Inside;
+		Box->GetOverlappingActors(Inside);
+		for (AActor* A : Inside) { if (IsPlayerPawn(A)) { TryFire(A); break; } }
+	});
 }
 
 void ALSStoryTrigger::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimitiveComponent*, int32, bool, const FHitResult&)
@@ -72,6 +80,20 @@ void ALSLocationVolume::BeginPlay()
 {
 	Super::BeginPlay();
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ALSLocationVolume::HandleOverlap);
+	// Same as story triggers: a player who starts inside is discovered the frame after.
+	GetWorldTimerManager().SetTimerForNextTick([this]()
+	{
+		TArray<AActor*> Inside;
+		Box->GetOverlappingActors(Inside);
+		for (AActor* A : Inside)
+		{
+			if (IsPlayerPawn(A) && !LocationId.IsNone())
+			{
+				if (ULSStorySubsystem* Story = ULSStorySubsystem::Get(this)) { Story->DiscoverLocation(LocationId); }
+				break;
+			}
+		}
+	});
 }
 
 void ALSLocationVolume::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimitiveComponent*, int32, bool, const FHitResult&)
