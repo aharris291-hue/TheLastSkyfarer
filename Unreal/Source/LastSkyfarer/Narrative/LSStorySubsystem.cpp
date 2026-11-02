@@ -58,6 +58,13 @@ namespace
 	}
 }
 
+ULSStorySubsystem* ULSStorySubsystem::Get(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	return GI ? GI->GetSubsystem<ULSStorySubsystem>() : nullptr;
+}
+
 void ULSStorySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

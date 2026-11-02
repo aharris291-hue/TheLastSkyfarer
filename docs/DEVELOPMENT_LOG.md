@@ -17,6 +17,8 @@ Adam moved The Last Skyfarer from the 2D Godot demo to a 3D game in Unreal Engin
 - Phase 3 started (Adam's "go"). Narrative data: `Unreal/Tools/convert_godot_data.py` turns the Godot dialogue, quests, journal, items, speakers and locations into 7 JSON files in `Unreal/Content/LastSkyfarer/Data` (opening line now says Upper Cliffs, per D-15; canon lines untouched). `Unreal/Tools/validate_narrative.py` checks references and canon lines and simulates a Milestone A run: passes (35 conversations, 114 lines, 4 quests).
 - C++ Narrative module written in `Source/LastSkyfarer/Narrative/`: data types and loader, `ULSStorySubsystem` (flags, items, quests with Godot rules, journal and collectibles, story events, time of day, chapters, dialogue runner, atomic saves with .bak recovery) and automation tests `LastSkyfarer.Narrative.*`. **Not compiled yet**: written in the cloud, needs a build on Adam's PC. The device session that was building the player, glider and Piko stopped with an error before doing any work.
 
+- Phase 3 part 2 (cloud, not compiled yet): interaction (`World/Interaction`: interactable rules ported from the Godot demo, interactor for Kieran, story triggers, location volumes, journal pickups, NPCs) and the restoration framework (`World/Restoration`: six stages stored as story flags, Beacon actor, ring puzzle with no fail state), plus tests `LastSkyfarer.World.*`. Glider tuning approved as D-24.
+
 ## 2026-10-31 (visual fixes after Adam's first playtest)
 
 Adam reported blurry, faded sprites, Kieran's feet vanishing on jump, seams in the scenery, static backgrounds and glitchy NPCs. Causes and fixes:

@@ -30,6 +30,8 @@ public class LastSkyfarer : ModuleRules
 			"LastSkyfarer/Narrative",
 			"LastSkyfarer/Player",
 			"LastSkyfarer/World",
+			"LastSkyfarer/World/Interaction",
+			"LastSkyfarer/World/Restoration",
 			"LastSkyfarer/Companion",
 			"LastSkyfarer/Variant_Platforming",
 			"LastSkyfarer/Variant_Platforming/Animation",

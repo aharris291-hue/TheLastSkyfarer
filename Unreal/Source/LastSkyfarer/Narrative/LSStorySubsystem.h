@@ -27,6 +27,9 @@ class LASTSKYFARER_API ULSStorySubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
+	/** The story subsystem of the world's game instance, or null (e.g. in a bare test world). */
+	static ULSStorySubsystem* Get(const UObject* WorldContext);
+
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 

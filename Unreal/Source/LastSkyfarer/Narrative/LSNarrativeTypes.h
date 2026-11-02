@@ -47,6 +47,16 @@ struct FLSStoryAction
 	int32 Amount = 1;
 };
 
+/** A list of actions, usable as a map value. */
+USTRUCT(BlueprintType)
+struct FLSStoryActionList
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
+	TArray<FLSStoryAction> Actions;
+};
+
 USTRUCT(BlueprintType)
 struct FLSDialogueLine
 {
