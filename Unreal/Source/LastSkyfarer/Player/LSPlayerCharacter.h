@@ -8,6 +8,7 @@
 #include "LSPlayerCharacter.generated.h"
 
 class UGliderComponent;
+class ULSTraversalComponent;
 class UInputAction;
 class UInputMappingContext;
 
@@ -25,6 +26,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Glider")
 	TObjectPtr<UGliderComponent> Glider;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Traversal")
+	TObjectPtr<ULSTraversalComponent> Traversal;
 
 	// Movement (cm/s). GDD 1: walk 1.8, run 4.5, sprint 6.5 m/s.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")

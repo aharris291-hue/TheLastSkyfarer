@@ -9,6 +9,7 @@
 #include "GliderComponent.h"
 #include "HAL/FileManager.h"
 #include "LSPlayerCharacter.h"
+#include "LSTraversalCheck.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -48,6 +49,10 @@ void ALSTestGameMode::RestartPlayer(AController* NewPlayer)
 void ALSTestGameMode::StartPlay()
 {
 	Super::StartPlay();
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSTraversalCheck")))
+	{
+		GetWorld()->SpawnActor<ALSTraversalCheck>();
+	}
 	float ShotDelay = 0.f;
 	if (FParse::Value(FCommandLine::Get(), TEXT("LSShot="), ShotDelay) && ShotDelay > 0.f)
 	{

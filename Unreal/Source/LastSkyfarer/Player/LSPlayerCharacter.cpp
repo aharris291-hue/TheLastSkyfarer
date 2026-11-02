@@ -15,6 +15,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GliderComponent.h"
+#include "LSTraversalComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "UObject/ConstructorHelpers.h"
@@ -24,6 +25,7 @@ ALSPlayerCharacter::ALSPlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Glider = CreateDefaultSubobject<UGliderComponent>(TEXT("Glider"));
+	Traversal = CreateDefaultSubobject<ULSTraversalComponent>(TEXT("Traversal"));
 
 	// Template input actions and placeholder mannequin, so the class works without a Blueprint child.
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveIA(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
@@ -141,12 +143,26 @@ void ALSPlayerCharacter::DoMove(float Right, float Forward)
 		Glider->SetControlInput(Right, Forward);
 		return;
 	}
+	if (Traversal)
+	{
+		const FRotator Yaw(0.f, GetControlRotation().Yaw, 0.f);
+		const FVector WorldDir = FRotationMatrix(Yaw).GetUnitAxis(EAxis::X) * Forward + FRotationMatrix(Yaw).GetUnitAxis(EAxis::Y) * Right;
+		Traversal->SetMoveInput(WorldDir, Right, Forward);
+		if (Traversal->IsBusy())
+		{
+			return;
+		}
+	}
 	Super::DoMove(Right, Forward);
 }
 
 void ALSPlayerCharacter::DoJumpStart()
 {
 	UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (Traversal && Traversal->Jump())
+	{
+		return;
+	}
 	if (Glider && Glider->IsGliding())
 	{
 		Glider->Stow();
@@ -227,6 +243,11 @@ void ALSPlayerCharacter::StopSprint()
 
 void ALSPlayerCharacter::ToggleWalk()
 {
+	if (Traversal && Traversal->IsBusy())
+	{
+		Traversal->Drop();
+		return;
+	}
 	if (Glider && Glider->IsGliding())
 	{
 		return;
@@ -237,6 +258,11 @@ void ALSPlayerCharacter::ToggleWalk()
 
 void ALSPlayerCharacter::AirBrakePressed()
 {
+	if (Traversal && Traversal->IsBusy())
+	{
+		Traversal->Drop();
+		return;
+	}
 	if (Glider) { Glider->SetAirBrake(true); }
 }
 
