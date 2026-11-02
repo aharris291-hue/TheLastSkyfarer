@@ -12,6 +12,8 @@ Adam moved The Last Skyfarer from the 2D Godot demo to a 3D game in Unreal Engin
 - Stopped the earlier Firefly/Blender test work for the 2D build before anything was committed.
 - Commit 7606874 holds 851 files, 753 of them in LFS (about 140 MB).
 - Adam approved all Open Decision recommendations ("go"); see docs/unreal/DECISION_LOG.md. Source PDFs copied to docs/source/.
+- Later on 2026-11-02: the .NET Framework SDK was installed and the project compiles and opens. Enabled the Unreal MCP and EditorToolset plugins and registered the MCP server with Claude Code on Adam's PC; a read-only actor query works (commit b9be051). Another, empty project (Documents\Unreal Projects\TheLastSkyfarer) had an editor open whose Live Coding blocked builds; it was force-closed after a save prompt did not resolve, losing only an unsaved untitled level. A config backup zip was kept.
+- Drafted Bible sections 26-32 (D-20), the Phase 2 style guide, technical plan and Firefly prompt batch 1.
 
 ## 2026-10-31 (visual fixes after Adam's first playtest)
 

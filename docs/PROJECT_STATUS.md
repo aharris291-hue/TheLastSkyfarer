@@ -8,11 +8,11 @@
 |---|---|---|
 | Phase 1: Canon Summary, Conflicts and Gaps, Open Decisions | Decisions approved 2026-11-02 (see docs/unreal/DECISION_LOG.md); GDD, chapter breakdown, world map and slice definition drafted in docs/unreal/ for review | Adam |
 | Empty C++ project `Unreal/LastSkyfarer.uproject` (Third Person template, UE 5.8.4) | Created and pushed | Project files generated on Adam's PC |
-| C++ compile | **Blocked**: the PC needs the .NET Framework 4.8.1 SDK and targeting pack (Visual Studio Installer) | Build log (RulesError, NetFxSDK not found) |
-| Editor opens the project | Not tested (needs the compile) | |
+| C++ compile | Done (Win64 Development Editor) | Build log on Adam's PC |
+| Editor opens the project | Done (Third Person level loads) | Editor on Adam's PC |
 | Git LFS rules and `Unreal/.gitignore` | Done (753 LFS files, about 140 MB) | Push succeeded |
 | ElevenLabs connection | Works (voice list read, no audio generated) | Tool call |
-| Unreal MCP connection | Not configured on the PC yet | |
+| Unreal MCP connection | Works: UE 5.8 Unreal MCP + EditorToolset plugins, registered as "unreal" (commit b9be051) | Read-only actor search returned 72 actors |
 | Levels, gameplay, art, audio | Not started; waits for Phase 1 approval | |
 
 Known issues: the Bible PDF (now in `docs/source/`) stops in section 26.
