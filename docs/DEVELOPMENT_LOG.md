@@ -1,5 +1,16 @@
 # Development Log
 
+## 2026-11-02 (change of direction: Unreal Engine 5.8, 3D)
+
+Adam moved The Last Skyfarer from the 2D Godot demo to a 3D game in Unreal Engine 5.8. `docs/UNREAL_PRODUCTION_PROMPT.md` is now the production brief, and the Godot demo is archived reference (its dialogue, quests, layout and lessons are reused; its code and sprites are not).
+
+- Created `Unreal/LastSkyfarer.uproject` from the UE 5.8.4 Third Person C++ template. The template's classes were renamed to LastSkyfarer, with redirects so the template's assets still find them. Added `Unreal/.gitignore`.
+- Added Git LFS rules for `*.uasset`, `*.umap`, `*.fbx`, `*.wav`, `*.png`, `*.tga`, `*.exr`, `*.psd` and `*.blend`. Existing PNGs already in Git stay as normal blobs; history was not rewritten.
+- Generating project files works. The first C++ build stops because this PC has no .NET Framework SDK; it needs the .NET Framework 4.8.1 SDK from Visual Studio Installer.
+- Checked connections: ElevenLabs works (voices, Voice Design, TTS, sound effects, music). The Unreal MCP is not connected yet; UE 5.8 includes an experimental Unreal MCP plugin that still needs enabling and registering.
+- Phase 1 started: Canon Summary, Open Decisions and Decision Log in `docs/unreal/`. The Master Project Bible PDF on file is truncated at section 26.
+- Stopped the earlier Firefly/Blender test work for the 2D build before anything was committed.
+
 ## 2026-10-31 (visual fixes after Adam's first playtest)
 
 Adam reported blurry, faded sprites, Kieran's feet vanishing on jump, seams in the scenery, static backgrounds and glitchy NPCs. Causes and fixes:
