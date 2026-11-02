@@ -48,6 +48,7 @@ The glider is the heart of the game. It is deployed by pressing Jump in the air 
 - Neutral glide: the glider sinks 1.6 m/s at a trim speed of 14 m/s.
 - Pitch down (stick forward) trades height for speed: up to 32 m/s in a dive.
 - Pitch up trades speed for height: about 70% of the kinetic energy converts back, so a dive and pull-up never gains net height.
+- Tuning (D-24): gentle drag and a 90°/s pitch response. A full dive from trim and pull-up regains about 22 m of the 42 m lost; drag and the turn out of the dive take the rest.
 - Below 7 m/s the glider stalls: it noses down until speed returns. There is no crash.
 - Turning: bank with left/right. Turn rate falls as speed rises, so tight turns need slow flight.
 - Air brake (Ctrl/B held): lose 6 m/s per second, for precision landings.

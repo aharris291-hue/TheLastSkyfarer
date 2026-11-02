@@ -28,4 +28,5 @@ Every resolved Open Decision, who approved it and when. Proposals live in [OPEN_
 | D-20 | No fuller Bible exists; Claude reconstructs sections 26-32 from existing material (BIBLE_SECTIONS_26-32.md), adding no new lore | Adam | 2026-11-02 |
 | D-22 | World map: the unlabelled teal cluster north-east of Brindle is the Mistreef Archipelago; Veilmist is the red-circled island east of Brindle | Adam | 2026-11-02 |
 | D-23 | Claude may close the other open Unreal Editor (Documents\Unreal Projects\TheLastSkyfarer); a backup is kept and the project is not deleted | Adam | 2026-11-02 |
+| D-24 | Glider tuning: softer drag and 90°/s pitch response so a dive and pull-up returns about 22 of 42 m (trim 14 m/s and sink 1.6 m/s unchanged) | Adam ("go") | 2026-11-02 |
 Also approved with "go": copy the source PDFs into `docs/source/`, and register the UE 5.8 Unreal MCP plugin with Claude Code once the project compiles.
