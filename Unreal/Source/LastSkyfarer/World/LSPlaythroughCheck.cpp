@@ -224,7 +224,7 @@ void ALSPlaythroughCheck::Tick(float DeltaSeconds)
 			ALSTimeOfDayDirector* Director = nullptr;
 			for (TActorIterator<ALSTimeOfDayDirector> It(GetWorld()); It; ++It) { Director = *It; }
 			ADirectionalLight* Sun = nullptr;
-			for (TActorIterator<ADirectionalLight> It(GetWorld()); It; ++It) { Sun = *It; }
+			for (TActorIterator<ADirectionalLight> It(GetWorld()); It; ++It) { if (It->GetOwner() != Director) { Sun = *It; break; } }
 			const FLSTimeOfDayPreset* Preset = Director ? Director->Presets.Find(Wanted) : nullptr;
 			const bool bOk = Director && Sun && Preset && Director->GetCurrent() == Wanted
 				&& FMath::IsNearlyEqual(Sun->GetActorRotation().Pitch, Preset->SunRotation.Pitch, 1.f);

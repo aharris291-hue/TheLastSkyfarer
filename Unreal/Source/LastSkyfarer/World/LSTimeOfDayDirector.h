@@ -9,6 +9,7 @@
 class ADirectionalLight;
 class ASkyLight;
 class AExponentialHeightFog;
+class APostProcessVolume;
 
 /** One lighting preset. Colours follow the STYLE_GUIDE Act I colour script. */
 USTRUCT(BlueprintType)
@@ -24,6 +25,12 @@ struct FLSTimeOfDayPreset
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") float SkyIntensity = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") FLinearColor FogColor = FLinearColor(0.6f, 0.7f, 0.85f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") float FogDensity = 0.01f;
+	/** Moonlight (a second directional light the director spawns). Lux; 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") float MoonIntensity = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") FRotator MoonRotation = FRotator(-40.f, 200.f, 0.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") FLinearColor MoonColor = FLinearColor(0.55f, 0.66f, 1.f);
+	/** Auto-exposure bias (stops). Negative keeps night dark instead of auto-brightening it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time of day") float ExposureBias = 0.f;
 };
 
 /**
@@ -61,6 +68,8 @@ private:
 	TWeakObjectPtr<ADirectionalLight> Sun;
 	TWeakObjectPtr<ASkyLight> Sky;
 	TWeakObjectPtr<AExponentialHeightFog> Fog;
+	UPROPERTY() TObjectPtr<ADirectionalLight> Moon;
+	UPROPERTY() TObjectPtr<APostProcessVolume> Exposure;
 	FName Current;
 	FLSTimeOfDayPreset From;
 	FLSTimeOfDayPreset To;
