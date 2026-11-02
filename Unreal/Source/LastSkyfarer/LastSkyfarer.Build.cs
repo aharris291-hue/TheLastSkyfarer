@@ -18,13 +18,16 @@ public class LastSkyfarer : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"Json",
+			"JsonUtilities"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"LastSkyfarer",
+			"LastSkyfarer/Narrative",
 			"LastSkyfarer/Variant_Platforming",
 			"LastSkyfarer/Variant_Platforming/Animation",
 			"LastSkyfarer/Variant_Combat",
