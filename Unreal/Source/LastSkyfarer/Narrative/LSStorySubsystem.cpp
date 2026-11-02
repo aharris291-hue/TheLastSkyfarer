@@ -379,6 +379,24 @@ void ULSStorySubsystem::DiscoverLocation(FName Location)
 	}
 }
 
+ELSMapKnowledge ULSStorySubsystem::GetMapKnowledge(FName Location) const
+{
+	if (State.Discovered.Contains(Location)) return ELSMapKnowledge::Known;
+	if (HasFlag(FName(*FString::Printf(TEXT("heard_%s"), *Location.ToString())))) return ELSMapKnowledge::Rumoured;
+	return ELSMapKnowledge::Unknown;
+}
+
+void ULSStorySubsystem::AddMapPin(const FVector& WorldLocation)
+{
+	if (State.MapPins.Num() >= MaxMapPins) State.MapPins.RemoveAt(0);
+	State.MapPins.Add(WorldLocation);
+}
+
+void ULSStorySubsystem::RemoveMapPin(int32 Index)
+{
+	if (State.MapPins.IsValidIndex(Index)) State.MapPins.RemoveAt(Index);
+}
+
 void ULSStorySubsystem::SetTimeOfDay(FName TimeOfDay)
 {
 	if (State.TimeOfDay == TimeOfDay) return;

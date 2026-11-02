@@ -85,6 +85,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Story") void AddJournal(FName Entry);
 	UFUNCTION(BlueprintPure, Category = "Story") bool HasJournal(FName Entry) const { return State.Journal.Contains(Entry); }
 	UFUNCTION(BlueprintCallable, Category = "Story") void DiscoverLocation(FName Location);
+	/** Known if discovered, Rumoured if the flag heard_<id> is set, otherwise Unknown. */
+	UFUNCTION(BlueprintPure, Category = "Story") ELSMapKnowledge GetMapKnowledge(FName Location) const;
+
+	static constexpr int32 MaxMapPins = 3;
+	/** Adds a pin; when all 3 are used, the oldest is replaced. */
+	UFUNCTION(BlueprintCallable, Category = "Map") void AddMapPin(const FVector& WorldLocation);
+	UFUNCTION(BlueprintCallable, Category = "Map") void RemoveMapPin(int32 Index);
+	UFUNCTION(BlueprintPure, Category = "Map") const TArray<FVector>& GetMapPins() const { return State.MapPins; }
 	UFUNCTION(BlueprintCallable, Category = "Story") void SetTimeOfDay(FName TimeOfDay);
 	UFUNCTION(BlueprintPure, Category = "Story") FName GetTimeOfDay() const { return State.TimeOfDay; }
 	UFUNCTION(BlueprintCallable, Category = "Story") void SetChapter(int32 Chapter);

@@ -24,6 +24,15 @@ enum class ELSActionType : uint8
 	Sfx
 };
 
+/** How a place appears on the map (GDD 9). */
+UENUM(BlueprintType)
+enum class ELSMapKnowledge : uint8
+{
+	Unknown,	// blank or drawn cloud
+	Rumoured,	// pencilled with a question mark (flag heard_<id>)
+	Known		// inked (discovered)
+};
+
 UENUM(BlueprintType)
 enum class ELSQuestState : uint8
 {
@@ -383,4 +392,6 @@ struct FLSStorySaveData
 	UPROPERTY(SaveGame, BlueprintReadOnly, Category = "Save") float PlaytimeSeconds = 0.f;
 	UPROPERTY(SaveGame, BlueprintReadOnly, Category = "Save") FName MapName;
 	UPROPERTY(SaveGame, BlueprintReadOnly, Category = "Save") FTransform PlayerTransform;
+	/** Player map pins (GDD 9: up to 3), world positions. */
+	UPROPERTY(SaveGame, BlueprintReadOnly, Category = "Save") TArray<FVector> MapPins;
 };

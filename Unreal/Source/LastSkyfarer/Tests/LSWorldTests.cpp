@@ -13,6 +13,8 @@
 #include "LSRestorationTypes.h"
 #include "LSStorySubsystem.h"
 #include "LSStoryVolumes.h"
+#include "LSMapMarkerComponent.h"
+#include "LSCompassComponent.h"
 
 namespace LSWorldTest
 {
@@ -205,6 +207,73 @@ bool FLSRingPuzzleTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("solved"), P.IsSolved());
 	P.Rotate(2, 8);
 	TestTrue(TEXT("a full turn keeps it solved"), P.IsSolved());
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLSMapLandmarkTest, "LastSkyfarer.World.Map.LandmarkKnowledge", LSWorldTest::Flags)
+bool FLSMapLandmarkTest::RunTest(const FString& Parameters)
+{
+	using namespace LSWorldTest;
+	ULSStorySubsystem* Story = MakeStory(*this);
+	ULSMapMarkerComponent* M = NewObject<ULSMapMarkerComponent>(GetTransientPackage());
+	M->Kind = ELSMapMarkerKind::Landmark;
+	M->LocationId = TEXT("windrest");
+	FLSMapMarkerView View;
+
+	TestFalse(TEXT("unknown places are not drawn"), M->Evaluate(*Story, View));
+	Story->SetFlag(TEXT("heard_windrest"));
+	TestTrue(TEXT("heard of: drawn"), M->Evaluate(*Story, View));
+	TestTrue(TEXT("heard of: pencilled"), View.Knowledge == ELSMapKnowledge::Rumoured);
+	Story->DiscoverLocation(TEXT("windrest"));
+	M->Evaluate(*Story, View);
+	TestTrue(TEXT("discovered: inked"), View.Knowledge == ELSMapKnowledge::Known);
+	TestEqual(TEXT("label from Locations.json"), View.Label.ToString(), FString(TEXT("Windrest Village")));
+	return !HasAnyErrors();
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FLSCompassTest, "LastSkyfarer.World.Map.CompassTarget", LSWorldTest::Flags)
+bool FLSCompassTest::RunTest(const FString& Parameters)
+{
+	using namespace LSWorldTest;
+	ULSStorySubsystem* Story = MakeStory(*this);
+	ULSMapSubsystem* Map = NewObject<ULSMapSubsystem>(GetTransientPackage());
+
+	ULSMapMarkerComponent* Report = NewObject<ULSMapMarkerComponent>(GetTransientPackage());
+	Report->Kind = ELSMapMarkerKind::Objective;
+	Report->QuestId = TEXT("morning_deliveries");
+	Report->ObjectiveId = TEXT("report");
+	Report->SetWorldLocation(FVector(1000, 0, 0));
+	Map->Register(Report);
+
+	ULSMapMarkerComponent* Tavern = NewObject<ULSMapMarkerComponent>(GetTransientPackage());
+	Tavern->Kind = ELSMapMarkerKind::Objective;
+	Tavern->QuestId = TEXT("morning_deliveries");
+	Tavern->ObjectiveId = TEXT("tavern");
+	Tavern->SetWorldLocation(FVector(0, 500, 0));
+	Map->Register(Tavern);
+
+	FLSCompassReading R = ULSCompassComponent::Read(*Story, Map, nullptr, FVector::ZeroVector, FVector::ForwardVector, 15000.f);
+	TestFalse(TEXT("no quest: needle spins"), R.bHasTarget);
+
+	Story->StartQuest(TEXT("morning_deliveries"));
+	R = ULSCompassComponent::Read(*Story, Map, nullptr, FVector::ZeroVector, FVector(0, 1, 0), 15000.f);
+	TestTrue(TEXT("points at the open objective"), R.bHasTarget && R.Target.Equals(FVector(1000, 0, 0)));
+	TestTrue(TEXT("hidden objective ignored"), Map->GetVisibleMarkers(*Story).Num() == 1);
+	TestTrue(TEXT("target is 90 degrees to the right when facing +Y"), FMath::IsNearlyEqual(R.RelativeYaw, -90.f, 0.5f));
+
+	Story->AdvanceObjective(TEXT("morning_deliveries"), TEXT("report"));
+	R = ULSCompassComponent::Read(*Story, Map, nullptr, FVector::ZeroVector, FVector::ForwardVector, 15000.f);
+	TestTrue(TEXT("moves on to the next objective"), R.bHasTarget && R.Target.Equals(FVector(0, 500, 0)));
+
+	Story->AdvanceObjective(TEXT("morning_deliveries"), TEXT("tavern"));
+	Story->AddMapPin(FVector(1, 1, 1));
+	Story->AddMapPin(FVector(2, 2, 2));
+	Story->AddMapPin(FVector(3, 3, 3));
+	Story->AddMapPin(FVector(4, 4, 4));
+	TestEqual(TEXT("at most 3 pins"), Story->GetMapPins().Num(), 3);
+	TestTrue(TEXT("oldest pin replaced"), Story->GetMapPins()[0].Equals(FVector(2, 2, 2)));
+	R = ULSCompassComponent::Read(*Story, Map, nullptr, FVector::ZeroVector, FVector::ForwardVector, 15000.f);
+	TestTrue(TEXT("falls back to the newest pin"), R.bHasTarget && R.Target.Equals(FVector(4, 4, 4)));
 	return !HasAnyErrors();
 }
 
