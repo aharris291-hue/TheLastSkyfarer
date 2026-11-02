@@ -10,6 +10,8 @@ Adam moved The Last Skyfarer from the 2D Godot demo to a 3D game in Unreal Engin
 - Checked connections: ElevenLabs works (voices, Voice Design, TTS, sound effects, music). The Unreal MCP is not connected yet; UE 5.8 includes an experimental Unreal MCP plugin that still needs enabling and registering.
 - Phase 1 started: Canon Summary, Open Decisions and Decision Log in `docs/unreal/`. The Master Project Bible PDF on file is truncated at section 26.
 - Stopped the earlier Firefly/Blender test work for the 2D build before anything was committed.
+- Commit 7606874 holds 851 files, 753 of them in LFS (about 140 MB).
+- Adam approved all Open Decision recommendations ("go"); see docs/unreal/DECISION_LOG.md. Source PDFs copied to docs/source/.
 
 ## 2026-10-31 (visual fixes after Adam's first playtest)
 
@@ -38,12 +40,3 @@ Adam reported blurry, faded sprites, Kieran's feet vanishing on jump, seams in t
   - First Skywatch step was 236 px against a 224 px maximum jump; added a crate step.
   - Prompt panel too tall; journal and title labels wrapped one word per line; fixed.
 - Exported Windows build. Test suite at 331/331.
-
-## 2026-11-02: switch to Unreal Engine 5.8
-
-- Adam moved the project to 3D in Unreal Engine 5.8. The Godot demo is archived as reference; no Godot files were changed.
-- Read the production brief and both source PDFs. The Bible PDF ends mid-sentence in section 26, so sections 26 to 32 are missing. Asked Adam for a complete copy.
-- Delivered the Phase 1 Canon Summary, a Conflicts and Gaps list (12 items) and 12 Open Decisions with recommendations, as a Claude Doc for Adam's approval.
-- Created the empty `Unreal/LastSkyfarer` C++ project (Third Person template, UE 5.8.4) on Adam's PC. Added `Unreal/.gitignore` and Git LFS rules for uasset, umap, fbx, wav, png, tga, exr, psd and blend. Commit 7606874 holds 851 files, 753 of them in LFS (about 140 MB).
-- The first C++ compile failed before any code built: no .NET Framework SDK on the PC. Adam needs to add the .NET Framework 4.8.1 SDK and targeting pack in Visual Studio Installer.
-- ElevenLabs connection checked (voice list only, no credits used). The Unreal MCP is not configured on the PC yet.

@@ -6,7 +6,7 @@
 
 | Area | State | Verified by |
 |---|---|---|
-| Phase 1: Canon Summary, Conflicts and Gaps, 12 Open Decisions | Delivered, awaiting Adam's approval | Review by Adam |
+| Phase 1: Canon Summary, Conflicts and Gaps, Open Decisions | Decisions approved 2026-11-02 (see docs/unreal/DECISION_LOG.md); GDD, chapter breakdown, world map and slice definition in progress | Adam |
 | Empty C++ project `Unreal/LastSkyfarer.uproject` (Third Person template, UE 5.8.4) | Created and pushed | Project files generated on Adam's PC |
 | C++ compile | **Blocked**: the PC needs the .NET Framework 4.8.1 SDK and targeting pack (Visual Studio Installer) | Build log (RulesError, NetFxSDK not found) |
 | Editor opens the project | Not tested (needs the compile) | |
@@ -15,7 +15,7 @@
 | Unreal MCP connection | Not configured on the PC yet | |
 | Levels, gameplay, art, audio | Not started; waits for Phase 1 approval | |
 
-Known issues: the Bible PDF in the project files stops in section 26, and `docs/source/` does not exist yet.
+Known issues: the Bible PDF (now in `docs/source/`) stops in section 26.
 
 ---
 
