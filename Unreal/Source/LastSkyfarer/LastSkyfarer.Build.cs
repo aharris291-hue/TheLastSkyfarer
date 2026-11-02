@@ -28,6 +28,9 @@ public class LastSkyfarer : ModuleRules
 		PublicIncludePaths.AddRange(new string[] {
 			"LastSkyfarer",
 			"LastSkyfarer/Narrative",
+			"LastSkyfarer/Player",
+			"LastSkyfarer/World",
+			"LastSkyfarer/Companion",
 			"LastSkyfarer/Variant_Platforming",
 			"LastSkyfarer/Variant_Platforming/Animation",
 			"LastSkyfarer/Variant_Combat",
