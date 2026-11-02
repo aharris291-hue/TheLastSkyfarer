@@ -6,6 +6,8 @@ A 2D fantasy adventure in Godot 4.3. This branch holds the **Windrest Village pl
 - Tests: `godot --headless --path . res://tests/test_runner.tscn`
 - Export: `godot --headless --export-release "Windows Desktop" builds/windows/TheLastSkyfarer.exe`
 
+**Unreal Engine 5.8 version:** the AI production prompt is in [docs/UNREAL_PRODUCTION_PROMPT.md](docs/UNREAL_PRODUCTION_PROMPT.md).
+
 Start with [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) and [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md).
 
 Controls: A/D or arrows move, Shift run, Space jump (hold in the air to glide once you have the glider), E interact, J journal, M map, Esc pause. Xbox-style controllers are supported and every control can be remapped in Settings.
