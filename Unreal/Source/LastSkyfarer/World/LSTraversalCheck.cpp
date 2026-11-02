@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "LSPlayerCharacter.h"
 #include "LSTraversalComponent.h"
+#include "LSStorySubsystem.h"
 
 namespace
 {
@@ -108,7 +109,16 @@ void ALSTraversalCheck::Tick(float DeltaSeconds)
 
 	switch (Step)
 	{
-	case 0: // settle
+	case 0: // settle, and click through any story dialogue (it blocks movement)
+		if (ULSStorySubsystem* Story = ULSStorySubsystem::Get(this))
+		{
+			if (Story->IsInDialogue())
+			{
+				Story->AdvanceDialogue();
+				StepTime = 0.f;
+				break;
+			}
+		}
 		if (StepTime > 1.f) { Place(MantleLane + FVector(-150.f, 0.f, 0.f)); NextStep(); }
 		break;
 	case 1: // walk into a 1.2 m block, then stop on top

@@ -10,6 +10,9 @@
 #include "HAL/FileManager.h"
 #include "LSPlayerCharacter.h"
 #include "LSTraversalCheck.h"
+#include "LSPlaythroughCheck.h"
+#include "LSHUD.h"
+#include "LSTimeOfDayDirector.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -22,6 +25,7 @@ ALSTestGameMode::ALSTestGameMode()
 {
 	DefaultPawnClass = ALSPlayerCharacter::StaticClass();
 	PikoClass = APikoCompanion::StaticClass();
+	HUDClass = ALSHUD::StaticClass();
 
 	// The template controller Blueprint adds the default input mapping contexts.
 	static ConstructorHelpers::FClassFinder<APlayerController> PC(TEXT("/Game/ThirdPerson/Blueprints/BP_ThirdPersonPlayerController"));
@@ -49,6 +53,11 @@ void ALSTestGameMode::RestartPlayer(AController* NewPlayer)
 void ALSTestGameMode::StartPlay()
 {
 	Super::StartPlay();
+	GetWorld()->SpawnActor<ALSTimeOfDayDirector>();
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSPlaythrough")))
+	{
+		GetWorld()->SpawnActor<ALSPlaythroughCheck>();
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("LSTraversalCheck")))
 	{
 		GetWorld()->SpawnActor<ALSTraversalCheck>();

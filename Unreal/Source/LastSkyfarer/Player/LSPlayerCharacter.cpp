@@ -16,6 +16,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GliderComponent.h"
 #include "LSTraversalComponent.h"
+#include "LSHUD.h"
+#include "LSInteractorComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "UObject/ConstructorHelpers.h"
@@ -26,6 +28,7 @@ ALSPlayerCharacter::ALSPlayerCharacter()
 
 	Glider = CreateDefaultSubobject<UGliderComponent>(TEXT("Glider"));
 	Traversal = CreateDefaultSubobject<ULSTraversalComponent>(TEXT("Traversal"));
+	Interactor = CreateDefaultSubobject<ULSInteractorComponent>(TEXT("Interactor"));
 
 	// Template input actions and placeholder mannequin, so the class works without a Blueprint child.
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveIA(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
@@ -76,15 +79,20 @@ void ALSPlayerCharacter::BeginPlay()
 
 void ALSPlayerCharacter::EnsureExtraInput()
 {
-	auto MakeAction = [this](const TCHAR* Name) -> UInputAction*
+	auto MakeAction = [this](const TCHAR* Name, bool bWhenPaused = false) -> UInputAction*
 	{
 		UInputAction* A = NewObject<UInputAction>(this, Name);
 		A->ValueType = EInputActionValueType::Boolean;
+		A->bTriggerWhenPaused = bWhenPaused;
 		return A;
 	};
 	if (!SprintAction) { SprintAction = MakeAction(TEXT("IA_Sprint_Runtime")); }
 	if (!WalkToggleAction) { WalkToggleAction = MakeAction(TEXT("IA_WalkToggle_Runtime")); }
 	if (!AirBrakeAction) { AirBrakeAction = MakeAction(TEXT("IA_AirBrake_Runtime")); }
+	if (!InteractAction) { InteractAction = MakeAction(TEXT("IA_Interact_Runtime")); }
+	if (!JournalAction) { JournalAction = MakeAction(TEXT("IA_Journal_Runtime"), true); }
+	if (!PauseAction) { PauseAction = MakeAction(TEXT("IA_Pause_Runtime"), true); }
+	if (!PeekObjectiveAction) { PeekObjectiveAction = MakeAction(TEXT("IA_PeekObjective_Runtime")); }
 
 	if (!ExtraMappingContext)
 	{
@@ -94,6 +102,15 @@ void ALSPlayerCharacter::EnsureExtraInput()
 		ExtraMappingContext->MapKey(WalkToggleAction, EKeys::LeftControl);
 		ExtraMappingContext->MapKey(AirBrakeAction, EKeys::LeftControl);
 		ExtraMappingContext->MapKey(AirBrakeAction, EKeys::Gamepad_FaceButton_Right);
+		ExtraMappingContext->MapKey(InteractAction, EKeys::E);
+		ExtraMappingContext->MapKey(InteractAction, EKeys::Gamepad_FaceButton_Left);
+		ExtraMappingContext->MapKey(JournalAction, EKeys::J);
+		ExtraMappingContext->MapKey(JournalAction, EKeys::Gamepad_Special_Left);
+		ExtraMappingContext->MapKey(PauseAction, EKeys::Escape);
+		ExtraMappingContext->MapKey(PauseAction, EKeys::P);
+		ExtraMappingContext->MapKey(PauseAction, EKeys::Gamepad_Special_Right);
+		ExtraMappingContext->MapKey(PeekObjectiveAction, EKeys::T);
+		ExtraMappingContext->MapKey(PeekObjectiveAction, EKeys::Gamepad_DPad_Down);
 	}
 }
 
@@ -132,6 +149,10 @@ void ALSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(WalkToggleAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::ToggleWalk);
 		EIC->BindAction(AirBrakeAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::AirBrakePressed);
 		EIC->BindAction(AirBrakeAction, ETriggerEvent::Completed, this, &ALSPlayerCharacter::AirBrakeReleased);
+		EIC->BindAction(InteractAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::InteractPressed);
+		EIC->BindAction(JournalAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::JournalPressed);
+		EIC->BindAction(PauseAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::PausePressed);
+		EIC->BindAction(PeekObjectiveAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::PeekPressed);
 	}
 }
 
@@ -269,6 +290,43 @@ void ALSPlayerCharacter::AirBrakePressed()
 void ALSPlayerCharacter::AirBrakeReleased()
 {
 	if (Glider) { Glider->SetAirBrake(false); }
+}
+
+namespace
+{
+	ALSHUD* GetLSHUD(const APawn* Pawn)
+	{
+		const APlayerController* PC = Cast<APlayerController>(Pawn->GetController());
+		return PC ? Cast<ALSHUD>(PC->GetHUD()) : nullptr;
+	}
+}
+
+void ALSPlayerCharacter::InteractPressed()
+{
+	const ALSHUD* HUD = GetLSHUD(this);
+	if (HUD && (HUD->IsJournalOpen() || HUD->IsPauseOpen()))
+	{
+		return;
+	}
+	if (Interactor)
+	{
+		Interactor->Interact();
+	}
+}
+
+void ALSPlayerCharacter::JournalPressed()
+{
+	if (ALSHUD* HUD = GetLSHUD(this)) { HUD->ToggleJournal(); }
+}
+
+void ALSPlayerCharacter::PausePressed()
+{
+	if (ALSHUD* HUD = GetLSHUD(this)) { HUD->TogglePause(); }
+}
+
+void ALSPlayerCharacter::PeekPressed()
+{
+	if (ALSHUD* HUD = GetLSHUD(this)) { HUD->PeekTracker(); }
 }
 
 void ALSPlayerCharacter::UpdateSpeed()

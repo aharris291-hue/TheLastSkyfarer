@@ -23,7 +23,7 @@ public class LastSkyfarer : ModuleRules
 			"JsonUtilities"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] { "SlateCore" });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"LastSkyfarer",
@@ -33,6 +33,7 @@ public class LastSkyfarer : ModuleRules
 			"LastSkyfarer/World/Interaction",
 			"LastSkyfarer/World/Restoration",
 			"LastSkyfarer/Companion",
+			"LastSkyfarer/UI",
 			"LastSkyfarer/Variant_Platforming",
 			"LastSkyfarer/Variant_Platforming/Animation",
 			"LastSkyfarer/Variant_Combat",

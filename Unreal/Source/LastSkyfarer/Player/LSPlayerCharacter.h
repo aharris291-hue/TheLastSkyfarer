@@ -9,6 +9,7 @@
 
 class UGliderComponent;
 class ULSTraversalComponent;
+class ULSInteractorComponent;
 class UInputAction;
 class UInputMappingContext;
 
@@ -29,6 +30,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Traversal")
 	TObjectPtr<ULSTraversalComponent> Traversal;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<ULSInteractorComponent> Interactor;
 
 	// Movement (cm/s). GDD 1: walk 1.8, run 4.5, sprint 6.5 m/s.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -92,6 +96,18 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> AirBrakeAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> InteractAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> JournalAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> PauseAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> PeekObjectiveAction;
+
 	UFUNCTION(BlueprintCallable, Category = "Recovery")
 	void RecoverToSafePoint();
 
@@ -135,6 +151,10 @@ private:
 	void ToggleWalk();
 	void AirBrakePressed();
 	void AirBrakeReleased();
+	void InteractPressed();
+	void JournalPressed();
+	void PausePressed();
+	void PeekPressed();
 	void UpdateSpeed();
 	void UpdateCamera(float DeltaSeconds);
 	double Now() const;
