@@ -25,6 +25,7 @@ Every resolved Open Decision, who approved it and when. Proposals live in [OPEN_
 | D-18 | Elias Was Here in two parts: Brindle notes (Milestone A), Veilmist camp (Milestone B) | Adam ("go", approving all recommendations) | 2026-11-02 |
 | D-19 | Cassian line variants as recommended (Act II+) | Adam ("go", approving all recommendations) | 2026-11-02 |
 | D-21 | Milestone A time of day driven by story beats: morning, sunset, night | Adam ("go", approving all recommendations) | 2026-11-02 |
-
-Still open: **D-20**, the missing Bible sections 27 to 32. Adam was asked for the full PDF.
+| D-20 | No fuller Bible exists; Claude reconstructs sections 26-32 from existing material (BIBLE_SECTIONS_26-32.md), adding no new lore | Adam | 2026-11-02 |
+| D-22 | World map: the unlabelled teal cluster north-east of Brindle is the Mistreef Archipelago; Veilmist is the red-circled island east of Brindle | Adam | 2026-11-02 |
+| D-23 | Claude may close the other open Unreal Editor (Documents\Unreal Projects\TheLastSkyfarer); a backup is kept and the project is not deleted | Adam | 2026-11-02 |
 Also approved with "go": copy the source PDFs into `docs/source/`, and register the UE 5.8 Unreal MCP plugin with Claude Code once the project compiles.

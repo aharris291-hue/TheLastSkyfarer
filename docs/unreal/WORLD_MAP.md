@@ -34,6 +34,6 @@ Source: [world_map.svg](world_map.svg) (editable). Built from Adam's "The Last S
 
 Adam's map draws the Storm Wall on the east side, and the Skyfarer recording on Veilmist shows a route that runs "through the Storm Wall". Placing Veilmist east of Brindle makes that route point straight at the Lost Continent.
 
-## Questions for Adam
+## Confirmed
 
-- Adam's map shows a teal island cluster north-east of Brindle with no label. This draft treats it as the northern part of the **Mistreef Archipelago**, with Veilmist as its fog-hidden southern island (the red-circled "unexplored, no records" island on the map). The map's "Mistreef Archipelago" note sits on the west side next to Azure. Is the label meant for the west cluster instead?
+Adam confirmed on 2026-11-02 (D-22): the teal cluster north-east of Brindle is the Mistreef Archipelago, and Veilmist is the island circled in red east of Brindle.
