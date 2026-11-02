@@ -3,6 +3,7 @@
 #include "LSTestGameMode.h"
 
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GliderComponent.h"
@@ -74,6 +75,19 @@ void ALSTestGameMode::BeginScriptedGlide()
 
 void ALSTestGameMode::TakeShot()
 {
+	if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (const ALSPlayerCharacter* Kieran = Cast<ALSPlayerCharacter>(PC->GetPawn()))
+		{
+			UE_LOG(LogTemp, Display, TEXT("LS_SHOT Kieran at %s, gliding=%d, airspeed=%.1f m/s, path=%.1f deg, velocity=%s"),
+				*Kieran->GetActorLocation().ToCompactString(), Kieran->Glider->IsGliding() ? 1 : 0,
+				Kieran->Glider->GetAirspeed(), Kieran->Glider->GetState().PathAngle, *Kieran->GetVelocity().ToCompactString());
+		}
+	}
+	for (TActorIterator<APikoCompanion> It(GetWorld()); It; ++It)
+	{
+		UE_LOG(LogTemp, Display, TEXT("LS_SHOT Piko at %s, glow=%.2f"), *It->GetActorLocation().ToCompactString(), It->MarkingGlow);
+	}
 	const FString Dir = FPaths::ProjectSavedDir() / TEXT("Screenshots");
 	IFileManager::Get().MakeDirectory(*Dir, true);
 	FScreenshotRequest::RequestScreenshot(Dir / TEXT("L_SystemsTest_glide.png"), false, false);
