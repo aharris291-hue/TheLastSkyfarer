@@ -1,13 +1,17 @@
 # The Last Skyfarer
 
-A 2D fantasy adventure in Godot 4.3. This branch holds the **Windrest Village playable demo** (version 0.1.0-demo).
+A storybook fantasy adventure about Kieran Thorn, a young courier who becomes the first Skyfarer in generations.
 
-- Open the folder in Godot 4.3 and press Play, or run `builds/windows/TheLastSkyfarer.exe` after exporting.
+## Main build: Unreal Engine 5.8 (3D)
+
+- Project: [Unreal/LastSkyfarer.uproject](Unreal/LastSkyfarer.uproject), a C++ project made from the Third Person template.
+- Production brief: [docs/UNREAL_PRODUCTION_PROMPT.md](docs/UNREAL_PRODUCTION_PROMPT.md).
+- Current status: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+- Large binary files (uasset, umap, fbx, wav, png, tga, exr, psd, blend) are stored with Git LFS. Run `git lfs install` before cloning.
+
+## Archived: Godot 4.3 demo (2D, reference only)
+
+The original Windrest Village demo (version 0.1.0-demo) stays in the repo untouched as a reference for dialogue, quests, layout and lessons learned. Its files are `project.godot`, `scenes/`, `scripts/`, `data/`, `assets/`, `art_source/`, `tests/`, `builds/`, `tools/` and `export_presets.cfg`.
+
+- Open the root folder in Godot 4.3 and press Play.
 - Tests: `godot --headless --path . res://tests/test_runner.tscn`
-- Export: `godot --headless --export-release "Windows Desktop" builds/windows/TheLastSkyfarer.exe`
-
-**Unreal Engine 5.8 version:** the AI production prompt is in [docs/UNREAL_PRODUCTION_PROMPT.md](docs/UNREAL_PRODUCTION_PROMPT.md).
-
-Start with [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) and [docs/AUDIT_REPORT.md](docs/AUDIT_REPORT.md).
-
-Controls: A/D or arrows move, Shift run, Space jump (hold in the air to glide once you have the glider), E interact, J journal, M map, Esc pause. Xbox-style controllers are supported and every control can be remapped in Settings.

@@ -1,5 +1,26 @@
 # Project Status
 
+**Main build: Unreal Engine 5.8, 3D** (since 2026-11-02). The Godot 4.3 demo below is archived and kept as reference only.
+
+## Unreal 5.8 build
+
+| Area | State | Verified by |
+|---|---|---|
+| Phase 1: Canon Summary, Conflicts and Gaps, 12 Open Decisions | Delivered, awaiting Adam's approval | Review by Adam |
+| Empty C++ project `Unreal/LastSkyfarer.uproject` (Third Person template, UE 5.8.4) | Created and pushed | Project files generated on Adam's PC |
+| C++ compile | **Blocked**: the PC needs the .NET Framework 4.8.1 SDK and targeting pack (Visual Studio Installer) | Build log (RulesError, NetFxSDK not found) |
+| Editor opens the project | Not tested (needs the compile) | |
+| Git LFS rules and `Unreal/.gitignore` | Done (753 LFS files, about 140 MB) | Push succeeded |
+| ElevenLabs connection | Works (voice list read, no audio generated) | Tool call |
+| Unreal MCP connection | Not configured on the PC yet | |
+| Levels, gameplay, art, audio | Not started; waits for Phase 1 approval | |
+
+Known issues: the Bible PDF in the project files stops in section 26, and `docs/source/` does not exist yet.
+
+---
+
+# Archived: Godot demo
+
 Version: 0.1.0-demo. Engine: Godot 4.3 (GDScript, Compatibility renderer). Target: Windows PC, 1920x1080.
 
 ## Demo: Windrest Village (awaiting Adam's approval)
