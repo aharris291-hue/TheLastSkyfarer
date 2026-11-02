@@ -14,6 +14,30 @@ DEFINE_LOG_CATEGORY_STATIC(LogLSStory, Log, All);
 
 namespace
 {
+	// Save files are wrapped as [magic][payload size][CRC32][payload]. UGameplayStatics::LoadGameFromMemory
+	// does not validate its input and asserts on garbage, so a file is only handed to it after this check.
+	constexpr uint32 SaveMagic = 0x5653534C; // "LSSV"
+	constexpr int32 SaveHeaderSize = 3 * sizeof(uint32);
+
+	void WrapSave(const TArray<uint8>& Payload, TArray<uint8>& Out)
+	{
+		const uint32 Header[3] = { SaveMagic, static_cast<uint32>(Payload.Num()), FCrc::MemCrc32(Payload.GetData(), Payload.Num()) };
+		Out.Reset(SaveHeaderSize + Payload.Num());
+		Out.Append(reinterpret_cast<const uint8*>(Header), SaveHeaderSize);
+		Out.Append(Payload);
+	}
+
+	bool UnwrapSave(const TArray<uint8>& In, TArray<uint8>& OutPayload)
+	{
+		if (In.Num() < SaveHeaderSize) return false;
+		uint32 Header[3];
+		FMemory::Memcpy(Header, In.GetData(), SaveHeaderSize);
+		if (Header[0] != SaveMagic || Header[1] != static_cast<uint32>(In.Num() - SaveHeaderSize)) return false;
+		if (FCrc::MemCrc32(In.GetData() + SaveHeaderSize, Header[1]) != Header[2]) return false;
+		OutPayload = TArray<uint8>(In.GetData() + SaveHeaderSize, Header[1]);
+		return true;
+	}
+
 	bool SplitObjectiveRef(const FString& Ref, FName& OutQuest, FName& OutObjective)
 	{
 		FString Q, O;
@@ -459,12 +483,13 @@ bool ULSStorySubsystem::SaveToSlot(const FString& Slot)
 		}
 	}
 
-	TArray<uint8> Bytes;
-	if (!UGameplayStatics::SaveGameToMemory(Save, Bytes))
+	TArray<uint8> Payload, Bytes;
+	if (!UGameplayStatics::SaveGameToMemory(Save, Payload))
 	{
 		Report(TEXT("Save failed: could not serialize"));
 		return false;
 	}
+	WrapSave(Payload, Bytes);
 
 	IFileManager& FM = IFileManager::Get();
 	const FString Path = SlotPath(Slot);
@@ -494,10 +519,15 @@ bool ULSStorySubsystem::LoadFromSlot(const FString& Slot)
 	const FString Path = SlotPath(Slot);
 	for (const FString& Candidate : { Path, Path + TEXT(".bak") })
 	{
-		TArray<uint8> Bytes;
+		TArray<uint8> Bytes, Payload;
 		if (!FFileHelper::LoadFileToArray(Bytes, *Candidate, FILEREAD_Silent) || Bytes.Num() == 0) continue;
+		if (!UnwrapSave(Bytes, Payload))
+		{
+			UE_LOG(LogLSStory, Warning, TEXT("Save file %s failed its integrity check"), *Candidate);
+			continue;
+		}
 
-		ULSSaveGame* Save = Cast<ULSSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+		ULSSaveGame* Save = Cast<ULSSaveGame>(UGameplayStatics::LoadGameFromMemory(Payload));
 		if (!Save || Save->Data.Version > FLSStorySaveData::CurrentVersion)
 		{
 			UE_LOG(LogLSStory, Warning, TEXT("Save file %s is corrupt or from a newer version"), *Candidate);
