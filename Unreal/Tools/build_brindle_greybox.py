@@ -116,16 +116,25 @@ def struct_set(obj, names, value):
     raise RuntimeError("no property %s on %s" % (names, obj))
 
 
-def rule(conditions, conversation, repeat=False, set_flag=None):
+def action(kind, arg):
+    act = unreal.LSStoryAction()
+    act.set_editor_property("type", kind)
+    act.set_editor_property("arg", arg)
+    return act
+
+
+def rule(conditions, conversation, repeat=False, set_flag=None, event=None):
     r = unreal.LSInteractionRule()
     struct_set(r, ["if", "if_", "If"], conditions)
     struct_set(r, ["conversation"], conversation)
     struct_set(r, ["repeat", "b_repeat"], repeat)
+    acts = []
     if set_flag:
-        act = unreal.LSStoryAction()
-        act.set_editor_property("type", unreal.LSActionType.SET_FLAG)
-        act.set_editor_property("arg", set_flag)
-        struct_set(r, ["do", "do_", "Do"], [act])
+        acts.append(action(unreal.LSActionType.SET_FLAG, set_flag))
+    if event:
+        acts.append(action(unreal.LSActionType.EVENT, event))
+    if acts:
+        struct_set(r, ["do", "do_", "Do"], acts)
     return r
 
 
@@ -140,7 +149,7 @@ def npc(label, speaker, center, yaw, prompt, rules):
     return always_loaded(a)
 
 
-def inspect(label, center, size, prompt, rules, mesh=CUBE, folder="Story/Inspect", yaw=0.0):
+def inspect(label, center, size, prompt, rules, mesh=CUBE, folder="Story/Inspect", yaw=0.0, available_if=None):
     a = actors.spawn_actor_from_class(unreal.LSInspectable, v(*center), rot(yaw=yaw))
     a.set_actor_label(label)
     a.set_folder_path(folder)
@@ -149,7 +158,25 @@ def inspect(label, center, size, prompt, rules, mesh=CUBE, folder="Story/Inspect
     talk = a.get_editor_property("interactable")
     talk.set_editor_property("prompt", unreal.Text(prompt))
     talk.set_editor_property("rules", rules)
+    if available_if:
+        talk.set_editor_property("available_if", available_if)
     return always_loaded(a)
+
+
+def lamp(label, center, radius=12.0, folder="Greybox/Workshop"):
+    a = actors.spawn_actor_from_class(unreal.PointLight, v(*center), rot())
+    a.set_actor_label(label)
+    a.set_folder_path(folder)
+    a.root_component.set_mobility(unreal.ComponentMobility.MOVABLE)
+    light = a.light_component
+    light.set_light_color(unreal.LinearColor(1.0, 0.68, 0.38, 1.0))
+    light.set_intensity(40.0)
+    light.set_attenuation_radius(radius * M)
+    return always_loaded(a)
+
+
+def transform(center, yaw=0.0):
+    return unreal.Transform(location=v(*center), rotation=rot(yaw=yaw), scale=unreal.Vector(1, 1, 1))
 
 
 def trigger(label, center, extent, once_flag, conversation, conditions=None):
@@ -335,16 +362,92 @@ shape("ObservationTower_Top", CONE, (130, 640, 51.5), (7, 7, 3), folder="Greybox
 # A low launch lip (15 cm, walkable) marks the glide edge.
 box("Bluff_LaunchLip", (60, 676, 20.0), (20, 6, 0.3), folder="Greybox/Bluff")
 
-# A small floating island east of the Bluff: first glide target, with one of Elias's notes.
+# Blocks the Bluff edge until Kieran has the glider (windrest.gd edge_wall); hidden, collision only.
+edge_wall = box("Bluff_EdgeWall", (60, 681.5, 23), (140, 1, 6), folder="Greybox/Bluff")
+edge_wall.set_actor_hidden_in_game(True)
+
+# ------------------------------------------------------------------ Into the Clouds: the sky route east (Ch. 3)
+# Small floating islands along the impossible current, then the island in the mist where the wind refuses to go.
 box("FloatingIsle_East", (60, 920, -5), (30, 30, 6), folder="Greybox/Sky")
+box("FloatingIsle_Mid", (60, 1180, -15), (40, 40, 8), folder="Greybox/Sky")
+box("FloatingIsle_Small", (40, 1420, -20), (20, 20, 6), folder="Greybox/Sky")
+for i, (x, y, z, s) in enumerate(((20, 800, 30, 4), (110, 1050, 25, 3), (0, 1300, 35, 5), (120, 1480, 20, 4))):
+    box("SkyRock_%d" % i, (x, y, z), (s, s, s * 0.8), yaw=i * 37, folder="Greybox/Sky")
+# The island in the mist: a dark silhouette beyond the fog (STYLE_GUIDE colour script 6).
+shape("MistIsland_Top", CYL, (60, 1900, -10), (320, 380, 30), collision=False, folder="Greybox/Sky")
+shape("MistIsland_Underside", CONE, (60, 1900, -60), (300, 360, 80), roll=180, collision=False, folder="Greybox/Sky")
+shape("MistIsland_Spire", CYL, (40, 1880, 30), (12, 12, 60), collision=False, folder="Greybox/Sky")
+# Where the wind refuses to go: an invisible wall past the fog trigger.
+fog_wall = box("Sky_FogWall", (60, 1620, 0), (600, 2, 400), folder="Greybox/Sky")
+fog_wall.set_actor_hidden_in_game(True)
+
+# ------------------------------------------------------------------ Elias's workshop interior (Ch. 2)
+# Greybox room far west of the island, out of sight; the doors teleport Kieran in and out.
+IX, IY = 0.0, -3000.0
+box("Workshop_Floor", (IX, IY, -0.2), (14, 10, 0.4), folder="Greybox/Workshop")
+box("Workshop_Ceiling", (IX, IY, 4.3), (14.8, 10.8, 0.4), folder="Greybox/Workshop")
+box("Workshop_Wall_N", (IX + 7.2, IY, 2.0), (0.4, 10.8, 4.4), folder="Greybox/Workshop")
+box("Workshop_Wall_S", (IX - 7.2, IY, 2.0), (0.4, 10.8, 4.4), folder="Greybox/Workshop")
+box("Workshop_Wall_E", (IX, IY + 5.2, 2.0), (14.8, 0.4, 4.4), folder="Greybox/Workshop")
+box("Workshop_Wall_W", (IX, IY - 5.2, 2.0), (14.8, 0.4, 4.4), folder="Greybox/Workshop")
+for i, x in enumerate((-4.5, 0.0, 4.5)):
+    box("Workshop_Beam_%d" % i, (IX + x, IY, 3.9), (0.4, 10, 0.4), folder="Greybox/Workshop")
+box("Workshop_Bookshelf_W", (IX - 3, IY - 4.7, 1.4), (4, 0.6, 2.8), folder="Greybox/Workshop")
+box("Workshop_Bookshelf_E", (IX + 5, IY + 4.7, 1.4), (3, 0.6, 2.8), folder="Greybox/Workshop")
+box("Workshop_Desk", (IX + 3, IY, 0.45), (2.2, 3.2, 0.9), folder="Greybox/Workshop")
+box("Workshop_Chest", (IX + 5.8, IY + 2.5, 0.4), (1.0, 1.6, 0.8), folder="Greybox/Workshop")
+lamp("Workshop_Lantern_A", (IX - 4, IY - 3, 3.0))
+lamp("Workshop_Lantern_B", (IX + 4, IY + 3, 3.0))
+lamp("Workshop_Lantern_Desk", (IX + 3, IY, 1.6), radius=6.0)
+
+inspect("Inspect_WorkshopDoor_Inside", (IX - 6.9, IY, 1.2), (0.2, 1.6, 2.4), "Go outside", [
+    rule(["compass_active"], "", event="leave"),
+    rule([], "workshop_leave_night", True),
+], folder="Story/Workshop")
+inspect("Inspect_Maps", (IX + 3, IY, 0.95), (1.8, 2.6, 0.05), "Study the maps", [
+    rule(["!searched_maps"], "inspect_maps"),
+], folder="Story/Workshop")
+inspect("Inspect_Sketches", (IX + 3, IY + 4.9, 1.8), (2.0, 0.1, 1.4), "Look at the sketches", [
+    rule(["!searched_sketches"], "inspect_sketches"),
+], folder="Story/Workshop")
+inspect("Inspect_Notes", (IX - 3, IY - 4.3, 1.2), (3.6, 0.2, 2.2), "Read the weather logs", [
+    rule(["!searched_notes"], "inspect_notes"),
+    rule([], "inspect_shelf", True),
+], folder="Story/Workshop")
+inspect("Inspect_Portrait", (IX - 3, IY + 4.9, 2.0), (1.0, 0.1, 1.3), "Look at the portrait", [
+    rule([], "inspect_portrait", True),
+], folder="Story/Workshop")
+inspect("Inspect_Instruments", (IX + 5.5, IY - 3.5, 0.8), (1.2, 1.2, 1.2), "Examine the instruments", [
+    rule([], "inspect_instruments", True),
+], mesh=SPHERE, folder="Story/Workshop")
+inspect("Inspect_Floorboard", (IX, IY + 1.5, 0.03), (1.6, 1.0, 0.06), "Lift the floorboard", [
+    rule(["!compartment_open"], "compartment"),
+    rule(["compartment_open", "!compass_active"], "final_entry"),
+], folder="Story/Workshop", available_if=["obj:hidden_workshop:search"])
+compartment_props = [
+    shape("Compartment_Hole", CUBE, (IX, IY + 1.5, 0.07), (1.4, 0.8, 0.02), collision=False, folder="Story/Workshop"),
+    shape("Compartment_Glider", CUBE, (IX - 0.2, IY + 1.5, 0.12), (0.5, 2.6, 0.06), collision=False, folder="Story/Workshop"),
+    shape("Compartment_Compass", CYL, (IX + 0.45, IY + 1.3, 0.15), (0.25, 0.25, 0.06), collision=False, folder="Story/Workshop"),
+]
+
+# ------------------------------------------------------------------ Into the Clouds: the glider at the Bluff edge
+glider = inspect("Inspect_Glider", (48, 664, 20.6), (2.2, 5.0, 0.15), "Approach", [
+    rule(["compass_active", "!piko_joined"], "piko_meeting"),
+], folder="Story/Bluff", available_if=["compass_active"])
 
 # ------------------------------------------------------------------ wind (gliding lines)
-wind("Current_BluffEast", unreal.WindVolumeType.CURRENT, [(60, 700, 18), (60, 820, 12), (60, 905, 4)], 12.0, 10.0)
 wind("Updraft_BluffEdge", unreal.WindVolumeType.UPDRAFT, [(20, 715, -60), (20, 715, 25)], 6.0, 8.0)
 wind("Updraft_CloudEdge", unreal.WindVolumeType.UPDRAFT, [(590, -100, -60), (590, -100, 15)], 6.0, 8.0)
 # Off the Cloud Edge rail: ride the updraft, then a current along the north rim towards Skywatch Point.
 wind("Current_NorthRim", unreal.WindVolumeType.CURRENT, [(595, -95, 14), (605, 0, 12), (585, 110, 8)], 10.0, 10.0)
-wind("Hidden_ImpossibleRoute", unreal.WindVolumeType.CURRENT, [(60, 940, 2), (60, 1300, 0), (60, 1800, -5)], 14.0, 12.0, hidden=True)
+# The impossible current: hidden until the compass awakens, then it carries Kieran east from the Bluff (Ch. 3).
+route = wind("ImpossibleCurrent", unreal.WindVolumeType.CURRENT,
+             [(60, 690, 17), (60, 900, 15), (60, 1150, 13), (60, 1400, 11), (60, 1570, 10)], 14.0, 14.0, hidden=True)
+route.tags = ["impossible_route"]
+# The hidden updraft Piko reveals on the way (revealed_wind_1 in the Godot level).
+hidden_updraft = wind("Hidden_Updraft_1", unreal.WindVolumeType.UPDRAFT, [(60, 1090, -60), (60, 1090, 22)], 5.0, 10.0, hidden=True)
+hidden_updraft.tags = ["revealed_wind_1"]
+wind("Updraft_Isle_Mid", unreal.WindVolumeType.UPDRAFT, [(80, 1180, -40), (80, 1180, 15)], 6.0, 8.0)
 
 # ------------------------------------------------------------------ story: places
 location("windrest", (0, 40, 10), (230, 260, 40))
@@ -398,10 +501,29 @@ inspect("Inspect_Fountain", (0, 0, 2.2), (7.5, 7.5, 0.1), "Look", [rule([], "fou
 inspect("Inspect_Windmill", (296, -276, 2), (1, 1, 1), "Look", [rule([], "windmill", True)])
 inspect("Inspect_WorkshopDoor", (75, 594.8, 21.5), (2, 0.3, 3), "Enter workshop", [
     rule(["!deed_received"], "workshop_locked_ch1", True),
+    rule(["!has_glider"], "", event="enter_workshop"),
 ], folder="Story/Inspect")
 
 trigger("Trigger_EdgeWarning", (558, -100, 2), (6, 20, 4), "seen_edge_warning", "edge_warning")
 trigger("Trigger_SkywatchHint", (390, 10, 2), (8, 8, 4), "seen_skywatch_hint", "skywatch_hint", ["item:parcel_tessa"])
+# The Bluff edge (windrest.gd): a warning until Piko joins, then "ready to launch" at the lip.
+trigger("Trigger_BluffEdgeWarning", (60, 676, 21.5), (20, 3, 3), "seen_bluff_edge_warning", "edge_warning", ["!piko_joined"])
+trigger("Trigger_LaunchReady", (60, 676, 21.5), (20, 3, 3), "seen_launch_ready", "launch_ready", ["piko_joined"])
+# The fog where the wind refuses to go (Ch. 3 ends here).
+trigger("Trigger_Fog", (60, 1545, 10), (200, 8, 200), "reached_fog", "wind_refuses", ["piko_joined"])
+
+# The level's story director (sunset, workshop, compass, next morning, Piko, fog, demo end).
+story = actors.spawn_actor_from_class(unreal.LSBrindleStory, v(0, 0, 50), rot())
+story.set_actor_label("BrindleStory")
+story.set_folder_path("Story")
+story.set_editor_property("interior_spawn", transform((IX - 5.5, IY, 1.0), yaw=0))
+story.set_editor_property("door_spawn", transform((75, 590.5, 21.2), yaw=-90))
+story.set_editor_property("end_view", transform((60, 1500, 22), yaw=90))
+story.set_editor_property("piko_perch", v(48, 664, 21.4))
+story.set_editor_property("glider_prop", glider)
+story.set_editor_property("edge_wall", edge_wall)
+story.set_editor_property("compartment_props", compartment_props)
+always_loaded(story)
 
 # Objective markers where the Milestone A objectives happen.
 objective("morning_deliveries", "report", (47, 62, 0))
