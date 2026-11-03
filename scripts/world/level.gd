@@ -204,25 +204,28 @@ func add_ground(x0: float, x1: float, y: float, underbelly := 300.0) -> void:
 	shape.position = Vector2((x0 + x1) * 0.5, y + 200)
 	body.add_child(shape)
 	world.add_child(body)
-	# Rock underside of the floating island, fading into the cloud sea below.
+	# Rock underside of the floating island: the atlas stonework, tiled, getting
+	# darker and hazier with depth until it fades into the cloud sea below.
 	var poly := Polygon2D.new()
 	var pts := PackedVector2Array()
 	var cols := PackedColorArray()
-	var top := y + 110.0
-	pts.append(Vector2(x0 + 30, top))
-	pts.append(Vector2(x1 - 30, top))
-	var steps := int((x1 - x0) / 120.0) + 2
+	var top := y + 90.0
+	pts.append(Vector2(x0 + 20, top))
+	pts.append(Vector2(x1 - 20, top))
+	var steps := int((x1 - x0) / 110.0) + 2
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(x0 * 13 + x1)
 	for i in range(steps, -1, -1):
-		var fx := x0 + 30 + (x1 - x0 - 60) * float(i) / steps
-		var depth := underbelly * (0.35 + 0.65 * sin(PI * float(i) / steps)) + rng.randf_range(-50, 50)
-		pts.append(Vector2(fx, top + maxf(depth, 30.0)))
+		var fx := x0 + 20 + (x1 - x0 - 40) * float(i) / steps
+		var depth := underbelly * (0.45 + 0.55 * sin(PI * float(i) / steps)) + rng.randf_range(-45, 45)
+		pts.append(Vector2(fx, top + maxf(depth, 60.0)))
 	for i in pts.size():
-		var d := clampf((pts[i].y - top) / underbelly, 0.0, 1.0)
-		cols.append(Color(0.33, 0.27, 0.25).lerp(Color(0.75, 0.74, 0.82, 0.0), d))
+		var d := clampf((pts[i].y - top) / (underbelly * 1.05), 0.0, 1.0)
+		cols.append(Color(0.66, 0.62, 0.64).lerp(Color(0.42, 0.44, 0.58, 0.0), d * d))
 	poly.polygon = pts
 	poly.vertex_colors = cols
+	poly.texture = tex("brindle/rock_fill.png")
+	poly.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	poly.z_index = -1
 	world.add_child(poly)
 	# Grass-topped rock from the Brindle Isle atlas: end caps + seamless tile.
@@ -278,22 +281,66 @@ func add_platform(x: float, top: float, width: float, texture_path := "brindle/p
 		s.scale = Vector2(sc, sc)
 		s.centered = false
 		s.position = Vector2(x - width * 0.5, top - sink * sc / 3.0)
-		s.z_index = 1
+		s.z_index = -1
 		body.add_child(s)
 	return body
+
+
+const SWAY_PROPS := {
+	# texture: [amplitude in texture px, speed]
+	"brindle/brindle_08_4x.png": [7.0, 1.1],
+	"brindle/brindle_17_4x.png": [9.0, 0.8],
+	"brindle/brindle_18_4x.png": [4.0, 1.0],
+	"brindle/brindle_15_4x.png": [10.0, 1.6],
+}
+const WINDMILL := "brindle/brindle_07_4x.png"
+const WINDMILL_HUB := Vector2(204, 187)   # hub in the 368x521 tower texture
+const SwayShader := preload("res://assets/shaders/sway.gdshader")
+
+
+## A prop sprite with its ambient motion: windmills get turning sails, trees
+## and banners sway in the wind. Feet (bottom centre) at the node origin.
+func make_prop_sprite(texture_path: String, flip := false) -> Sprite2D:
+	var s := Sprite2D.new()
+	var windmill := texture_path == WINDMILL
+	s.texture = tex("brindle/windmill_tower.png" if windmill else texture_path)
+	var h := s.texture.get_height()
+	s.centered = true
+	s.offset = Vector2(0, -h * 0.5)
+	s.flip_h = flip
+	if windmill:
+		var rotor := Sprite2D.new()
+		rotor.texture = tex("brindle/windmill_rotor.png")
+		var hub := WINDMILL_HUB - Vector2(s.texture.get_width() * 0.5, h)
+		if flip:
+			hub.x = -hub.x
+		rotor.position = hub
+		rotor.rotation = randf() * TAU
+		rotor.scale = Vector2(0.74, 0.74)
+		s.add_child(rotor)
+		var tw := rotor.create_tween().set_loops()
+		var turn := TAU * (-1.0 if flip else 1.0)
+		tw.tween_property(rotor, "rotation", turn, randf_range(9.0, 13.0)).as_relative()
+	elif SWAY_PROPS.has(texture_path):
+		var cfg: Array = SWAY_PROPS[texture_path]
+		var m := ShaderMaterial.new()
+		m.shader = SwayShader
+		m.set_shader_parameter("amp", cfg[0])
+		m.set_shader_parameter("speed", cfg[1] * randf_range(0.85, 1.15))
+		m.set_shader_parameter("phase", randf() * TAU)
+		s.material = m
+	return s
 
 
 func add_prop(texture_path: String, pos: Vector2, height: float, layer := 0, flip := false,
 		tint := Color.WHITE) -> Sprite2D:
 	## pos is the bottom-centre of the prop. layer: -1 back, 0 world, 1 front.
-	var s := Sprite2D.new()
-	s.texture = tex(texture_path)
+	var s := make_prop_sprite(texture_path, flip)
 	var sc := height / s.texture.get_height()
+	if texture_path == WINDMILL:
+		sc = height / 521.0
 	s.scale = Vector2(sc, sc)
-	s.centered = true
-	s.offset = Vector2(0, -s.texture.get_height() * 0.5)
 	s.position = pos
-	s.flip_h = flip
 	s.modulate = tint
 	match layer:
 		-1:

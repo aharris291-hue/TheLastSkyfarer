@@ -1,5 +1,26 @@
 # Project Status
 
+**Main build: Unreal Engine 5.8, 3D** (since 2026-11-02). The Godot 4.3 demo below is archived and kept as reference only.
+
+## Unreal 5.8 build
+
+| Area | State | Verified by |
+|---|---|---|
+| Phase 1: Canon Summary, Conflicts and Gaps, Open Decisions | Decisions approved 2026-11-02 (see docs/unreal/DECISION_LOG.md); GDD, chapter breakdown, world map and slice definition drafted in docs/unreal/ for review | Adam |
+| Empty C++ project `Unreal/LastSkyfarer.uproject` (Third Person template, UE 5.8.4) | Created and pushed | Project files generated on Adam's PC |
+| C++ compile | Done (Win64 Development Editor) | Build log on Adam's PC |
+| Editor opens the project | Done (Third Person level loads) | Editor on Adam's PC |
+| Git LFS rules and `Unreal/.gitignore` | Done (753 LFS files, about 140 MB) | Push succeeded |
+| ElevenLabs connection | Works (voice list read, no audio generated) | Tool call |
+| Unreal MCP connection | Works: UE 5.8 Unreal MCP + EditorToolset plugins, registered as "unreal" (commit b9be051) | Read-only actor search returned 72 actors |
+| Levels, gameplay, art, audio | Not started; waits for Phase 1 approval | |
+
+Known issues: the Bible PDF (now in `docs/source/`) stops in section 26.
+
+---
+
+# Archived: Godot demo
+
 Version: 0.1.0-demo. Engine: Godot 4.3 (GDScript, Compatibility renderer). Target: Windows PC, 1920x1080.
 
 ## Demo: Windrest Village (awaiting Adam's approval)
@@ -20,7 +41,11 @@ Version: 0.1.0-demo. Engine: Godot 4.3 (GDScript, Compatibility renderer). Targe
 | Remappable keyboard and controller controls | Done | Remap tests; controller not tested on hardware |
 | Windows export | Built (95 MB exe, pack embedded) | Not run on Windows |
 
-Automated suite: **331 passed, 0 failed** (`tests/test_runner.tscn`), including a bot that plays the whole demo from New Game to the end card.
+Automated suite: **346 passed, 0 failed** (`tests/test_runner.tscn`), including a bot that plays the whole demo from New Game to the end card.
+
+## Visual fixes (after first playtest)
+
+High-definition sprites, opaque Kieran with unclipped jump frames, grounded props without white gaps, ambient motion and crisp NPCs. Details in DEVELOPMENT_LOG.md. The art is still upscaled from small source sheets: it is much sharper but cannot add detail the sheets never had, and Kieran's walk and run cycles keep the source's 6 frames.
 
 ## Placeholder or missing
 

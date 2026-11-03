@@ -8,6 +8,7 @@ class_name NPC
 var sprite: Sprite2D
 var _t := 0.0
 var _base_scale := 1.0
+var _look_t := 0.0
 
 
 func _ready() -> void:
@@ -30,8 +31,17 @@ func _process(delta: float) -> void:
 	if sprite == null:
 		return
 	_t += delta
-	# Gentle breathing so villagers don't look like cardboard cut-outs.
-	sprite.scale.y = _base_scale * (1.0 + sin(_t * 2.1) * 0.008)
+	# Gentle breathing and a slight weight shift so villagers feel alive.
+	sprite.scale.y = _base_scale * (1.0 + sin(_t * 2.1) * 0.012)
+	sprite.skew = sin(_t * 0.9) * 0.012
+	# Glance at Kieran when he comes close.
+	_look_t -= delta
+	if _look_t <= 0.0:
+		_look_t = 0.4
+		var p := get_tree().get_first_node_in_group("player") as Node2D
+		if p and absf(p.global_position.x - global_position.x) < 320.0 \
+				and absf(p.global_position.y - global_position.y) < 200.0:
+			face(p.global_position.x)
 
 
 func face(x: float) -> void:

@@ -4,3 +4,6 @@ builds/*
 !builds/.gdignore
 export_credentials.cfg
 *.tmp
+tools/models/
+tools/cache/
+__pycache__/
