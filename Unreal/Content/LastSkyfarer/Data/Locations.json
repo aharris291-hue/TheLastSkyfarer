@@ -50,6 +50,16 @@
       "Id": "open_sky",
       "Name": "The Open Sky",
       "Subtitle": "Beyond the courier routes"
+    },
+    {
+      "Id": "central_square",
+      "Name": "Central Square",
+      "Subtitle": "Windrest Village"
+    },
+    {
+      "Id": "orchard_vale",
+      "Name": "Orchard Vale",
+      "Subtitle": "Brindle Isle"
     }
   ]
 }
