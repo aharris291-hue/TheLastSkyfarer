@@ -11,6 +11,7 @@
 #include "LSPlayerCharacter.h"
 #include "LSTraversalCheck.h"
 #include "LSPlaythroughCheck.h"
+#include "LSBrindleCheck.h"
 #include "LSHUD.h"
 #include "LSTimeOfDayDirector.h"
 #include "Misc/CommandLine.h"
@@ -54,6 +55,10 @@ void ALSTestGameMode::StartPlay()
 {
 	Super::StartPlay();
 	GetWorld()->SpawnActor<ALSTimeOfDayDirector>();
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSBrindleCheck")))
+	{
+		GetWorld()->SpawnActor<ALSBrindleCheck>();
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("LSPlaythrough")))
 	{
 		GetWorld()->SpawnActor<ALSPlaythroughCheck>();
