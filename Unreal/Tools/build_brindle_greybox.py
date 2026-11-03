@@ -6,8 +6,9 @@ Run headless (the path must not contain spaces; copy the script somewhere first 
 Layout follows Adam's Windrest Village map (art_source/maps/Windrest Village_ Brindle Isle Map.png):
 north is +X, east is +Y, Central Square at the origin. Units below are metres (converted to cm).
   Whispermill Fields  north-west      Skywatch Point     north (hill)
+  Cloud Edge          north rim, west of Skywatch (D-25)
   Orchard Vale        west            Upper Cliffs       north-east (plateau, opening at sunrise)
-  Cloud Edge          west rim        Old Cartographer's Bluff  east rim (workshop, tower, glide east)
+                                      Old Cartographer's Bluff  east rim (workshop, tower, glide east)
   Post House          north-east of the square; Windsong Tavern south-east; village homes south.
 The island is about 1.4 km east-west and 1.15 km north-south. Greybox only: engine shapes, no final art.
 Delete Content/LastSkyfarer/Maps/Brindle/L_Brindle.umap (and its __ExternalActors__ folder) before re-running.
@@ -263,7 +264,8 @@ path("Path_Tavern", (0, 0), (-62, 112))
 path("Path_Homes", (0, 0), (-180, 40))
 path("Path_Whispermill", (0, 0), (290, -290))
 path("Path_Orchard", (0, 0), (0, -400))
-path("Path_CloudEdge", (0, -400), (40, -620))
+path("Path_OrchardLane", (0, -400), (20, -560))
+path("Path_CloudEdge", (330, 45), (525, -100))
 path("Path_Skywatch", (50, 62), (400, 40))
 path("Path_UpperCliffs", (50, 62), (230, 270))
 path("Path_Bluff", (50, 62), (40, 480))
@@ -282,13 +284,22 @@ box("Mill_Platform", (300, -262, 3.0), (4, 3, 0.3), folder="Greybox/Whispermill"
 for i in range(5):
     for j in range(4):
         tree("Orchard_%d_%d" % (i, j), (-30 + i * 15, -360 - j * 15))
+# The outer orchard runs on to the west rim: looser rows, a lane, crates and a low fence along the edge.
+for i in range(4):
+    for j in range(5):
+        tree("Orchard_Outer_%d_%d" % (i, j), (-45 + i * 20 + (j % 2) * 8, -450 - j * 22))
+for i, (x, y) in enumerate(((10, -575), (18, -578), (-20, -570))):
+    box("Orchard_Crate_%d" % i, (x, y, 0.5), (1.2, 1.2, 1), yaw=i * 25, folder="Greybox/Orchard")
+for i, x in enumerate(range(-90, 100, 12)):
+    shape("Orchard_FencePost_%d" % i, CYL, (x, -686, 0.6), (0.25, 0.25, 1.2), folder="Greybox/Orchard")
 
-# ------------------------------------------------------------------ Cloud Edge (west rim)
-box("CloudEdge_Terrace", (40, -650, 0.5), (60, 40, 1), folder="Greybox/CloudEdge")
-for i, x in enumerate((15, 30, 45, 60)):
-    box("CloudEdge_FlowerBed_%d" % i, (x, -640, 1.2), (6, 3, 0.4), folder="Greybox/CloudEdge")
-for i, x in enumerate(range(15, 70, 6)):
-    shape("CloudEdge_Rail_%d" % i, CYL, (x, -669, 1.5), (0.3, 0.3, 2), folder="Greybox/CloudEdge")
+# ------------------------------------------------------------------ Cloud Edge (north rim, D-25)
+# A flower terrace on the north rim, west of Skywatch Point, looking out over the cloud sea.
+box("CloudEdge_Terrace", (545, -100, 0.5), (40, 60, 1), folder="Greybox/CloudEdge")
+for i, y in enumerate((-125, -110, -90, -75)):
+    box("CloudEdge_FlowerBed_%d" % i, (535, y, 1.2), (3, 6, 0.4), folder="Greybox/CloudEdge")
+for i, y in enumerate(range(-127, -70, 6)):
+    shape("CloudEdge_Rail_%d" % i, CYL, (566, y, 1.5), (0.3, 0.3, 2), folder="Greybox/CloudEdge")
 
 # ------------------------------------------------------------------ Skywatch Point (north hill, 25 m)
 box("Skywatch_Hill", (470, 40, 12.5), (60, 60, 25), folder="Greybox/Skywatch")
@@ -325,7 +336,9 @@ box("FloatingIsle_East", (60, 920, -5), (30, 30, 6), folder="Greybox/Sky")
 # ------------------------------------------------------------------ wind (gliding lines)
 wind("Current_BluffEast", unreal.WindVolumeType.CURRENT, [(60, 700, 18), (60, 820, 12), (60, 905, 4)], 12.0, 10.0)
 wind("Updraft_BluffEdge", unreal.WindVolumeType.UPDRAFT, [(20, 715, -60), (20, 715, 25)], 6.0, 8.0)
-wind("Updraft_CloudEdge", unreal.WindVolumeType.UPDRAFT, [(40, -700, -60), (40, -700, 15)], 6.0, 8.0)
+wind("Updraft_CloudEdge", unreal.WindVolumeType.UPDRAFT, [(590, -100, -60), (590, -100, 15)], 6.0, 8.0)
+# Off the Cloud Edge rail: ride the updraft, then a current along the north rim towards Skywatch Point.
+wind("Current_NorthRim", unreal.WindVolumeType.CURRENT, [(595, -95, 14), (605, 0, 12), (585, 110, 8)], 10.0, 10.0)
 wind("Hidden_ImpossibleRoute", unreal.WindVolumeType.CURRENT, [(60, 940, 2), (60, 1300, 0), (60, 1800, -5)], 14.0, 12.0, hidden=True)
 
 # ------------------------------------------------------------------ story: places
@@ -337,7 +350,9 @@ location("skywatch", (480, 40, 30), (25, 25, 12))
 location("upper_cliffs", (300, 330, 20), (60, 70, 15))
 location("bluff", (60, 600, 25), (70, 80, 20))
 location("workshop", (80, 600, 24), (9, 7, 6))
-location("cloud_edge", (40, -650, 5), (35, 25, 10))
+location("cloud_edge", (545, -100, 5), (25, 35, 10))
+location("central_square", (0, 0, 5), (24, 24, 8))
+location("orchard_vale", (0, -470, 8), (75, 130, 15))
 location("open_sky", (60, 1100, 0), (200, 200, 100))
 
 # ------------------------------------------------------------------ story: the opening and the people
@@ -362,7 +377,7 @@ npc("NPC_Tessa", "tessa", (476, 36, 25.6), 200, "Talk to Tessa", [
     rule(["item:parcel_tessa"], "tessa_deliver"),
     rule([], "tessa_after", True),
 ])
-npc("NPC_Elara", "villager", (35, -630, 1), 0, "Talk", [
+npc("NPC_Elara", "villager", (535, -98, 1), 0, "Talk", [
     rule(["item:parcel_cliffs"], "villager_deliver"),
     rule([], "villager_after", True),
 ])
@@ -377,20 +392,20 @@ inspect("Inspect_WorkshopDoor", (75, 594.8, 21.5), (2, 0.3, 3), "Enter workshop"
     rule(["!deed_received"], "workshop_locked_ch1", True),
 ], folder="Story/Inspect")
 
-trigger("Trigger_EdgeWarning", (40, -660, 2), (20, 6, 4), "seen_edge_warning", "edge_warning")
+trigger("Trigger_EdgeWarning", (558, -100, 2), (6, 20, 4), "seen_edge_warning", "edge_warning")
 trigger("Trigger_SkywatchHint", (390, 10, 2), (8, 8, 4), "seen_skywatch_hint", "skywatch_hint", ["item:parcel_tessa"])
 
 # Objective markers where the Milestone A objectives happen.
 objective("morning_deliveries", "report", (47, 62, 0))
 objective("morning_deliveries", "tavern", (-60, 110, 0))
 objective("morning_deliveries", "tessa", (476, 36, 26))
-objective("morning_deliveries", "cliffs", (35, -630, 1))
+objective("morning_deliveries", "cliffs", (535, -98, 1))
 objective("morning_deliveries", "return", (47, 62, 0))
 objective("hidden_workshop", "enter", (75, 594, 20))
 objective("into_the_clouds", "bluff", (60, 676, 20))
 
 # Elias Was Here (part 1): his notes around the island.
-note("note_cloud_edge", (55, -655, 1.5))
+note("note_cloud_edge", (550, -112, 1.5))
 note("note_wind", (300, -262, 3.6))
 note("note_sky_map", (512, 40, 25.5))
 note("note_three_decades", (350, 380, 17.1))
