@@ -7,6 +7,11 @@
 #include "LSInteractorComponent.h"
 #include "LSJournalWidget.h"
 #include "LSPauseWidget.h"
+#include "LSMapWidget.h"
+#include "LSCompassDialWidget.h"
+#include "LSCompassComponent.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 #include "LSStorySubsystem.h"
 
 void ALSHUD::BeginPlay()
@@ -31,6 +36,15 @@ void ALSHUD::BeginPlay()
 	PauseWidget->SetVisibility(ESlateVisibility::Collapsed);
 	PauseWidget->OnResume.AddUObject(this, &ALSHUD::TogglePause);
 
+	MapWidget = CreateWidget<ULSMapWidget>(PC, ULSMapWidget::StaticClass());
+	MapWidget->AddToViewport(15);
+	MapWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+	// Compass dial: fills the viewport and draws itself at the top centre, shown only while pulsing.
+	CompassDial = CreateWidget<ULSCompassDialWidget>(PC, ULSCompassDialWidget::StaticClass());
+	CompassDial->AddToViewport(5);
+	CompassDial->SetVisibility(ESlateVisibility::Collapsed);
+
 	if (Story)
 	{
 		Story->OnDialogueLine.AddUniqueDynamic(this, &ALSHUD::HandleDialogueLine);
@@ -45,6 +59,19 @@ void ALSHUD::Tick(float DeltaSeconds)
 	const APlayerController* PC = GetOwningPlayerController();
 	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	ULSInteractorComponent* Interactor = Pawn ? Pawn->FindComponentByClass<ULSInteractorComponent>() : nullptr;
+	ULSCompassComponent* Compass = Pawn ? Pawn->FindComponentByClass<ULSCompassComponent>() : nullptr;
+	if (Compass != BoundCompass.Get())
+	{
+		if (ULSCompassComponent* Old = BoundCompass.Get())
+		{
+			Old->OnPulse.RemoveDynamic(this, &ALSHUD::HandleCompassPulse);
+		}
+		BoundCompass = Compass;
+		if (Compass)
+		{
+			Compass->OnPulse.AddUniqueDynamic(this, &ALSHUD::HandleCompassPulse);
+		}
+	}
 	if (Interactor != BoundInteractor.Get())
 	{
 		if (ULSInteractorComponent* Old = BoundInteractor.Get())
@@ -110,8 +137,42 @@ void ALSHUD::TogglePause()
 		ToggleJournal(); // Esc closes the journal first
 		return;
 	}
+	if (bMapOpen)
+	{
+		ToggleMap(); // and the map
+		return;
+	}
 	bPauseOpen = !bPauseOpen;
 	PauseWidget->SetVisibility(bPauseOpen ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	UpdateInputMode();
+}
+
+void ALSHUD::HandleCompassPulse(const FLSCompassReading& Reading)
+{
+	// The dial is drawn relative to the camera, so turn the bearing into a camera-relative angle.
+	float NeedleYaw = Reading.RelativeYaw;
+	if (const APlayerController* PC = GetOwningPlayerController(); PC && Reading.bHasTarget)
+	{
+		NeedleYaw = FMath::FindDeltaAngleDegrees(PC->GetControlRotation().Yaw, Reading.Direction.Rotation().Yaw);
+	}
+	CompassDial->ShowReading(Reading, NeedleYaw);
+	UE_LOG(LogTemp, Display, TEXT("LS_UI compass pulse: target=%d impossible=%d needle=%.0f deg distance=%.0f m"),
+		Reading.bHasTarget ? 1 : 0, Reading.bImpossibleRoute ? 1 : 0, NeedleYaw, Reading.Distance / 100.f);
+}
+
+void ALSHUD::ToggleMap()
+{
+	if (bPauseOpen || bJournalOpen)
+	{
+		return;
+	}
+	bMapOpen = !bMapOpen;
+	MapWidget->SetVisibility(bMapOpen ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	HUDWidget->SetVisibility(bMapOpen ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
+	if (bMapOpen)
+	{
+		MapWidget->Refresh();
+	}
 	UpdateInputMode();
 }
 
@@ -129,7 +190,7 @@ void ALSHUD::UpdateInputMode()
 	}
 	const ULSStorySubsystem* Story = ULSStorySubsystem::Get(this);
 	const bool bInDialogue = Story && Story->IsInDialogue();
-	const bool bMenu = bJournalOpen || bPauseOpen;
+	const bool bMenu = bJournalOpen || bPauseOpen || bMapOpen;
 	PC->SetPause(bMenu);
 	PC->SetShowMouseCursor(bMenu || bInDialogue);
 	PC->SetIgnoreMoveInput(bMenu || bInDialogue);

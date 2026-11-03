@@ -10,6 +10,7 @@
 class UGliderComponent;
 class ULSTraversalComponent;
 class ULSInteractorComponent;
+class ULSCompassComponent;
 class UInputAction;
 class UInputMappingContext;
 
@@ -33,6 +34,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<ULSInteractorComponent> Interactor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Compass")
+	TObjectPtr<ULSCompassComponent> Compass;
 
 	// Movement (cm/s). GDD 1: walk 1.8, run 4.5, sprint 6.5 m/s.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -108,6 +112,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> PeekObjectiveAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> CompassAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> MapAction;
+
 	UFUNCTION(BlueprintCallable, Category = "Recovery")
 	void RecoverToSafePoint();
 
@@ -155,6 +165,8 @@ private:
 	void JournalPressed();
 	void PausePressed();
 	void PeekPressed();
+	void CompassPressed();
+	void MapPressed();
 	void UpdateSpeed();
 	void UpdateCamera(float DeltaSeconds);
 	double Now() const;

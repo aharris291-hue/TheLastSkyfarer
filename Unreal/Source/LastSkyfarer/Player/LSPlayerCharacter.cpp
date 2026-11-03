@@ -18,6 +18,7 @@
 #include "LSTraversalComponent.h"
 #include "LSHUD.h"
 #include "LSInteractorComponent.h"
+#include "LSCompassComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "UObject/ConstructorHelpers.h"
@@ -29,6 +30,7 @@ ALSPlayerCharacter::ALSPlayerCharacter()
 	Glider = CreateDefaultSubobject<UGliderComponent>(TEXT("Glider"));
 	Traversal = CreateDefaultSubobject<ULSTraversalComponent>(TEXT("Traversal"));
 	Interactor = CreateDefaultSubobject<ULSInteractorComponent>(TEXT("Interactor"));
+	Compass = CreateDefaultSubobject<ULSCompassComponent>(TEXT("Compass"));
 
 	// Template input actions and placeholder mannequin, so the class works without a Blueprint child.
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveIA(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));
@@ -93,6 +95,8 @@ void ALSPlayerCharacter::EnsureExtraInput()
 	if (!JournalAction) { JournalAction = MakeAction(TEXT("IA_Journal_Runtime"), true); }
 	if (!PauseAction) { PauseAction = MakeAction(TEXT("IA_Pause_Runtime"), true); }
 	if (!PeekObjectiveAction) { PeekObjectiveAction = MakeAction(TEXT("IA_PeekObjective_Runtime")); }
+	if (!CompassAction) { CompassAction = MakeAction(TEXT("IA_Compass_Runtime")); }
+	if (!MapAction) { MapAction = MakeAction(TEXT("IA_Map_Runtime"), true); }
 
 	if (!ExtraMappingContext)
 	{
@@ -111,6 +115,10 @@ void ALSPlayerCharacter::EnsureExtraInput()
 		ExtraMappingContext->MapKey(PauseAction, EKeys::Gamepad_Special_Right);
 		ExtraMappingContext->MapKey(PeekObjectiveAction, EKeys::T);
 		ExtraMappingContext->MapKey(PeekObjectiveAction, EKeys::Gamepad_DPad_Down);
+		ExtraMappingContext->MapKey(CompassAction, EKeys::F);
+		ExtraMappingContext->MapKey(CompassAction, EKeys::Gamepad_DPad_Up);
+		ExtraMappingContext->MapKey(MapAction, EKeys::M);
+		ExtraMappingContext->MapKey(MapAction, EKeys::Gamepad_DPad_Left);
 	}
 }
 
@@ -153,6 +161,8 @@ void ALSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EIC->BindAction(JournalAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::JournalPressed);
 		EIC->BindAction(PauseAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::PausePressed);
 		EIC->BindAction(PeekObjectiveAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::PeekPressed);
+		EIC->BindAction(CompassAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::CompassPressed);
+		EIC->BindAction(MapAction, ETriggerEvent::Started, this, &ALSPlayerCharacter::MapPressed);
 	}
 }
 
@@ -327,6 +337,19 @@ void ALSPlayerCharacter::PausePressed()
 void ALSPlayerCharacter::PeekPressed()
 {
 	if (ALSHUD* HUD = GetLSHUD(this)) { HUD->PeekTracker(); }
+}
+
+void ALSPlayerCharacter::CompassPressed()
+{
+	if (Compass)
+	{
+		Compass->Pulse();
+	}
+}
+
+void ALSPlayerCharacter::MapPressed()
+{
+	if (ALSHUD* HUD = GetLSHUD(this)) { HUD->ToggleMap(); }
 }
 
 void ALSPlayerCharacter::UpdateSpeed()

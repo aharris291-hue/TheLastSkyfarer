@@ -9,6 +9,10 @@
 class ULSHUDWidget;
 class ULSJournalWidget;
 class ULSPauseWidget;
+class ULSMapWidget;
+class ULSCompassDialWidget;
+class ULSCompassComponent;
+struct FLSCompassReading;
 class ULSInteractorComponent;
 class ULSInteractableComponent;
 
@@ -21,6 +25,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI") void ToggleJournal();
 	UFUNCTION(BlueprintCallable, Category = "UI") void TogglePause();
 	UFUNCTION(BlueprintCallable, Category = "UI") void PeekTracker();
+	UFUNCTION(BlueprintCallable, Category = "UI") void ToggleMap();
+	UFUNCTION(BlueprintPure, Category = "UI") bool IsMapOpen() const { return bMapOpen; }
 
 	UFUNCTION(BlueprintPure, Category = "UI") bool IsJournalOpen() const { return bJournalOpen; }
 	UFUNCTION(BlueprintPure, Category = "UI") bool IsPauseOpen() const { return bPauseOpen; }
@@ -28,6 +34,8 @@ public:
 	ULSHUDWidget* GetHUDWidget() const { return HUDWidget; }
 	ULSJournalWidget* GetJournalWidget() const { return JournalWidget; }
 	ULSPauseWidget* GetPauseWidget() const { return PauseWidget; }
+	ULSMapWidget* GetMapWidget() const { return MapWidget; }
+	ULSCompassDialWidget* GetCompassDial() const { return CompassDial; }
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -38,6 +46,10 @@ private:
 	UPROPERTY() TObjectPtr<ULSHUDWidget> HUDWidget;
 	UPROPERTY() TObjectPtr<ULSJournalWidget> JournalWidget;
 	UPROPERTY() TObjectPtr<ULSPauseWidget> PauseWidget;
+	UPROPERTY() TObjectPtr<ULSMapWidget> MapWidget;
+	UPROPERTY() TObjectPtr<ULSCompassDialWidget> CompassDial;
+	TWeakObjectPtr<ULSCompassComponent> BoundCompass;
+	bool bMapOpen = false;
 	TWeakObjectPtr<ULSInteractorComponent> BoundInteractor;
 	bool bJournalOpen = false;
 	bool bPauseOpen = false;
@@ -48,4 +60,5 @@ private:
 	UFUNCTION() void HandleTargetChanged(ULSInteractableComponent* Target, FText Prompt);
 	UFUNCTION() void HandleDialogueLine(FName ConversationId, const struct FLSDialogueLine& Line);
 	UFUNCTION() void HandleDialogueEnded(FName ConversationId);
+	UFUNCTION() void HandleCompassPulse(const FLSCompassReading& Reading);
 };
