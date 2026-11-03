@@ -26,7 +26,24 @@ public:
 	/** Subtitles for spoken lines (dialogue is text-only until voices are recorded). */
 	UPROPERTY(config) bool bSubtitles = true;
 
-	/** Saves to disk and applies what can be applied now (master volume). */
+	/** Graphics preset: 0 Low, 1 Medium, 2 High, 3 Epic; -1 = not chosen yet (detected on first launch). */
+	UPROPERTY(config) int32 Quality = -1;
+	/** Percent of the window resolution the 3D view renders at (50..100). */
+	UPROPERTY(config) int32 ResolutionScale = 100;
+	UPROPERTY(config) bool bVSync = true;
+	/** Frame rate cap; 0 = unlimited. */
+	UPROPERTY(config) int32 FrameCap = 60;
+
+	static FText QualityName(int32 Level);
+
+	/** Picks a preset for this PC: Low on integrated graphics or without DirectX 12 SM6, otherwise from the engine's benchmark. */
+	static int32 DetectQuality();
+
+	/** Saves to disk and applies everything. */
 	void SaveAndApply(const UObject* WorldContext);
-	void Apply(const UObject* WorldContext) const;
+	/** Applies volume and graphics; detects the graphics preset on first use. -LSQuality=N overrides the preset (not saved). */
+	void Apply(const UObject* WorldContext);
+
+	/** The preset in use (after any -LSQuality override). */
+	int32 GetEffectiveQuality() const;
 };

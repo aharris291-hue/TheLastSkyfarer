@@ -23,7 +23,7 @@ public class LastSkyfarer : ModuleRules
 			"JsonUtilities"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "SlateCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "SlateCore", "RHI" });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"LastSkyfarer",

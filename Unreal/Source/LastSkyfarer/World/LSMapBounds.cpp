@@ -27,6 +27,18 @@ ALSMapBounds::ALSMapBounds()
 	Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	// Looking straight down with north (+X) at the top of the image.
 	Capture->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	// A drawn map needs no expensive lighting: skip Lumen, fog, clouds, shadows and post effects, so the one-off
+	// capture stays cheap even on integrated graphics.
+	Capture->ShowFlags.SetLumenGlobalIllumination(false);
+	Capture->ShowFlags.SetLumenReflections(false);
+	Capture->ShowFlags.SetFog(false);
+	Capture->ShowFlags.SetVolumetricFog(false);
+	Capture->ShowFlags.SetCloud(false);
+	Capture->ShowFlags.SetDynamicShadows(false);
+	Capture->ShowFlags.SetAmbientOcclusion(false);
+	Capture->ShowFlags.SetBloom(false);
+	Capture->ShowFlags.SetMotionBlur(false);
+	Capture->ShowFlags.SetAntiAliasing(false);
 }
 
 void ALSMapBounds::BeginPlay()
@@ -48,6 +60,7 @@ void ALSMapBounds::CaptureNow()
 	if (Capture && MapImage)
 	{
 		Capture->CaptureScene();
+		bCaptured = true;
 	}
 }
 

@@ -41,7 +41,7 @@ void ULSMapWidget::Refresh()
 	MapBounds = ALSMapBounds::Find(this);
 	if (ALSMapBounds* B = MapBounds.Get())
 	{
-		B->CaptureNow();
+		B->CaptureIfNeeded();
 		if (UTextureRenderTarget2D* Image = B->GetMapImage())
 		{
 			MapBrush.SetResourceObject(Image);

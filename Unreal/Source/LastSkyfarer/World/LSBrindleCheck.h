@@ -49,6 +49,12 @@ private:
 	int32 Pulses = 0;
 	int32 NoteIndex = 0;
 	float LogTimer = 0.f;
+	float RunTime = 0.f;
+	double FrameTimeSum = 0.0;
+	int32 Frames = 0;
+	float WorstFrame = 0.f;
+	float ProbeTime = 0.f;
+	int32 ProbeFrames = 0;
 	FVector GlideStart = FVector::ZeroVector;
 	bool bDeployed = false;
 	FName RowanConversation;

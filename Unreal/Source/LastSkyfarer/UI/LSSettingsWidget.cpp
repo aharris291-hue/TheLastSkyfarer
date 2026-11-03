@@ -41,6 +41,17 @@ TSharedRef<SWidget> ULSSettingsWidget::RebuildWidget()
 			{ LOCTEXT("Look", "Look sensitivity"), [S]() { return FText::AsNumber(S->LookSensitivity); }, [S](int32 D) { S->LookSensitivity = FMath::Clamp(S->LookSensitivity + D * 0.25f, 0.25f, 3.f); } },
 			{ LOCTEXT("Invert", "Invert Y"), [S]() { return OnOff(S->bInvertY); }, [S](int32) { S->bInvertY = !S->bInvertY; } },
 			{ LOCTEXT("Subtitles", "Subtitles"), [S]() { return OnOff(S->bSubtitles); }, [S](int32) { S->bSubtitles = !S->bSubtitles; } },
+			{ LOCTEXT("Quality", "Graphics quality"), [S]() { return ULSSettings::QualityName(S->GetEffectiveQuality()); }, [S](int32 D) { S->Quality = FMath::Clamp(FMath::Max(S->Quality, 0) + D, 0, 3); } },
+			{ LOCTEXT("ResScale", "Resolution scale"), [S]() { return FText::Format(LOCTEXT("Pct", "{0}%"), S->ResolutionScale); }, [S](int32 D) { S->ResolutionScale = FMath::Clamp(S->ResolutionScale + D * 10, 50, 100); } },
+			{ LOCTEXT("VSync", "VSync"), [S]() { return OnOff(S->bVSync); }, [S](int32) { S->bVSync = !S->bVSync; } },
+			{ LOCTEXT("FrameCap", "Frame rate cap"), [S]() { return S->FrameCap > 0 ? FText::AsNumber(S->FrameCap) : LOCTEXT("Unlimited", "Unlimited"); },
+				[S](int32 D)
+				{
+					static const int32 Caps[] = { 30, 60, 120, 0 };
+					int32 i = 0;
+					while (i < 3 && Caps[i] != S->FrameCap) { ++i; }
+					S->FrameCap = Caps[(i + D + 4) % 4];
+				} },
 		};
 
 		UBorder* Panel = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("Root"));
@@ -77,7 +88,7 @@ TSharedRef<SWidget> ULSSettingsWidget::RebuildWidget()
 			}
 		}
 		Column->AddChildToVerticalBox(LSUI::MakeText(WidgetTree,
-			LOCTEXT("Note", "Music, effects and subtitles take effect once audio and voices are in the game."), 16, LSUI::Dim))->SetPadding(FMargin(0.f, 14.f, 0.f, 0.f));
+			LOCTEXT("Note", "Music, effects and subtitles take effect once audio and voices are in the game.\nLow graphics turns off Lumen lighting, virtual shadows and volumetric fog for integrated graphics."), 16, LSUI::Dim))->SetPadding(FMargin(0.f, 14.f, 0.f, 0.f));
 		Column->AddChildToVerticalBox(LSUI::MakeMenuButton(WidgetTree, LOCTEXT("Back", "Back"), 24, this, Proxies, [this]() { OnBack.Broadcast(); }))
 			->SetPadding(FMargin(0.f, 18.f, 0.f, 0.f));
 

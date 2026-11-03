@@ -57,7 +57,8 @@ void ALSTestGameMode::StartPlay()
 	Super::StartPlay();
 	GetWorld()->SpawnActor<ALSTimeOfDayDirector>();
 	ULSSettings::Get()->Apply(this);
-	if (FParse::Param(FCommandLine::Get(), TEXT("LSBrindleCheck")) || FParse::Param(FCommandLine::Get(), TEXT("LSContinueCheck")))
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSBrindleCheck")) || FParse::Param(FCommandLine::Get(), TEXT("LSContinueCheck"))
+		|| FParse::Param(FCommandLine::Get(), TEXT("LSFpsProbe")) || FCString::Strifind(FCommandLine::Get(), TEXT("LSWorkshopStress=")) || FCString::Strifind(FCommandLine::Get(), TEXT("LSTeleportStress=")))
 	{
 		GetWorld()->SpawnActor<ALSBrindleCheck>();
 	}

@@ -55,6 +55,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Map")
 	void CaptureNow();
 
+	/** Captures only if the map image has not been drawn yet (the island does not change while playing). */
+	UFUNCTION(BlueprintCallable, Category = "Map")
+	void CaptureIfNeeded() { if (!bCaptured) { CaptureNow(); } }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -64,4 +68,6 @@ private:
 
 	/** Half the side of the square the map covers, cm. */
 	float HalfSide() const;
+private:
+	bool bCaptured = false;
 };

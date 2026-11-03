@@ -15,6 +15,7 @@
 #include "LSInteractableComponent.h"
 #include "LSMapWidget.h"
 #include "LSPlayerCharacter.h"
+#include "LSSettings.h"
 #include "LSStorySubsystem.h"
 #include "LSStoryVolumes.h"
 #include "LSTraversalComponent.h"
@@ -172,6 +173,121 @@ void ALSBrindleCheck::Build()
 	auto Done = [Story](const TCHAR* Q, const TCHAR* O) { return Story->IsObjectiveDone(Q, O); };
 	auto Tod = [Story]() { return Story->GetTimeOfDay().ToString(); };
 
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSFpsProbe")))
+	{
+		// Frame rate in three views: the opening on the Upper Cliffs, the village square, and the workshop at night.
+		auto Probe = [this](const TCHAR* Where, TFunction<void()> Setup)
+		{
+			Add(Where, [this, Where, Setup](float T)
+			{
+				if (T == 0.f)
+				{
+					Setup();
+					ProbeTime = 0.f;
+					ProbeFrames = 0;
+				}
+				if (T > 3.f) // let the view settle
+				{
+					ProbeTime += GetWorld()->GetDeltaSeconds();
+					++ProbeFrames;
+				}
+				if (T > 13.f)
+				{
+					UE_LOG(LogTemp, Display, TEXT("LS_FPS %s, graphics %s: %.1f fps"), Where,
+						*ULSSettings::QualityName(ULSSettings::Get()->GetEffectiveQuality()).ToString(), ProbeFrames / FMath::Max(ProbeTime, 0.001f));
+					return true;
+				}
+				return false;
+			});
+		};
+		Probe(TEXT("upper cliffs"), []() {});
+		Probe(TEXT("village square"), [this]() { Place(FVector(40.f, 45.f, 1.2f), -130.f); });
+		Probe(TEXT("workshop at night"), [this, Story]()
+		{
+			Place(Director()->InteriorSpawn.GetLocation() / CmPerM, 20.f);
+			Story->SetTimeOfDay(TEXT("Night"));
+		});
+		Add(TEXT("probe done"), [this](float T)
+		{
+			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
+			return true;
+		});
+		return;
+	}
+
+	int32 Jumps = 0;
+	if (FParse::Value(FCommandLine::Get(), TEXT("LSTeleportStress="), Jumps) && Jumps > 0)
+	{
+		// Big camera jumps around the island and into the workshop, a few frames apart.
+		Add(TEXT("teleport stress"), [this, Jumps](float T)
+		{
+			static int32 Done = 0;
+			if (Done >= Jumps)
+			{
+				UE_LOG(LogTemp, Display, TEXT("LS_STRESS_SUMMARY %d teleports without a GPU timeout"), Jumps);
+				GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
+				return true;
+			}
+			if (FMath::Fmod(T, 0.25f) < GetWorld()->GetDeltaSeconds())
+			{
+				++Done;
+				if (Done % 5 == 0)
+				{
+					Place(Director()->InteriorSpawn.GetLocation() / CmPerM, FMath::FRandRange(0.f, 360.f));
+				}
+				else
+				{
+					Place(FVector(FMath::FRandRange(-450.f, 450.f), FMath::FRandRange(-550.f, 550.f), 40.f), FMath::FRandRange(0.f, 360.f));
+				}
+				if (Done % 20 == 0)
+				{
+					UE_LOG(LogTemp, Display, TEXT("LS_STRESS %d teleports"), Done);
+				}
+			}
+			return false;
+		});
+		return;
+	}
+
+	int32 Cycles = 0;
+	if (FParse::Value(FCommandLine::Get(), TEXT("LSWorkshopStress="), Cycles) && Cycles > 0)
+	{
+		// Enters and leaves the workshop over and over (fade, teleport, night and back) to shake out GPU timeouts.
+		for (int32 i = 0; i < Cycles; ++i)
+		{
+			Add(TEXT("enter"), [this, Story](float T)
+			{
+				Story->SetTimeOfDay(TEXT("Sunset"));
+				const FTransform Door = Director()->DoorSpawn;
+				Place(Door.GetLocation() / CmPerM, Door.Rotator().Yaw);
+				Story->FireEvent(TEXT("enter_workshop"));
+				return true;
+			});
+			Add(TEXT("inside"), [this](float T) { return T > 2.f; });
+			Add(TEXT("leave"), [this, Story](float T)
+			{
+				Story->FireEvent(TEXT("leave"));
+				return true;
+			});
+			Add(TEXT("outside"), [this, i](float T)
+			{
+				if (T > 1.f)
+				{
+					UE_LOG(LogTemp, Display, TEXT("LS_STRESS cycle %d done"), i + 1);
+					return true;
+				}
+				return false;
+			});
+		}
+		Add(TEXT("stress done"), [this, Cycles](float T)
+		{
+			UE_LOG(LogTemp, Display, TEXT("LS_STRESS_SUMMARY %d workshop cycles without a GPU timeout"), Cycles);
+			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
+			return true;
+		});
+		return;
+	}
+
 	if (FParse::Param(FCommandLine::Get(), TEXT("LSContinueCheck")))
 	{
 		// Opened by the title screen's Continue: the save is loaded and Kieran is back where it was made.
@@ -195,7 +311,8 @@ void ALSBrindleCheck::Build()
 			{
 				return false;
 			}
-			UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_SUMMARY %d/%d passed"), Passed, Total);
+			UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_FPS graphics %s: average %.1f fps, slowest frame %.0f ms"), *ULSSettings::QualityName(ULSSettings::Get()->GetEffectiveQuality()).ToString(), Frames > 0 ? Frames / FrameTimeSum : 0.0, WorstFrame * 1000.f);
+		UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_SUMMARY %d/%d passed"), Passed, Total);
 			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
 			return true;
 		});
@@ -517,6 +634,7 @@ void ALSBrindleCheck::Build()
 	});
 	Add(TEXT("summary"), [this](float T)
 	{
+		UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_FPS graphics %s: average %.1f fps, slowest frame %.0f ms"), *ULSSettings::QualityName(ULSSettings::Get()->GetEffectiveQuality()).ToString(), Frames > 0 ? Frames / FrameTimeSum : 0.0, WorstFrame * 1000.f);
 		UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_SUMMARY %d/%d passed"), Passed, Total);
 		GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
 		return true;
@@ -530,6 +648,14 @@ void ALSBrindleCheck::Tick(float DeltaSeconds)
 	if (!Kieran() || !Story || !Director() || Index >= Actions.Num())
 	{
 		return;
+	}
+	// Frame rate over the whole run (skipping the first seconds of loading).
+	RunTime += DeltaSeconds;
+	if (RunTime > 5.f)
+	{
+		FrameTimeSum += DeltaSeconds;
+		++Frames;
+		WorstFrame = FMath::Max(WorstFrame, DeltaSeconds);
 	}
 	if (bWaiting)
 	{
