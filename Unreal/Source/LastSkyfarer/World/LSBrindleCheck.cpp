@@ -24,7 +24,7 @@
 
 namespace
 {
-	constexpr float M = 100.f;
+	constexpr float CmPerM = 100.f;
 	const TCHAR* SaveSlot = TEXT("milestone_a_bot");
 }
 
@@ -75,7 +75,7 @@ void ALSBrindleCheck::Place(const FVector& WhereM, float Yaw)
 {
 	ALSPlayerCharacter* K = Kieran();
 	K->GetCharacterMovement()->StopMovementImmediately();
-	K->SetActorLocationAndRotation(WhereM * M, FRotator(0.f, Yaw, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
+	K->SetActorLocationAndRotation(WhereM * CmPerM, FRotator(0.f, Yaw, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
 	GetWorld()->GetFirstPlayerController()->SetControlRotation(FRotator(-10.f, Yaw, 0.f));
 }
 
@@ -175,7 +175,7 @@ void ALSBrindleCheck::Build()
 	{
 		if (T == 0.f)
 		{
-			ShotFrom(FVector(-900.f * M, -700.f * M, 420.f * M), FRotator(-24.f, 38.f, 0.f));
+			ShotFrom(FVector(-900.f * CmPerM, -700.f * CmPerM, 420.f * CmPerM), FRotator(-24.f, 38.f, 0.f));
 		}
 		if (At(3.f))
 		{
@@ -207,7 +207,7 @@ void ALSBrindleCheck::Build()
 		}
 		if (At(3.f))
 		{
-			Check(TEXT("WalksIntoVillage"), Story->GetState().Discovered.Contains(TEXT("windrest")), FString::Printf(TEXT("at %s"), *(Kieran()->GetActorLocation() / M).ToCompactString()));
+			Check(TEXT("WalksIntoVillage"), Story->GetState().Discovered.Contains(TEXT("windrest")), FString::Printf(TEXT("at %s"), *(Kieran()->GetActorLocation() / CmPerM).ToCompactString()));
 			Shot(TEXT("square"));
 		}
 		return T > 3.6f;
@@ -267,7 +267,7 @@ void ALSBrindleCheck::Build()
 			Check(TEXT("SunsetAndDeed"), Quest(TEXT("morning_deliveries")) == ELSQuestState::Complete && Story->HasFlag(TEXT("deed_received"))
 				&& Quest(TEXT("hidden_workshop")) == ELSQuestState::Active && Tod() == TEXT("Sunset") && Conversations.Contains(TEXT("maren_deed")),
 				FString::Printf(TEXT("time %s, deed %d"), *Tod(), Story->HasFlag(TEXT("deed_received")) ? 1 : 0));
-			ShotFrom(FVector(-60.f * M, -40.f * M, 30.f * M), FRotator(-8.f, 45.f, 0.f));
+			ShotFrom(FVector(-60.f * CmPerM, -40.f * CmPerM, 30.f * CmPerM), FRotator(-8.f, 45.f, 0.f));
 		}
 		if (At(2.f))
 		{
@@ -306,7 +306,7 @@ void ALSBrindleCheck::Build()
 		if (FMath::Fmod(T, 0.5f) < GetWorld()->GetDeltaSeconds())
 		{
 			ALSJournalPickup* N = Notes[NoteIndex++];
-			Place(N->GetActorLocation() / M + FVector(0.f, 0.f, 1.f), 0.f);
+			Place(N->GetActorLocation() / CmPerM + FVector(0.f, 0.f, 1.f), 0.f);
 			if (ULSInteractableComponent* I = N->FindComponentByClass<ULSInteractableComponent>())
 			{
 				I->Interact(Kieran());
@@ -324,7 +324,7 @@ void ALSBrindleCheck::Build()
 	Add(TEXT("workshop door"), [this](float T)
 	{
 		const FTransform Door = Director()->DoorSpawn;
-		Place(Door.GetLocation() / M, Door.Rotator().Yaw);
+		Place(Door.GetLocation() / CmPerM, Door.Rotator().Yaw);
 		return Talk(FindByPrompt(TEXT("Enter workshop")), TEXT("EntersWorkshop"));
 	});
 	Add(TEXT("workshop check"), [this, Story, Done, Tod](float T)
@@ -333,7 +333,7 @@ void ALSBrindleCheck::Build()
 		{
 			const float Dist = FVector::Dist(Kieran()->GetActorLocation(), Director()->InteriorSpawn.GetLocation());
 			Check(TEXT("EntersWorkshop"), Done(TEXT("hidden_workshop"), TEXT("enter")) && Dist < 500.f && Tod() == TEXT("Night")
-				&& Story->GetState().Discovered.Contains(TEXT("workshop")), FString::Printf(TEXT("%.0f m from the interior spawn, time %s"), Dist / M, *Tod()));
+				&& Story->GetState().Discovered.Contains(TEXT("workshop")), FString::Printf(TEXT("%.0f m from the interior spawn, time %s"), Dist / CmPerM, *Tod()));
 			Kieran()->SetActorRotation(FRotator(0.f, 20.f, 0.f));
 			GetWorld()->GetFirstPlayerController()->SetControlRotation(FRotator(-12.f, 20.f, 0.f));
 		}
@@ -344,7 +344,7 @@ void ALSBrindleCheck::Build()
 		if (At(2.f))
 		{
 			// Brindle at night, seen from below the Bluff.
-			ShotFrom(FVector(170.f * M, 470.f * M, 45.f * M), FRotator(-12.f, 125.f, 0.f));
+			ShotFrom(FVector(170.f * CmPerM, 470.f * CmPerM, 45.f * CmPerM), FRotator(-12.f, 125.f, 0.f));
 		}
 		if (At(4.f))
 		{
@@ -374,7 +374,7 @@ void ALSBrindleCheck::Build()
 		Check(TEXT("CompassAwakens"), Story->HasFlag(TEXT("compass_active")) && Story->GetItemCount(TEXT("brass_compass")) == 1
 			&& Quest(TEXT("hidden_workshop")) == ELSQuestState::Complete && Conversations.Contains(TEXT("compass_awakens")), TEXT("compass, Chapter 2 complete"));
 		Check(TEXT("NextMorning"), Tod() == TEXT("Dawn") && Story->GetChapter() == 3 && Quest(TEXT("into_the_clouds")) == ELSQuestState::Active && Dist < 300.f,
-			FString::Printf(TEXT("time %s, chapter %d, %.0f m from the workshop door"), *Tod(), Story->GetChapter(), Dist / M));
+			FString::Printf(TEXT("time %s, chapter %d, %.0f m from the workshop door"), *Tod(), Story->GetChapter(), Dist / CmPerM));
 		return true;
 	});
 
@@ -449,7 +449,7 @@ void ALSBrindleCheck::Build()
 		{
 			K->Traversal->SetMoveInput(FVector(0.f, 1.f, 0.f), 0.f, 1.f);
 			K->AddMovementInput(FVector(0.f, 1.f, 0.f));
-			if (K->GetCharacterMovement()->IsFalling() && K->GetActorLocation().Z < GlideStart.Z - 2.f * M)
+			if (K->GetCharacterMovement()->IsFalling() && K->GetActorLocation().Z < GlideStart.Z - 2.f * CmPerM)
 			{
 				K->DoJumpStart();
 				bDeployed = K->Glider->IsGliding();
@@ -459,7 +459,7 @@ void ALSBrindleCheck::Build()
 		if (LogTimer > 5.f)
 		{
 			LogTimer = 0.f;
-			UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE flight at %s, gliding %d, airspeed %.1f m/s"), *(K->GetActorLocation() / M).ToCompactString(),
+			UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE flight at %s, gliding %d, airspeed %.1f m/s"), *(K->GetActorLocation() / CmPerM).ToCompactString(),
 				K->Glider->IsGliding() ? 1 : 0, K->Glider->GetAirspeed());
 		}
 		return Story->HasFlag(TEXT("demo_complete")) || T > 90.f;
@@ -468,10 +468,10 @@ void ALSBrindleCheck::Build()
 	{
 		if (T == 0.f)
 		{
-			const FVector P = Kieran()->GetActorLocation() / M;
+			const FVector P = Kieran()->GetActorLocation() / CmPerM;
 			Check(TEXT("PikoRevealsUpdraft"), Story->HasFlag(TEXT("revealed_wind_1")) && Conversations.Contains(TEXT("piko_found_wind")), TEXT("hidden updraft and piko_found_wind"));
 			Check(TEXT("GlidesToTheFog"), Story->HasFlag(TEXT("reached_fog")) && Done(TEXT("into_the_clouds"), TEXT("glide")) && P.Y > 1400.f,
-				FString::Printf(TEXT("Kieran at %s, %.0f m east of the Bluff"), *P.ToCompactString(), P.Y - GlideStart.Y / M));
+				FString::Printf(TEXT("Kieran at %s, %.0f m east of the Bluff"), *P.ToCompactString(), P.Y - GlideStart.Y / CmPerM));
 			Check(TEXT("DemoComplete"), Story->HasFlag(TEXT("demo_complete")) && Quest(TEXT("into_the_clouds")) == ELSQuestState::Complete
 				&& Quest(TEXT("morning_deliveries")) == ELSQuestState::Complete && Quest(TEXT("hidden_workshop")) == ELSQuestState::Complete
 				&& Quest(TEXT("elias_was_here")) == ELSQuestState::Complete, TEXT("all four quests complete"));
