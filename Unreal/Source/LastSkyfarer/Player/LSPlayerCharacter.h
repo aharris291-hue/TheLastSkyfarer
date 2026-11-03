@@ -132,6 +132,8 @@ public:
 
 	virtual void DoMove(float Right, float Forward) override;
 	virtual void DoJumpStart() override;
+	/** Applies the player's look sensitivity and invert-Y settings. */
+	virtual void DoLook(float Yaw, float Pitch) override;
 	virtual void DoJumpEnd() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void Landed(const FHitResult& Hit) override;

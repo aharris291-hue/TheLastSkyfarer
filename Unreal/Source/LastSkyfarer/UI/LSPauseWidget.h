@@ -1,4 +1,4 @@
-// The Last Skyfarer: pause menu with Resume, Save, Load and Quit.
+// The Last Skyfarer: pause menu with Resume, Save, Load, Quit to title and Quit.
 
 #pragma once
 
@@ -37,5 +37,6 @@ private:
 	UFUNCTION() void HandleResume();
 	UFUNCTION() void HandleSave();
 	UFUNCTION() void HandleLoad();
+	UFUNCTION() void HandleQuitToTitle();
 	UFUNCTION() void HandleQuit();
 };

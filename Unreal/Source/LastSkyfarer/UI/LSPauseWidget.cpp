@@ -12,7 +12,9 @@
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "LSStorySubsystem.h"
+#include "LSTitleWidget.h"
 #include "LSUIHelpers.h"
 
 #define LOCTEXT_NAMESPACE "LSPause"
@@ -41,6 +43,7 @@ TSharedRef<SWidget> ULSPauseWidget::RebuildWidget()
 			{ LOCTEXT("Resume", "Resume"), &ULSPauseWidget::HandleResume },
 			{ LOCTEXT("Save", "Save game"), &ULSPauseWidget::HandleSave },
 			{ LOCTEXT("Load", "Load game"), &ULSPauseWidget::HandleLoad },
+			{ LOCTEXT("QuitTitle", "Quit to title"), &ULSPauseWidget::HandleQuitToTitle },
 			{ LOCTEXT("Quit", "Quit to desktop"), &ULSPauseWidget::HandleQuit },
 		};
 		for (const FEntry& E : Entries)
@@ -59,6 +62,7 @@ TSharedRef<SWidget> ULSPauseWidget::RebuildWidget()
 			if (E.Handler == &ULSPauseWidget::HandleResume) { B->OnClicked.AddDynamic(this, &ULSPauseWidget::HandleResume); }
 			else if (E.Handler == &ULSPauseWidget::HandleSave) { B->OnClicked.AddDynamic(this, &ULSPauseWidget::HandleSave); }
 			else if (E.Handler == &ULSPauseWidget::HandleLoad) { B->OnClicked.AddDynamic(this, &ULSPauseWidget::HandleLoad); }
+			else if (E.Handler == &ULSPauseWidget::HandleQuitToTitle) { B->OnClicked.AddDynamic(this, &ULSPauseWidget::HandleQuitToTitle); }
 			else { B->OnClicked.AddDynamic(this, &ULSPauseWidget::HandleQuit); }
 		}
 		StatusText = LSUI::MakeText(WidgetTree, FText::GetEmpty(), 18, LSUI::Dim);
@@ -86,6 +90,11 @@ void ULSPauseWidget::Load()
 void ULSPauseWidget::HandleResume() { OnResume.Broadcast(); }
 void ULSPauseWidget::HandleSave() { Save(); }
 void ULSPauseWidget::HandleLoad() { Load(); }
+
+void ULSPauseWidget::HandleQuitToTitle()
+{
+	UGameplayStatics::OpenLevel(this, FName(ULSTitleWidget::TitleMap));
+}
 
 void ULSPauseWidget::HandleQuit()
 {

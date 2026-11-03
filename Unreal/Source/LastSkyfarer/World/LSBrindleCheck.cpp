@@ -18,6 +18,8 @@
 #include "LSStorySubsystem.h"
 #include "LSStoryVolumes.h"
 #include "LSTraversalComponent.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "PikoCompanion.h"
 #include "UnrealClient.h"
@@ -169,6 +171,36 @@ void ALSBrindleCheck::Build()
 	auto Quest = [Story](const TCHAR* Q) { return Story->GetQuestState(Q); };
 	auto Done = [Story](const TCHAR* Q, const TCHAR* O) { return Story->IsObjectiveDone(Q, O); };
 	auto Tod = [Story]() { return Story->GetTimeOfDay().ToString(); };
+
+	if (FParse::Param(FCommandLine::Get(), TEXT("LSContinueCheck")))
+	{
+		// Opened by the title screen's Continue: the save is loaded and Kieran is back where it was made.
+		Add(TEXT("continue"), [this, Story, Tod](float T)
+		{
+			if (!At(0.3f))
+			{
+				return false;
+			}
+			const FTransform& Saved = Story->GetState().PlayerTransform;
+			const float Dist = FVector::Dist(Kieran()->GetActorLocation(), Saved.GetLocation());
+			Check(TEXT("ContinueLoadsSave"), Story->GetChapter() > 1 && Story->HasFlag(TEXT("opening_done")) && !Conversations.Contains(TEXT("opening")),
+				FString::Printf(TEXT("chapter %d, time %s, %d flags"), Story->GetChapter(), *Tod(), Story->GetState().Flags.Num()));
+			Check(TEXT("ContinueRestoresPosition"), Dist < 300.f, FString::Printf(TEXT("%.1f m from the saved position %s"), Dist / CmPerM, *(Saved.GetLocation() / CmPerM).ToCompactString()));
+			Shot(TEXT("continue"));
+			return true;
+		});
+		Add(TEXT("summary"), [this](float T)
+		{
+			if (T < 1.f)
+			{
+				return false;
+			}
+			UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_SUMMARY %d/%d passed"), Passed, Total);
+			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
+			return true;
+		});
+		return;
+	}
 
 	// ---- Chapter 1: The Edge of Tomorrow
 	Add(TEXT("overview"), [this](float T)

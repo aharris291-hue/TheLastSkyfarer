@@ -1,6 +1,7 @@
 // The Last Skyfarer: Kieran, the player character (GDD 1 and 2).
 
 #include "LSPlayerCharacter.h"
+#include "LSSettings.h"
 
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -185,6 +186,12 @@ void ALSPlayerCharacter::DoMove(float Right, float Forward)
 		}
 	}
 	Super::DoMove(Right, Forward);
+}
+
+void ALSPlayerCharacter::DoLook(float Yaw, float Pitch)
+{
+	const ULSSettings* S = ULSSettings::Get();
+	Super::DoLook(Yaw * S->LookSensitivity, Pitch * S->LookSensitivity * (S->bInvertY ? -1.f : 1.f));
 }
 
 void ALSPlayerCharacter::DoJumpStart()

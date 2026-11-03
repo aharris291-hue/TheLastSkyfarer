@@ -92,6 +92,7 @@ private:
 	TArray<FStep> Steps;
 
 	bool bDemoEnded = false;
+	bool bRestorePending = false;
 	float FogAmount = 0.f;
 	float BaseFogDensity = -1.f;
 	FLinearColor BaseFogColor;
@@ -106,6 +107,7 @@ private:
 	void Teleport(const FTransform& Where);
 	void UpdateFog();
 	void FindPiko();
+	void RestoreSavedPosition();
 
 	UFUNCTION() void HandleStoryEvent(FName EventId);
 	UFUNCTION() void HandleFlagChanged(FName Flag, bool bSet);

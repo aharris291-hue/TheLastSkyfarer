@@ -8,7 +8,9 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/GameModeBase.h"
 #include "GliderComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "LSPlayerCharacter.h"
 #include "LSStorySubsystem.h"
 #include "LSTimeOfDayDirector.h"
@@ -36,6 +38,9 @@ void ALSBrindleStory::BeginPlay()
 		Story->OnStoryEvent.AddUniqueDynamic(this, &ALSBrindleStory::HandleStoryEvent);
 		Story->OnFlagChanged.AddUniqueDynamic(this, &ALSBrindleStory::HandleFlagChanged);
 	}
+	// Opened from the title screen's Continue: put Kieran back where the save was made.
+	const AGameModeBase* GM = GetWorld()->GetAuthGameMode();
+	bRestorePending = GM && UGameplayStatics::HasOption(GM->OptionsString, TEXT("Continue"));
 }
 
 void ALSBrindleStory::FindPiko()
@@ -147,6 +152,24 @@ void ALSBrindleStory::FadeThrough(TFunction<void()> Middle, const FText& Caption
 			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.9f, FLinearColor::Black, false, false);
 		}
 	}, 0.8f);
+}
+
+void ALSBrindleStory::RestoreSavedPosition()
+{
+	const ULSStorySubsystem* Story = ULSStorySubsystem::Get(this);
+	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!Story || !PC || !PC->GetPawn())
+	{
+		return;
+	}
+	bRestorePending = false;
+	const FTransform& Saved = Story->GetState().PlayerTransform;
+	if (!Saved.GetLocation().IsNearlyZero())
+	{
+		Teleport(FTransform(FRotator(0.f, Saved.Rotator().Yaw, 0.f), Saved.GetLocation()));
+	}
+	ApplyStoryState();
+	UE_LOG(LogTemp, Display, TEXT("LS_STORY continue at %s (chapter %d, %s)"), *(Saved.GetLocation() / 100.f).ToCompactString(), Story->GetChapter(), *Story->GetTimeOfDay().ToString());
 }
 
 void ALSBrindleStory::Notify(const FText& Message)
@@ -319,6 +342,10 @@ void ALSBrindleStory::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	FindPiko();
 	UpdateFog();
+	if (bRestorePending)
+	{
+		RestoreSavedPosition();
+	}
 
 	const ULSStorySubsystem* Story = ULSStorySubsystem::Get(this);
 	if (Steps.Num() == 0 || !Story || Story->IsInDialogue())
