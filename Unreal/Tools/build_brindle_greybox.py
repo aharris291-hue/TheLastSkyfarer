@@ -116,11 +116,16 @@ def struct_set(obj, names, value):
     raise RuntimeError("no property %s on %s" % (names, obj))
 
 
-def rule(conditions, conversation, repeat=False):
+def rule(conditions, conversation, repeat=False, set_flag=None):
     r = unreal.LSInteractionRule()
     struct_set(r, ["if", "if_", "If"], conditions)
     struct_set(r, ["conversation"], conversation)
     struct_set(r, ["repeat", "b_repeat"], repeat)
+    if set_flag:
+        act = unreal.LSStoryAction()
+        act.set_editor_property("type", unreal.LSActionType.SET_FLAG)
+        act.set_editor_property("arg", set_flag)
+        struct_set(r, ["do", "do_", "Do"], [act])
     return r
 
 
@@ -381,9 +386,12 @@ npc("NPC_Elara", "villager", (535, -98, 1), 0, "Talk", [
     rule(["item:parcel_cliffs"], "villager_deliver"),
     rule([], "villager_after", True),
 ])
-# Rowan Finch has no lines in the converted data yet: placeholder, not interactable.
-rowan = npc("NPC_Rowan_Placeholder", "rowan", (-8, 14, 0), 180, "", [])
-rowan.get_editor_property("interactable").set_editor_property("available_if", ["rowan_has_lines"])
+# Rowan Finch, the village elder, by the fountain (D-26).
+npc("NPC_Rowan", "rowan", (-8, 14, 0), 180, "Talk to Rowan", [
+    rule(["deed_received", "!rowan_inheritance_done"], "rowan_inheritance", set_flag="rowan_inheritance_done"),
+    rule(["quest:morning_deliveries:active", "!rowan_morning_done", "!deed_received"], "rowan_morning", set_flag="rowan_morning_done"),
+    rule([], "rowan_repeat", True),
+])
 
 inspect("Inspect_BulletinBoard", (10, -18, 1.5), (0.3, 3, 2.5), "Read", [rule([], "board", True)])
 inspect("Inspect_Fountain", (0, 0, 2.2), (7.5, 7.5, 0.1), "Look", [rule([], "fountain", True)], mesh=CYL)

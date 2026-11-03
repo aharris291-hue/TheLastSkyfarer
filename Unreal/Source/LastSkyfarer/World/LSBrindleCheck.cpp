@@ -13,7 +13,10 @@
 #include "LSInteractorComponent.h"
 #include "LSMapWidget.h"
 #include "LSPlayerCharacter.h"
+#include "EngineUtils.h"
+#include "LSInteractableComponent.h"
 #include "LSStorySubsystem.h"
+#include "LSStoryVolumes.h"
 #include "LSTraversalComponent.h"
 #include "Misc/Paths.h"
 #include "UnrealClient.h"
@@ -50,6 +53,14 @@ void ALSBrindleCheck::Next()
 	StepTime = 0.f;
 	AdvanceTimer = 0.f;
 	bShot = false;
+}
+
+void ALSBrindleCheck::HandleLine(FName ConversationId, const FLSDialogueLine& Line)
+{
+	if (RowanConversation.IsNone())
+	{
+		RowanConversation = ConversationId;
+	}
 }
 
 void ALSBrindleCheck::HandlePulse(const FLSCompassReading& Reading)
@@ -144,7 +155,26 @@ void ALSBrindleCheck::Tick(float DeltaSeconds)
 			Next();
 		}
 		break;
-	case 3: // the map screen, with a pin
+	case 3: // talk to Rowan Finch by the fountain during Morning Deliveries
+		if (bFirst)
+		{
+			Story->OnDialogueLine.AddUniqueDynamic(this, &ALSBrindleCheck::HandleLine);
+			for (TActorIterator<ALSStoryNPC> It(GetWorld()); It; ++It)
+			{
+				if (It->SpeakerId == TEXT("rowan"))
+				{
+					It->Interactable->Interact(K);
+				}
+			}
+		}
+		if (StepTime > 0.3f && PumpDialogue(DeltaSeconds))
+		{
+			Check(TEXT("TalksToRowan"), RowanConversation == TEXT("rowan_morning") && Story->HasFlag(TEXT("rowan_morning_done")),
+				FString::Printf(TEXT("conversation %s"), *RowanConversation.ToString()));
+			Next();
+		}
+		break;
+	case 4: // the map screen, with a pin
 		if (bFirst)
 		{
 			H->ToggleMap();
@@ -167,7 +197,7 @@ void ALSBrindleCheck::Tick(float DeltaSeconds)
 			Next();
 		}
 		break;
-	case 4: // compass pulse (unlocked here for the check; in the story it wakes in Chapter 2)
+	case 5: // compass pulse (unlocked here for the check; in the story it wakes in Chapter 2)
 		if (bFirst)
 		{
 			K->Compass->OnPulse.AddUniqueDynamic(this, &ALSBrindleCheck::HandlePulse);
@@ -185,7 +215,7 @@ void ALSBrindleCheck::Tick(float DeltaSeconds)
 			Next();
 		}
 		break;
-	case 5: // glide off Old Cartographer's Bluff, eastwards
+	case 6: // glide off Old Cartographer's Bluff, eastwards
 		if (bFirst)
 		{
 			K->SetActorLocationAndRotation(FVector(60.f * M, 670.f * M, 22.f * M), FRotator(0.f, 90.f, 0.f), false, nullptr, ETeleportType::TeleportPhysics);
@@ -215,7 +245,7 @@ void ALSBrindleCheck::Tick(float DeltaSeconds)
 			Next();
 		}
 		break;
-	case 6:
+	case 7:
 		UE_LOG(LogTemp, Display, TEXT("LS_BRINDLE_SUMMARY %d/%d passed"), Passed, Total);
 		PC->ConsoleCommand(TEXT("quit"));
 		Next();

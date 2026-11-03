@@ -9,7 +9,7 @@
 class ACameraActor;
 
 /**
- * Overview shot from above, the opening on the Upper Cliffs, the village square, the map screen with a
+ * Overview shot from above, the opening on the Upper Cliffs, the village square, a talk with Rowan, the map screen with a
  * pin, a compass pulse, and a glide off Old Cartographer's Bluff. Logs "LS_BRINDLE <check> PASS/FAIL",
  * saves screenshots to Saved/Screenshots and quits.
  */
@@ -31,6 +31,7 @@ private:
 	int32 Pulses = 0;
 	bool bShot = false;
 	FVector GlideStart = FVector::ZeroVector;
+	FName RowanConversation;
 
 	UPROPERTY() TObjectPtr<ACameraActor> OverviewCamera;
 
@@ -40,4 +41,5 @@ private:
 	bool PumpDialogue(float Dt);
 
 	UFUNCTION() void HandlePulse(const struct FLSCompassReading& Reading);
+	UFUNCTION() void HandleLine(FName ConversationId, const struct FLSDialogueLine& Line);
 };
