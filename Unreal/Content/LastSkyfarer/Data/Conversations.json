@@ -1400,6 +1400,120 @@
           "Actions": []
         }
       ]
+    },
+    {
+      "Id": "rowan_morning",
+      "Source": "Unreal/Tools/dialogue/milestone_a_extra.json",
+      "Lines": [
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Morning, Kieran. Mind the cliff paths today. The wind's turning early.",
+          "bCanon": false,
+          "VoiceKey": "rowan_morning.00",
+          "Actions": []
+        },
+        {
+          "Speaker": "kieran",
+          "Emotion": "smile",
+          "Text": "The old stories say the Skyfarers could read the wind like a map.",
+          "bCanon": false,
+          "VoiceKey": "rowan_morning.01",
+          "Actions": []
+        },
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "The old stories say a great many things. They're good stories, lad. Let them stay stories.",
+          "bCanon": false,
+          "VoiceKey": "rowan_morning.02",
+          "Actions": []
+        },
+        {
+          "Speaker": "kieran",
+          "Emotion": "neutral",
+          "Text": "Don't you ever wonder what's past the clouds?",
+          "bCanon": false,
+          "VoiceKey": "rowan_morning.03",
+          "Actions": []
+        },
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Every spring I wonder if the mills will turn. That's plenty of wondering for one island.",
+          "bCanon": false,
+          "VoiceKey": "rowan_morning.04",
+          "Actions": []
+        }
+      ]
+    },
+    {
+      "Id": "rowan_inheritance",
+      "Source": "Unreal/Tools/dialogue/milestone_a_extra.json",
+      "Lines": [
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Maren tells me you had a letter. Elias's workshop, out on the Bluff.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.00",
+          "Actions": []
+        },
+        {
+          "Speaker": "kieran",
+          "Emotion": "neutral",
+          "Text": "He left it to me. I didn't even know he'd kept it.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.01",
+          "Actions": []
+        },
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Elias drew the finest maps this island ever had. It was the places he couldn't prove that worried folk.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.02",
+          "Actions": []
+        },
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Some doors stay shut for good reasons, Kieran.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.03",
+          "Actions": []
+        },
+        {
+          "Speaker": "kieran",
+          "Emotion": "smile",
+          "Text": "Or because nobody ever tried the handle.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.04",
+          "Actions": []
+        },
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "(sighs) You sound just like him.",
+          "bCanon": false,
+          "VoiceKey": "rowan_inheritance.05",
+          "Actions": []
+        }
+      ]
+    },
+    {
+      "Id": "rowan_repeat",
+      "Source": "Unreal/Tools/dialogue/milestone_a_extra.json",
+      "Lines": [
+        {
+          "Speaker": "rowan",
+          "Emotion": "neutral",
+          "Text": "Mills turning, post moving, clouds where they belong. That's how Windrest likes it.",
+          "bCanon": false,
+          "VoiceKey": "rowan_repeat.00",
+          "Actions": []
+        }
+      ]
     }
   ]
 }

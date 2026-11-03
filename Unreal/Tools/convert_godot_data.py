@@ -23,6 +23,12 @@ EXTRA_LOCATIONS = [
     {"Id": "orchard_vale", "Name": "Orchard Vale", "Subtitle": "Brindle Isle"},
 ]
 
+# New dialogue for the 3D game lives in Unreal/Tools/dialogue/ (same format as the Godot files).
+EXTRA_DIALOGUE = ["milestone_a_extra.json"]
+EXTRA_SPEAKERS = {
+    "rowan": {"name": "Rowan Finch", "portrait": "rowan", "default": "neutral", "color": "#b8c9a3"},
+}
+
 TEXT_OVERRIDES = [
     ("opening", 0, "Old Cartographer's Bluff, Brindle Isle. Sunrise.",
      "Upper Cliffs, Brindle Isle. Sunrise.",
@@ -100,6 +106,20 @@ def build():
                     "Actions": convert_actions(st),
                 })
             conversations.append({"Id": conv_id, "Source": f"data/dialogue/{fname}.json", "Lines": lines})
+    for fname in EXTRA_DIALOGUE:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dialogue", fname)
+        with open(path, encoding="utf-8") as f:
+            extra = json.load(f)
+        for conv_id, steps in extra.items():
+            if conv_id.startswith("_"):
+                continue
+            if any(c["Id"] == conv_id for c in conversations):
+                raise SystemExit(f"Extra conversation {conv_id} clashes with an existing id")
+            conversations.append({"Id": conv_id, "Source": f"Unreal/Tools/dialogue/{fname}", "Lines": [{
+                "Speaker": st.get("s", ""), "Emotion": st.get("p", ""), "Text": st.get("t", ""),
+                "bCanon": False,
+                "VoiceKey": f"{conv_id}.{i:02d}" if st.get("t") and st.get("s") not in ("", "narrator") else "",
+                "Actions": convert_actions(st)} for i, st in enumerate(steps)]})
 
     def hidden(v):
         if v is None:
@@ -124,6 +144,8 @@ def build():
     speakers = [{"Id": k, "DisplayName": v.get("name", ""), "Portrait": v.get("portrait", ""),
                  "DefaultEmotion": v.get("default", ""), "Color": v.get("color", "")}
                 for k, v in load("speakers.json").items()]
+    speakers += [{"Id": k, "DisplayName": v["name"], "Portrait": v["portrait"], "DefaultEmotion": v["default"],
+                  "Color": v["color"]} for k, v in EXTRA_SPEAKERS.items() if k not in {s["Id"] for s in speakers}]
     locations = [{"Id": k, "Name": v["name"], "Subtitle": v.get("subtitle", "")}
                  for k, v in load("locations.json").items()]
     # Milestone A places added for the 3D island (VERTICAL_SLICE.md); not in the Godot demo.

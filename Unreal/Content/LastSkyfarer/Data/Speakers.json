@@ -56,6 +56,13 @@
       "Portrait": "",
       "DefaultEmotion": "",
       "Color": "#d8d0c0"
+    },
+    {
+      "Id": "rowan",
+      "DisplayName": "Rowan Finch",
+      "Portrait": "rowan",
+      "DefaultEmotion": "neutral",
+      "Color": "#b8c9a3"
     }
   ]
 }

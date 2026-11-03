@@ -1,0 +1,21 @@
+{
+  "_note": "New Milestone A dialogue written for the 3D game (not in the Godot demo). Same format as data/dialogue/*.json: s = speaker, p = emotion, t = text, do = actions. Rowan Finch's lines: written by Claude, delegated by Adam on 2026-11-03.",
+  "rowan_morning": [
+    {"s": "rowan", "p": "neutral", "t": "Morning, Kieran. Mind the cliff paths today. The wind's turning early."},
+    {"s": "kieran", "p": "smile", "t": "The old stories say the Skyfarers could read the wind like a map."},
+    {"s": "rowan", "p": "neutral", "t": "The old stories say a great many things. They're good stories, lad. Let them stay stories."},
+    {"s": "kieran", "p": "neutral", "t": "Don't you ever wonder what's past the clouds?"},
+    {"s": "rowan", "p": "neutral", "t": "Every spring I wonder if the mills will turn. That's plenty of wondering for one island."}
+  ],
+  "rowan_inheritance": [
+    {"s": "rowan", "p": "neutral", "t": "Maren tells me you had a letter. Elias's workshop, out on the Bluff."},
+    {"s": "kieran", "p": "neutral", "t": "He left it to me. I didn't even know he'd kept it."},
+    {"s": "rowan", "p": "neutral", "t": "Elias drew the finest maps this island ever had. It was the places he couldn't prove that worried folk."},
+    {"s": "rowan", "p": "neutral", "t": "Some doors stay shut for good reasons, Kieran."},
+    {"s": "kieran", "p": "smile", "t": "Or because nobody ever tried the handle."},
+    {"s": "rowan", "p": "neutral", "t": "(sighs) You sound just like him."}
+  ],
+  "rowan_repeat": [
+    {"s": "rowan", "p": "neutral", "t": "Mills turning, post moving, clouds where they belong. That's how Windrest likes it."}
+  ]
+}
