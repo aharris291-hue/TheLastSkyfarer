@@ -123,6 +123,14 @@ def path(label, a, b, width=4.0):
 
 
 KIT = "/Game/LastSkyfarer/Environments/Brindle/Meshes/"
+# (mesh name prefix, max draw distance in metres, casts shadows)
+KIT_CULL = [
+    ("SM_GrassPatch", 110, False), ("SM_FlowerBed", 160, False), ("SM_Planter", 140, False), ("SM_HangingLantern", 60, False),
+    ("SM_LanternPost", 180, False), ("SM_Bench", 160, True), ("SM_Chest", 140, True), ("SM_Fence", 220, True),
+    ("SM_MarketStall", 260, True), ("SM_NoticeBoard", 200, True), ("SM_Rock", 450, True), ("SM_Tree", 650, True),
+    ("SM_Workbench", 60, True), ("SM_Bookshelf", 60, True), ("SM_Armillary", 60, True), ("SM_SketchBoard", 60, False),
+    ("SM_PortraitFrame", 60, False),
+]
 
 
 def stable_hash(text):
@@ -130,7 +138,7 @@ def stable_hash(text):
     return sum((i + 1) * ord(ch) for i, ch in enumerate(text))
 
 
-def kit(label, mesh_name, center, yaw=0.0, scale=(1.0, 1.0, 1.0), folder="Art/Windrest", spin=None):
+def kit(label, mesh_name, center, yaw=0.0, scale=(1.0, 1.0, 1.0), folder="Art/Windrest", spin=None, override=None):
     """Places a Windrest kit piece (Tools/import_windrest_kit.py). Visual only: no collision."""
     cls = unreal.LSSpinningMesh if spin is not None else unreal.StaticMeshActor
     a = actors.spawn_actor_from_class(cls, v(*center), rot(yaw=yaw))
@@ -139,6 +147,15 @@ def kit(label, mesh_name, center, yaw=0.0, scale=(1.0, 1.0, 1.0), folder="Art/Wi
     comp = a.get_editor_property("mesh") if spin is not None else a.static_mesh_component
     comp.set_static_mesh(unreal.load_asset(KIT + mesh_name))
     comp.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+    if override:
+        comp.set_material(0, material(override))
+    # Small props stop drawing (and grass stops casting shadows) at a distance, which keeps the village view at
+    # 30 fps on integrated graphics; big landmarks always draw.
+    for prefix, metres, shadow in KIT_CULL:
+        if mesh_name.startswith(prefix):
+            comp.set_editor_property("ld_max_draw_distance", metres * M)
+            comp.set_cast_shadow(shadow)
+            break
     a.set_actor_scale3d(unreal.Vector(*scale))
     if spin is not None:
         a.set_editor_property("speed", spin)
@@ -441,18 +458,27 @@ ROCK_SPOTS = [(560, 160), (540, 260), (470, -560), (420, -600), (-520, -350), (-
 for i, (x, y) in enumerate(ROCK_SPOTS):
     s = 1.6 + (i % 4) * 0.8
     kit("Rock_%02d" % i, "SM_Rock_%d" % (i % 3), (x, y, -0.4), yaw=i * 47, scale=(s, s * 0.8, s * 0.7), folder="Art/Rocks")
+# Rocks every few metres around the whole rim, so the island's edge reads as natural, not a cut.
+for i in range(36):
+    ang = i * 2 * math.pi / 36 + 0.05 * (i % 3)
+    s = 2.0 + (i % 5) * 0.7
+    kit("RimRock_%02d" % i, "SM_Rock_%d" % (i % 3), (math.cos(ang) * 575 * 0.985, math.sin(ang) * 700 * 0.985, -0.6), yaw=i * 61, scale=(s, s * 0.9, s * 0.6), folder="Art/Rocks")
 
 # ------------------------------------------------------------------ Cloud Edge (north rim, D-25)
 # A flower terrace on the north rim, west of Skywatch Point, looking out over the cloud sea.
-box("CloudEdge_Terrace", (545, -100, 0.5), (40, 60, 1), folder="Greybox/CloudEdge")
+hide(box("CloudEdge_Terrace", (545, -100, 0.5), (40, 60, 1), folder="Greybox/CloudEdge"))
+kit("CloudEdge_Terrace_Art", "SM_Plateau", (545, -100, 0), scale=(40, 60, 1), folder="Art/CloudEdge", override="MI_PathStone")
+for i, y in enumerate(range(-126, -72, 4)):
+    kit("CloudEdge_Fence_%d" % i, "SM_Fence_4m", (566, y, 1.0), yaw=90, folder="Art/CloudEdge")
 for i, y in enumerate((-125, -110, -90, -75)):
     hide(box("CloudEdge_FlowerBed_%d" % i, (535, y, 1.2), (3, 6, 0.4), folder="Greybox/CloudEdge"))
     kit("CloudEdge_FlowerBed_%d_Art" % i, "SM_FlowerBed", (535, y, 1.0), yaw=90)
 for i, y in enumerate(range(-127, -70, 6)):
-    shape("CloudEdge_Rail_%d" % i, CYL, (566, y, 1.5), (0.3, 0.3, 2), folder="Greybox/CloudEdge")
+    hide(shape("CloudEdge_Rail_%d" % i, CYL, (566, y, 1.5), (0.3, 0.3, 2), folder="Greybox/CloudEdge"))
 
 # ------------------------------------------------------------------ Skywatch Point (north hill, 25 m)
-box("Skywatch_Hill", (470, 40, 12.5), (60, 60, 25), folder="Greybox/Skywatch")
+hide(box("Skywatch_Hill", (470, 40, 12.5), (60, 60, 25), folder="Greybox/Skywatch"))
+kit("Skywatch_Hill_Art", "SM_Plateau", (470, 40, 0), scale=(60, 60, 25), folder="Art/Landforms")
 ramp("Skywatch_Ramp_1", (400, 0, 0), (430, 0, 12), 5, folder="Greybox/Skywatch")
 box("Skywatch_Landing", (434, -2, 11.5), (8, 8, 1), folder="Greybox/Skywatch")
 ramp("Skywatch_Ramp_2", (434, 6, 12), (441, 30, 25), 5, folder="Greybox/Skywatch")
@@ -461,24 +487,40 @@ box("Skywatch_ClimbFace", (439.6, 60, 12.5), (0.8, 10, 25), climbable=True, fold
 box("Skywatch_Deck", (480, 40, 25.3), (20, 20, 0.6), folder="Greybox/Skywatch")
 shape("Skywatch_Telescope", CYL, (486, 46, 27), (0.8, 0.8, 3), pitch=-35, folder="Greybox/Skywatch")
 # A floating rock off the deck (jump across) with one of Elias's notes.
-box("Skywatch_FloatingRock", (512, 40, 24.0), (5, 5, 2), folder="Greybox/Skywatch")
+hide(box("Skywatch_FloatingRock", (512, 40, 24.0), (5, 5, 2), folder="Greybox/Skywatch"))
+kit("Skywatch_FloatingRock_Art", "SM_FloatingIsle", (512, 40, 25.0), scale=(5.5, 5.5, 5), folder="Art/Sky")
 
 # ------------------------------------------------------------------ Upper Cliffs (north-east plateau, 15 m)
-box("UpperCliffs_Plateau", (300, 330, 7.5), (120, 140, 15), folder="Greybox/UpperCliffs")
+hide(box("UpperCliffs_Plateau", (300, 330, 7.5), (120, 140, 15), folder="Greybox/UpperCliffs"))
+kit("UpperCliffs_Plateau_Art", "SM_Plateau", (300, 330, 0), scale=(120, 140, 15), folder="Art/Landforms")
 ramp("UpperCliffs_Ramp", (230, 270, 0), (250, 280, 15), 6, folder="Greybox/UpperCliffs")
 for i, (x, y) in enumerate(((320, 300), (340, 360), (280, 380), (330, 330))):
-    box("UpperCliffs_Rock_%d" % i, (x, y, 16.5), (4, 3, 3), yaw=i * 30, folder="Greybox/UpperCliffs")
+    hide(box("UpperCliffs_Rock_%d" % i, (x, y, 16.5), (4, 3, 3), yaw=i * 30, folder="Greybox/UpperCliffs"))
+    kit("UpperCliffs_Rock_%d_Art" % i, "SM_Rock_%d" % (i % 3), (x, y, 14.6), yaw=i * 30, scale=(1.5, 1.5, 2.2), folder="Art/Rocks")
 # A 1.6 m ledge to mantle onto the lookout rock.
-box("UpperCliffs_Lookout", (350, 380, 15.8), (8, 8, 1.6), folder="Greybox/UpperCliffs")
+hide(box("UpperCliffs_Lookout", (350, 380, 15.8), (8, 8, 1.6), folder="Greybox/UpperCliffs"))
+kit("UpperCliffs_Lookout_Art", "SM_Plateau", (350, 380, 15.0), scale=(8, 8, 1.6), folder="Art/Landforms", override="MI_CliffRock")
 
 # ------------------------------------------------------------------ Old Cartographer's Bluff (east rim, 20 m)
-box("Bluff_Plateau", (60, 600, 10), (140, 160, 20), folder="Greybox/Bluff")
+hide(box("Bluff_Plateau", (60, 600, 10), (140, 160, 20), folder="Greybox/Bluff"))
+kit("Bluff_Plateau_Art", "SM_Plateau", (60, 600, 0), scale=(140, 160, 20), folder="Art/Landforms")
 ramp("Bluff_Ramp", (40, 480, 0), (45, 525, 20), 6, folder="Greybox/Bluff")
 house("EliasWorkshop", (80, 600, 20), (14, 10, 7), folder="Greybox/Bluff")
-shape("ObservationTower", CYL, (130, 640, 35), (6, 6, 30), folder="Greybox/Bluff")
-shape("ObservationTower_Top", CONE, (130, 640, 51.5), (7, 7, 3), folder="Greybox/Bluff")
+hide(shape("ObservationTower", CYL, (130, 640, 35), (6, 6, 30), folder="Greybox/Bluff"))
+hide(shape("ObservationTower_Top", CONE, (130, 640, 51.5), (7, 7, 3), folder="Greybox/Bluff"))
+kit("ObservationTower_Art", "SM_ObservationTower", (130, 640, 20), folder="Art/Bluff")
 # A low launch lip (15 cm, walkable) marks the glide edge.
-box("Bluff_LaunchLip", (60, 676, 20.0), (20, 6, 0.3), folder="Greybox/Bluff")
+hide(box("Bluff_LaunchLip", (60, 676, 20.0), (20, 6, 0.3), folder="Greybox/Bluff"))
+# The glider launch: a plank deck at the Bluff edge, lanterns and crates by the workshop.
+kit("Bluff_LaunchDeck", "SM_LaunchDeck", (60, 676, 20.15), folder="Art/Bluff")
+for i, (x, y) in enumerate(((70, 590), (88, 590), (48, 650))):
+    kit("Bluff_Lantern_%d" % i, "SM_LanternPost", (x, y, 20), yaw=i * 90, folder="Art/Bluff")
+for i, (x, y) in enumerate(((94, 596), (95, 599), (40, 640))):
+    kit("Bluff_Chest_%d" % i, "SM_Chest", (x, y, 20), yaw=i * 40, scale=(0.9, 0.9, 0.9), folder="Art/Bluff")
+for i, x in enumerate(range(-6, 128, 4)):
+    if 30 <= x <= 54:
+        continue  # leave the top of the ramp open
+    kit("Bluff_Fence_S_%d" % i, "SM_Fence_4m", (x, 522, 20), yaw=(i % 3) - 1, folder="Art/Bluff")
 
 # Blocks the Bluff edge until Kieran has the glider (windrest.gd edge_wall); hidden, collision only.
 edge_wall = box("Bluff_EdgeWall", (60, 681.5, 23), (140, 1, 6), folder="Greybox/Bluff")
@@ -486,11 +528,15 @@ edge_wall.set_actor_hidden_in_game(True)
 
 # ------------------------------------------------------------------ Into the Clouds: the sky route east (Ch. 3)
 # Small floating islands along the impossible current, then the island in the mist where the wind refuses to go.
-box("FloatingIsle_East", (60, 920, -5), (30, 30, 6), folder="Greybox/Sky")
-box("FloatingIsle_Mid", (60, 1180, -15), (40, 40, 8), folder="Greybox/Sky")
-box("FloatingIsle_Small", (40, 1420, -20), (20, 20, 6), folder="Greybox/Sky")
+hide(box("FloatingIsle_East", (60, 920, -5), (30, 30, 6), folder="Greybox/Sky"))
+kit("FloatingIsle_East_Art", "SM_FloatingIsle", (60, 920, -2), scale=(32, 32, 18), folder="Art/Sky")
+hide(box("FloatingIsle_Mid", (60, 1180, -15), (40, 40, 8), folder="Greybox/Sky"))
+kit("FloatingIsle_Mid_Art", "SM_FloatingIsle", (60, 1180, -11), scale=(42, 42, 24), folder="Art/Sky")
+hide(box("FloatingIsle_Small", (40, 1420, -20), (20, 20, 6), folder="Greybox/Sky"))
+kit("FloatingIsle_Small_Art", "SM_FloatingIsle", (40, 1420, -17), scale=(22, 22, 14), folder="Art/Sky")
 for i, (x, y, z, s) in enumerate(((20, 800, 30, 4), (110, 1050, 25, 3), (0, 1300, 35, 5), (120, 1480, 20, 4))):
-    box("SkyRock_%d" % i, (x, y, z), (s, s, s * 0.8), yaw=i * 37, folder="Greybox/Sky")
+    hide(box("SkyRock_%d" % i, (x, y, z), (s, s, s * 0.8), yaw=i * 37, folder="Greybox/Sky"))
+    kit("SkyRock_%d_Art" % i, "SM_FloatingIsle", (x, y, z + s * 0.4), yaw=i * 37, scale=(s * 1.3, s * 1.3, s * 2.2), folder="Art/Sky")
 # The island in the mist: a dark silhouette beyond the fog (STYLE_GUIDE colour script 6).
 shape("MistIsland_Top", CYL, (60, 1900, -10), (320, 380, 30), collision=False, folder="Greybox/Sky")
 shape("MistIsland_Underside", CONE, (60, 1900, -60), (300, 360, 80), roll=180, collision=False, folder="Greybox/Sky")
@@ -510,10 +556,19 @@ box("Workshop_Wall_E", (IX, IY + 5.2, 2.0), (14.8, 0.4, 4.4), folder="Greybox/Wo
 box("Workshop_Wall_W", (IX, IY - 5.2, 2.0), (14.8, 0.4, 4.4), folder="Greybox/Workshop")
 for i, x in enumerate((-4.5, 0.0, 4.5)):
     box("Workshop_Beam_%d" % i, (IX + x, IY, 3.9), (0.4, 10, 0.4), folder="Greybox/Workshop")
-box("Workshop_Bookshelf_W", (IX - 3, IY - 4.7, 1.4), (4, 0.6, 2.8), folder="Greybox/Workshop")
-box("Workshop_Bookshelf_E", (IX + 5, IY + 4.7, 1.4), (3, 0.6, 2.8), folder="Greybox/Workshop")
-box("Workshop_Desk", (IX + 3, IY, 0.45), (2.2, 3.2, 0.9), folder="Greybox/Workshop")
-box("Workshop_Chest", (IX + 5.8, IY + 2.5, 0.4), (1.0, 1.6, 0.8), folder="Greybox/Workshop")
+hide(box("Workshop_Bookshelf_W", (IX - 3, IY - 4.7, 1.4), (4, 0.6, 2.8), folder="Greybox/Workshop"))
+kit("Workshop_Bookshelf_W_Art", "SM_Bookshelf", (IX - 3, IY - 4.75, 0), yaw=180, folder="Art/Workshop")
+hide(box("Workshop_Bookshelf_E", (IX + 5, IY + 4.7, 1.4), (3, 0.6, 2.8), folder="Greybox/Workshop"))
+kit("Workshop_Bookshelf_E_Art", "SM_Bookshelf", (IX + 5, IY + 4.75, 0), scale=(0.75, 1, 1), folder="Art/Workshop")
+hide(box("Workshop_Desk", (IX + 3, IY, 0.45), (2.2, 3.2, 0.9), folder="Greybox/Workshop"))
+kit("Workshop_Workbench", "SM_Workbench", (IX + 3, IY, 0), folder="Art/Workshop")
+hide(box("Workshop_Chest", (IX + 5.8, IY + 2.5, 0.4), (1.0, 1.6, 0.8), folder="Greybox/Workshop"))
+kit("Workshop_Chest_Art", "SM_Chest", (IX + 5.8, IY + 2.5, 0), folder="Art/Workshop")
+kit("Workshop_SketchBoard", "SM_SketchBoard", (IX + 3, IY + 4.95, 1.8), folder="Art/Workshop")
+kit("Workshop_Portrait", "SM_PortraitFrame", (IX - 3, IY + 4.95, 2.0), folder="Art/Workshop")
+kit("Workshop_Armillary", "SM_Armillary", (IX + 5.5, IY - 3.5, 0), folder="Art/Workshop")
+for i, (x, y) in enumerate(((IX - 4, IY - 3), (IX + 4, IY + 3), (IX + 3, IY - 1.2))):
+    kit("Workshop_HangingLantern_%d" % i, "SM_HangingLantern", (x, y, 4.1), folder="Art/Workshop")
 lamp("Workshop_Lantern_A", (IX - 4, IY - 3, 3.0))
 lamp("Workshop_Lantern_B", (IX + 4, IY + 3, 3.0))
 lamp("Workshop_Lantern_Desk", (IX + 3, IY, 1.6), radius=6.0)
@@ -660,6 +715,11 @@ note("note_wind", (300, -262, 3.6))
 note("note_sky_map", (512, 40, 25.5))
 note("note_three_decades", (350, 380, 17.1))
 note("note_each_island", (60, 920, -1.5))
+
+# Greybox inspect meshes now covered by art (interaction finds them by position, so hiding is safe).
+for a in actors.get_all_level_actors():
+    if a.get_actor_label() in ("Inspect_Maps", "Inspect_Sketches", "Inspect_Notes", "Inspect_Portrait", "Inspect_Instruments"):
+        hide(a)
 
 # ------------------------------------------------------------------ map and game mode
 bounds = actors.spawn_actor_from_class(unreal.LSMapBounds, v(0, 0, 0), rot())
