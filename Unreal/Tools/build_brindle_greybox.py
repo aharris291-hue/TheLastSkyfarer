@@ -114,12 +114,27 @@ def ramp(label, start, end, width, thickness=1.0, folder="Greybox/Paths"):
     yaw = math.degrees(math.atan2(dy, dx))
     pitch = math.degrees(math.atan2(dz, run))
     center = ((start[0] + end[0]) / 2, (start[1] + end[1]) / 2, (start[2] + end[2]) / 2 - thickness / 2)
-    return box(label, center, (length, width, thickness), yaw=yaw, pitch=pitch, folder=folder)
+    a = box(label, center, (length, width, thickness), yaw=yaw, pitch=pitch, folder=folder)
+    if "Ramp" in label:
+        # Art polish: stone steps over the walkable slope (the box keeps the collision).
+        hide(a)
+        kit(label + "_Steps", "SM_StoneSteps", (center[0], center[1], min(start[2], end[2])), yaw=yaw, scale=(run, width, max(abs(dz), 0.3)),
+            folder="Art/Steps")
+    return a
 
 
 def path(label, a, b, width=4.0):
-    """Flat dirt path on the ground between two points."""
-    return ramp(label, (a[0], a[1], 0.05), (b[0], b[1], 0.05), width, 0.1)
+    """A path between two points: the flat strip keeps the collision; art segments with edge stones show instead."""
+    strip = hide(ramp(label, (a[0], a[1], 0.05), (b[0], b[1], 0.05), width, 0.1))
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    length = math.hypot(dx, dy)
+    count = max(1, int(math.ceil(length / 20.0)))
+    piece = "SM_Path_Cobble" if any(k in label for k in ("PostHouse", "Tavern", "Homes")) else "SM_Path_Dirt"
+    for i in range(count):
+        t = (i + 0.5) / count
+        kit("%s_Art_%02d" % (label, i), piece, (a[0] + dx * t, a[1] + dy * t, 0.0), yaw=math.degrees(math.atan2(dy, dx)),
+            scale=(length / count / 20.0 * 1.02, width / 4.0, 1.0), folder="Art/Paths")
+    return strip
 
 
 KIT = "/Game/LastSkyfarer/Environments/Brindle/Meshes/"
@@ -129,7 +144,9 @@ KIT_CULL = [
     ("SM_LanternPost", 180, False), ("SM_Bench", 160, True), ("SM_Chest", 140, True), ("SM_Fence", 220, True),
     ("SM_MarketStall", 260, True), ("SM_NoticeBoard", 200, True), ("SM_Rock", 450, True), ("SM_Tree", 650, True),
     ("SM_Workbench", 60, True), ("SM_Bookshelf", 60, True), ("SM_Armillary", 60, True), ("SM_SketchBoard", 60, False),
-    ("SM_PortraitFrame", 60, False),
+    ("SM_PortraitFrame", 60, False), ("SM_Path_", 160, False), ("SM_WheatPatch", 150, False), ("SM_Petals", 90, False),
+    ("SM_FruitCrate", 140, True), ("SM_Crate", 220, True), ("SM_Ladder", 140, True), ("SM_Beehive", 140, True), ("SM_Sign_", 220, True),
+    ("SM_Telescope", 260, True),
 ]
 
 
@@ -388,7 +405,9 @@ for i, (x, y) in enumerate(((14, -10), (14, 10), (-14, -10), (-14, 10))):
     # Art pass 1: a striped market stall, counter facing the fountain.
     kit("Market_Stall_%d_Art" % i, "SM_MarketStall", (x, y, 0), yaw=math.degrees(math.atan2(-x, y)))
 house("PostHouse", (55, 70), (16, 12, 8))
+kit("Sign_PostHouse", "SM_Sign_PostHouse", (64.5, 62.5, 0), yaw=0, folder="Art/Village")
 house("WindsongTavern", (-70, 120), (20, 14, 9))
+kit("Sign_Tavern", "SM_Sign_Tavern", (-58, 111.5, 0), yaw=180, folder="Art/Village")
 for i, (x, y) in enumerate(((-110, -40), (-130, 30), (-160, 90), (-120, 165), (-180, -25), (-205, 60), (-90, -95), (-215, 140))):
     house("Home_%d" % i, (x, y), (8, 8, 6), yaw=(i * 23) % 40 - 20)
 
@@ -410,9 +429,19 @@ windmill("Windmill_A", (300, -280))
 windmill("Windmill_B", (370, -385))
 windmill("Windmill_C", (250, -405))
 # Crates to mantle up to Elias's note on the mill platform (1.2 m steps).
-box("Mill_Crate_1", (300, -268, 0.6), (2, 2, 1.2), folder="Greybox/Whispermill")
-box("Mill_Crate_2", (300, -266, 1.8), (2, 2, 1.2), folder="Greybox/Whispermill")
-box("Mill_Platform", (300, -262, 3.0), (4, 3, 0.3), folder="Greybox/Whispermill")
+hide(box("Mill_Crate_1", (300, -268, 0.6), (2, 2, 1.2), folder="Greybox/Whispermill"))
+kit("Mill_Crate_1_Art", "SM_Crate", (300, -268, 0), scale=(2, 2, 1.2), folder="Art/Whispermill")
+hide(box("Mill_Crate_2", (300, -266, 1.8), (2, 2, 1.2), folder="Greybox/Whispermill"))
+kit("Mill_Crate_2_Art", "SM_Crate", (300, -266, 1.2), yaw=8, scale=(2, 2, 1.2), folder="Art/Whispermill")
+hide(box("Mill_Platform", (300, -262, 3.0), (4, 3, 0.3), folder="Greybox/Whispermill"))
+kit("Mill_Platform_Art", "SM_Deck", (300, -262, 3.15), scale=(4, 3, 0.6), folder="Art/Whispermill")
+# A wheat field that sways, over the gold ground (kept clear of the windmills and the crates).
+for gx in range(9):
+    for gy in range(11):
+        wx, wy = 255 + gx * 19, -425 + gy * 19
+        if any(math.hypot(wx - mx, wy - my) < 14 for mx, my in ((300, -280), (370, -385), (250, -405), (300, -266))):
+            continue
+        kit("Wheat_%d_%d" % (gx, gy), "SM_WheatPatch", (wx, wy, 0.3), yaw=(gx * 7 + gy * 13) % 360, folder="Art/Wheat")
 
 # ------------------------------------------------------------------ Orchard Vale (west)
 for i in range(5):
@@ -423,7 +452,15 @@ for i in range(4):
     for j in range(5):
         tree("Orchard_Outer_%d_%d" % (i, j), (-45 + i * 20 + (j % 2) * 8, -450 - j * 22))
 for i, (x, y) in enumerate(((10, -575), (18, -578), (-20, -570))):
-    box("Orchard_Crate_%d" % i, (x, y, 0.5), (1.2, 1.2, 1), yaw=i * 25, folder="Greybox/Orchard")
+    hide(box("Orchard_Crate_%d" % i, (x, y, 0.5), (1.2, 1.2, 1), yaw=i * 25, folder="Greybox/Orchard"))
+    kit("Orchard_Crate_%d_Art" % i, "SM_FruitCrate", (x, y, 0), yaw=i * 25, scale=(1.2, 1.2, 1.2), folder="Art/Orchard")
+for i in range(5):
+    for j in range(4):
+        if (i + j) % 2 == 0:
+            kit("Orchard_Petals_%d_%d" % (i, j), "SM_Petals", (-30 + i * 15, -360 - j * 15, 0), yaw=i * 40 + j * 70, folder="Art/Orchard")
+kit("Orchard_Ladder", "SM_Ladder", (-14, -374, 0), yaw=30, folder="Art/Orchard")
+for i, (x, y) in enumerate(((-62, -380), (-64, -392), (-60, -404))):
+    kit("Orchard_Beehive_%d" % i, "SM_Beehive", (x, y, 0), yaw=i * 50, folder="Art/Orchard")
 for i, x in enumerate(range(-90, 100, 12)):
     hide(shape("Orchard_FencePost_%d" % i, CYL, (x, -686, 0.6), (0.25, 0.25, 1.2), folder="Greybox/Orchard"))
 # Art pass 1: a wooden fence along the orchard's rim.
@@ -483,9 +520,16 @@ ramp("Skywatch_Ramp_1", (400, 0, 0), (430, 0, 12), 5, folder="Greybox/Skywatch")
 box("Skywatch_Landing", (434, -2, 11.5), (8, 8, 1), folder="Greybox/Skywatch")
 ramp("Skywatch_Ramp_2", (434, 6, 12), (441, 30, 25), 5, folder="Greybox/Skywatch")
 # A climbable face on the south side (tagged Climbable).
-box("Skywatch_ClimbFace", (439.6, 60, 12.5), (0.8, 10, 25), climbable=True, folder="Greybox/Skywatch")
-box("Skywatch_Deck", (480, 40, 25.3), (20, 20, 0.6), folder="Greybox/Skywatch")
-shape("Skywatch_Telescope", CYL, (486, 46, 27), (0.8, 0.8, 3), pitch=-35, folder="Greybox/Skywatch")
+hide(box("Skywatch_ClimbFace", (439.6, 60, 12.5), (0.8, 10, 25), climbable=True, folder="Greybox/Skywatch"))
+kit("Skywatch_ClimbRock", "SM_ClimbRock", (439.2, 60, 0), scale=(2.5, 11, 25), folder="Art/Skywatch")
+hide(box("Skywatch_Deck", (480, 40, 25.3), (20, 20, 0.6), folder="Greybox/Skywatch"))
+kit("Skywatch_Deck_Art", "SM_Deck", (480, 40, 25.6), scale=(20, 20, 1.2), folder="Art/Skywatch")
+for i, y in enumerate(range(32, 52, 4)):
+    kit("Skywatch_Fence_N_%d" % i, "SM_Fence_4m", (489.8, y, 25.6), yaw=90, folder="Art/Skywatch")
+for i, x in enumerate(range(472, 492, 4)):
+    kit("Skywatch_Fence_E_%d" % i, "SM_Fence_4m", (x, 49.8, 25.6), folder="Art/Skywatch")
+hide(shape("Skywatch_Telescope", CYL, (486, 46, 27), (0.8, 0.8, 3), pitch=-35, folder="Greybox/Skywatch"))
+kit("Skywatch_Telescope_Art", "SM_Telescope", (486, 46, 25.6), yaw=20, folder="Art/Skywatch")
 # A floating rock off the deck (jump across) with one of Elias's notes.
 hide(box("Skywatch_FloatingRock", (512, 40, 24.0), (5, 5, 2), folder="Greybox/Skywatch"))
 kit("Skywatch_FloatingRock_Art", "SM_FloatingIsle", (512, 40, 25.0), scale=(5.5, 5.5, 5), folder="Art/Sky")
