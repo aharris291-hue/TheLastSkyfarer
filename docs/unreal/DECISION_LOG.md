@@ -31,4 +31,5 @@ Every resolved Open Decision, who approved it and when. Proposals live in [OPEN_
 | D-24 | Glider tuning: softer drag and 90°/s pitch response so a dive and pull-up returns about 22 of 42 m (trim 14 m/s and sink 1.6 m/s unchanged) | Adam ("go") | 2026-11-02 |
 | D-25 | Brindle greybox: Cloud Edge sits on the north rim near Skywatch, as in Adam's Windrest map (not the west rim of the Godot demo) | Adam | 2026-11-03 |
 | D-26 | Claude writes Rowan Finch's lines (none existed); first set: rowan_morning, rowan_inheritance, rowan_repeat in Unreal/Tools/dialogue/milestone_a_extra.json. Elara stays at Cloud Edge | Adam | 2026-11-03 |
+| D-27 | Art direction for Brindle Isle approved: painterly materials and the round, warm Windrest kit from art pass 1 (build f, commit 1d6e2c5); continue the art pass in the same style | Adam ("The look is good continue") | 2026-11-16 |
 Also approved with "go": copy the source PDFs into `docs/source/`, and register the UE 5.8 Unreal MCP plugin with Claude Code once the project compiles.
