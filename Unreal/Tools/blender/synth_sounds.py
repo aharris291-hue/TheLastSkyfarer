@@ -180,4 +180,97 @@ save("ui_click", (np.sin(2 * np.pi * 1250 * tt) + 0.4 * np.sin(2 * np.pi * 2500 
 m = int(SR * 0.06)
 tt = np.arange(m) / SR
 save("ui_hover", np.sin(2 * np.pi * 880 * tt) * env(m, 0.004, 0.02), 0.3)
+# ------------------------------------------------------------------ sound pass 2: Piko, compass, journal, map, stingers, gusts, glider
+def fm_chirp(f0, f1, dur, mod_ratio=2.0, mod_depth=1.5):
+    m = int(SR * dur)
+    tt = np.arange(m) / SR
+    f = np.geomspace(f0, f1, m)
+    phase = 2 * np.pi * np.cumsum(f) / SR
+    return np.sin(phase + mod_depth * np.sin(phase * mod_ratio) * np.exp(-tt * 8)) * np.sin(np.pi * tt / dur) ** 1.5
+
+
+# Piko (non-verbal): quick bright chirps and warbling trills, small and friendly.
+for i, (a, b, d) in enumerate(((1800, 2900, 0.12), (2600, 1900, 0.1), (2000, 3400, 0.16), (3000, 2400, 0.09)), 1):
+    x = fm_chirp(a, b, d, 2.0, 1.2)
+    if i % 2 == 0:
+        x = np.concatenate([x, np.zeros(int(SR * 0.04)), 0.7 * fm_chirp(b, a * 1.1, d * 0.8, 2.0, 1.0)])
+    save("piko_chirp_%d" % i, x, 0.5)
+for i in (1, 2):
+    parts = []
+    for k in range(7 + i * 2):
+        f = 2200 + 500 * np.sin(k * 0.9 + i) + rng.uniform(-80, 80)
+        parts.append(fm_chirp(f, f * 1.15, 0.055, 2.0, 0.8))
+        parts.append(np.zeros(int(SR * 0.012)))
+    save("piko_trill_%d" % i, np.concatenate(parts) * np.linspace(0.8, 1.0, sum(len(p) for p in parts)), 0.5)
+
+
+def brass_shimmer(base, dur, rise=1.0):
+    m = int(SR * dur)
+    tt = np.arange(m) / SR
+    x = np.zeros(m)
+    for k, ratio in enumerate((1.0, 2.76, 5.4, 8.93)):   # inharmonic partials: a struck brass ring
+        x += np.sin(2 * np.pi * base * ratio * (1 + (rise - 1) * tt / dur) * tt) * np.exp(-tt * (2.5 + k * 1.5)) / (k + 1)
+    air = shaped_noise(dur, lambda f: band(f, 2000, 9000, 2.0))[:m] * env(m, 0.15, 0.5) * 0.25
+    return x + air
+
+
+save("compass_pulse", brass_shimmer(660, 1.6, 1.03), 0.55)
+awaken = brass_shimmer(440, 3.5, 1.12)
+echo = np.pad(brass_shimmer(880, 2.5, 1.05), (int(SR * 0.6), 0))
+echo = np.pad(echo, (0, max(0, len(awaken) - len(echo))))[:len(awaken)]
+save("compass_awaken", awaken + 0.6 * echo, 0.6)
+
+
+def paper(dur, crinkle=30):
+    m = int(SR * dur)
+    x = np.zeros(m)
+    for _ in range(crinkle):   # many small dry crackles, the sound of handled paper
+        i0 = int(rng.uniform(0, m - 800))
+        x[i0:i0 + 800] += rng.normal(size=800) * env(800, 0.0005, rng.uniform(0.002, 0.006)) * rng.uniform(0.3, 1.0)
+    swish = shaped_noise(dur, lambda f: band(f, 1500, 7000, 1.5))[:m] * np.sin(np.pi * np.arange(m) / m) ** 2 * 0.3
+    return np.convolve(x, [1, -0.6], "same") + swish
+
+
+save("journal_page", paper(0.55, 26), 0.5)
+m = int(SR * 0.6)
+scratch = np.convolve(rng.normal(size=m), [1, -0.9], "same") * (0.5 + 0.5 * np.sin(2 * np.pi * 7 * np.arange(m) / SR) ** 2) * env(m, 0.02, 0.25)
+save("journal_ink", scratch, 0.35)
+save("map_open", paper(0.8, 40), 0.55)
+save("map_close", paper(0.45, 18), 0.45)
+
+
+def bell_tone(freq, dur):
+    m = int(SR * dur)
+    tt = np.arange(m) / SR
+    return np.sin(2 * np.pi * freq * tt + 1.6 * np.sin(2 * np.pi * freq * 3.5 * tt) * np.exp(-tt * 4)) * np.exp(-tt * 2.2) * env(m, 0.004, 9)
+
+
+def stinger(notes, gap, tail=1.6):
+    m = int(SR * (gap * len(notes) + tail))
+    x = np.zeros(m)
+    for k, n in enumerate(notes):
+        tone = bell_tone(440 * 2 ** ((n - 69) / 12), tail)
+        i0 = int(SR * gap * k)
+        x[i0:i0 + len(tone)] += tone[:m - i0]
+    return x
+
+
+save("stinger_discovery", stinger([74, 78, 81, 86], 0.13), 0.5)        # D major arpeggio, up: a new place
+save("stinger_quest_start", stinger([69, 74], 0.18), 0.45)
+save("stinger_quest_done", stinger([74, 78, 81, 79, 86], 0.15, 2.2), 0.5)
+save("stinger_journal", stinger([81, 86], 0.1, 1.2), 0.35)
+
+# Wind gusts: swells of the high layer that the game drops in now and then, more often up high.
+for i in (1, 2, 3):
+    d = 2.5 + i * 0.7
+    m = int(SR * d)
+    g = shaped_noise(d, lambda f: band(f, 500 + i * 150, 3500, 2.0))[:m] * np.sin(np.pi * np.arange(m) / m) ** 2
+    save("wind_gust_%d" % i, g, 0.6)
+
+m = int(SR * 0.7)
+save("glider_deploy", shaped_noise(0.7, lambda f: band(f, 300, 4000, 1.5))[:m] * env(m, 0.04, 0.2)
+     + 0.8 * np.convolve(rng.normal(size=m), [1, -0.8], "same") * env(m, 0.001, 0.03), 0.6)   # whoosh and a cloth snap
+m = int(SR * 0.5)
+save("glider_land", np.sin(2 * np.pi * 90 * np.arange(m) / SR) * env(m, 0.002, 0.08)
+     + 0.5 * shaped_noise(0.5, lambda f: band(f, 200, 2500, 1.5))[:m] * env(m, 0.005, 0.12), 0.6)
 print("LS_SOUNDS_OK")

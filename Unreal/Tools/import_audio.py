@@ -53,13 +53,38 @@ def attenuation(name, inner_m, falloff_m):
     EAL.save_loaded_asset(a)
 
 
+# Dialogue ducking: music and ambience step back while someone is speaking.
+duck = fresh_asset("SMix_DialogueDuck", ROOT + "/Mix", unreal.SoundMix, unreal.SoundMixFactory())
+adj = []
+for name, vol in (("Music", 0.55), ("Ambience", 0.65)):
+    a = unreal.SoundClassAdjuster()
+    a.set_editor_property("sound_class_object", classes[name])
+    a.set_editor_property("volume_adjuster", vol)
+    adj.append(a)
+duck.set_editor_property("sound_class_effects", adj)
+duck.set_editor_property("fade_in_time", 0.3)
+duck.set_editor_property("fade_out_time", 0.8)
+EAL.save_loaded_asset(duck)
+
+# A warm wooden-room reverb for Elias's workshop.
+rvb = fresh_asset("RVB_Workshop", ROOT + "/Mix", unreal.ReverbEffect, unreal.ReverbEffectFactory())
+for prop, val in (("decay_time", 1.4), ("density", 0.85), ("diffusion", 0.9), ("gain", 0.4), ("gain_hf", 0.6),
+                  ("reflections_gain", 0.25), ("reflections_delay", 0.012), ("late_gain", 1.3), ("late_delay", 0.02)):
+    try:
+        rvb.set_editor_property(prop, val)
+    except Exception:
+        unreal.log_warning("LS_AUDIO reverb has no property " + prop)
+EAL.save_loaded_asset(rvb)
+
 attenuation("ATT_Ambience", 40, 140)
 attenuation("ATT_Windmill", 12, 140)
 attenuation("ATT_Room", 9, 8)
 
 # ------------------------------------------------------------------ sounds
 GROUPS = [("wind_", "Wind", "SFX"), ("glide", "Glide", "SFX"), ("step_", "Footsteps", "SFX"), ("windmill", "World", "SFX"),
-          ("village", "Ambience", "Ambience"), ("workshop", "Ambience", "Ambience"), ("ui_", "UI", "UI")]
+          ("village", "Ambience", "Ambience"), ("workshop", "Ambience", "Ambience"), ("ui_", "UI", "UI"), ("piko_", "Piko", "SFX"),
+          ("compass_", "UI", "UI"), ("journal_", "UI", "UI"), ("map_", "UI", "UI"), ("stinger_", "Stingers", "Music"),
+          ("music_", "Music", "Music")]
 tasks = []
 for f in sorted(os.listdir(SRC)):
     if not f.endswith(".wav"):
@@ -81,7 +106,7 @@ for t in tasks:
     w = unreal.load_asset(t.destination_path + "/" + base)
     if not w:
         raise RuntimeError("import failed: " + base)
-    w.set_editor_property("looping", base.endswith("_loop"))
+    w.set_editor_property("looping", base.endswith("_loop") or base.startswith("music_"))
     w.set_editor_property("sound_class_object", classes[group[2]])
     w.set_editor_property("sound_submix_object", submixes[group[2]])
     EAL.save_loaded_asset(w)
