@@ -20,7 +20,8 @@ import numpy as np
 ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [os.getcwd()]
 OUT = ARGS[0]
 WHICH = ARGS[1:] or ["kieran", "piko", "glider"]
-os.makedirs(OUT, exist_ok=True)
+if __name__ == "__main__":
+    os.makedirs(OUT, exist_ok=True)
 
 
 def hexrgb(h):
@@ -650,7 +651,8 @@ def compass():
     render_sheet("BrassCompass_draft", 2.5, [BRASS, DARK, FACE, NEEDLE, LEATHER, GLYPH], target_z=0.2)
 
 
-for w in WHICH:
+if __name__ == "__main__":
+  for w in WHICH:
     {"kieran": kieran, "piko": piko, "glider": glider, "bram": bram, "elara": elara, "tessa": tessa,
      "maren": maren, "rowan": rowan, "villagers": villagers, "compass": compass}[w]()
-print("LS_DRAFTS_OK")
+  print("LS_DRAFTS_OK")

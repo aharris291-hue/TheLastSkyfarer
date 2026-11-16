@@ -33,4 +33,14 @@ Art pass 1 (2026-11-16) uses no third-party assets. Everything was generated fro
 
 Source files: the brush texture PNG and kit FBX exports live in `Unreal/SourceArt/` (not imported directly). Rebuild order: `make_brush_noise.py` and `build_windrest_kit.py` (Blender), then `build_materials.py`, `import_windrest_kit.py` and `build_brindle_greybox.py` (Unreal).
 
+## Character design drafts (not in the game yet)
+
+These are design drafts rendered to `Unreal/Saved/Screenshots/CharacterDrafts` for Adam's approval. Nothing from them is imported into Unreal until he approves each design.
+
+| Item | Source | Licence | Notes |
+|---|---|---|---|
+| Blockout and realistic draft scripts | `Unreal/Tools/blender/character_drafts.py`, `realistic_drafts.py`, `realistic_humans.py` | Project-owned (original) | Clothes, props (glider, compass), Piko's body, fur and tail, materials and turnaround rendering are all built by these scripts |
+| MPFB 2 (MakeHuman plugin for Blender), extensions.blender.org, downloaded 2026-11-16 with Adam's approval | Blender extension (tool only) | GPL-3.0-or-later (the add-on's code) | Generates the human bodies. Characters made with it are CC0. Nothing of the add-on ships with the game |
+| `makehuman_system_assets_cc0.zip` (base mesh, eyes, teeth, proxies), `skins01_cc0.zip`, `skins02_cc0.zip`, `hair01_cc0.zip`, `eyebrows01_cc0.zip`, `eyelashes01_cc0.zip` | files.makehumancommunity.org asset packs, downloaded 2026-11-16 with Adam's approval | CC0 (checked in the asset files' `license CC0` lines) | Kept outside the repo in `ThirdPartyAssets/MakeHuman/downloads` and installed into MPFB's user data. Used so far: young_african_male skin (tinted darker), high-poly eyes, mindfront_eyebrows_03, mindfront_eyelashes_01, teeth_base, afro01 under hand-made curls. The CC-BY packs were not downloaded. A few files inside the packs still carry old AGPL or CC-BY header lines (for example culturalibre_hair_01/02, elvs_*, littleright_bobcut_hair, o4saken_long01, and the blindsaypatten, callharvey3d and rehmanpolanski skins), so I don't use those. I only use assets whose own file says CC0 |
+
 Still from the Unreal Engine templates (Epic Content licence, used in Unreal projects): the mannequin for Kieran and the NPC placeholders, the input actions, and `BP_ThirdPersonPlayerController`. These are placeholders until Adam approves character designs.
