@@ -47,6 +47,45 @@ def always_loaded(a):
     return a
 
 
+# ------------------------------------------------------------------ art pass 1: painterly materials by name
+# (Tools/build_materials.py makes them; STYLE_GUIDE: grass green, wheat gold, terracotta roofs, warm stone.)
+MATS = "/Game/LastSkyfarer/Materials/Instances/"
+_mat_cache = {}
+# First match wins; each entry is (text the label contains, material instance).
+MATERIAL_RULES = [
+    ("Island_Underside", "MI_CliffRock"), ("MistIsland", "MI_CliffRock"), ("CloudSea", "MI_CloudSea"), ("CloudPuff", "MI_CloudPuff"),
+    ("Island_Top", "MI_IslandGround"), ("Square_Paving", "MI_PathStone"), ("Path_", "MI_PathDirt"),
+    ("Square_Fountain", "MI_Stone"), ("Market_Stall", "MI_Wood"),
+    ("EliasWorkshop_Roof", "MI_RoofBlue"), ("ObservationTower_Top", "MI_RoofBlue"), ("WindsongTavern_Roof", "MI_RoofGreen"),
+    ("_Roof", "MI_RoofTerracotta"), ("_Cap", "MI_RoofTerracotta"),
+    ("PostHouse", "MI_Plaster"), ("WindsongTavern", "MI_Plaster"), ("Home_", "MI_Plaster"), ("EliasWorkshop", "MI_Plaster"),
+    ("_Trunk", "MI_Wood"), ("Crate", "MI_Wood"), ("FencePost", "MI_Wood"),
+    ("Orchard_", "MI_FoliageBlossom"), ("_Canopy", "MI_Foliage"),
+    ("_Tower", "MI_Stone"), ("_Sail", "MI_Sailcloth"), ("Whispermill_Wheat", "MI_Wheat"),
+    ("Crate", "MI_Wood"), ("Mill_Platform", "MI_Wood"), ("_Rail", "MI_Wood"), ("FencePost", "MI_Wood"),
+    ("CloudEdge_Terrace", "MI_Stone"), ("FlowerBed", "MI_FlowerBed"),
+    ("Ramp", "MI_PathDirt"), ("Landing", "MI_PathDirt"), ("ClimbFace", "MI_CliffRock"), ("UpperCliffs_Rock", "MI_CliffRock"),
+    ("Lookout", "MI_CliffRock"), ("Skywatch_Deck", "MI_Wood"), ("Telescope", "MI_Brass"), ("ObservationTower", "MI_Stone"),
+    ("LaunchLip", "MI_Stone"), ("Skywatch_Hill", "MI_IslandGround"), ("UpperCliffs_Plateau", "MI_IslandGround"),
+    ("Bluff_Plateau", "MI_IslandGround"), ("FloatingIsle", "MI_IslandGround"), ("FloatingRock", "MI_IslandGround"), ("SkyRock", "MI_IslandGround"),
+    ("Workshop_Floor", "MI_WoodFloor"), ("Workshop_Wall", "MI_Plaster"), ("Workshop_Ceiling", "MI_Plaster"),
+    ("Workshop_", "MI_Wood"), ("Compartment_Glider", "MI_Sailcloth"), ("Compartment_Compass", "MI_Brass"), ("Compartment_", "MI_Wood"),
+]
+
+
+def material(name):
+    if name not in _mat_cache:
+        _mat_cache[name] = unreal.load_asset(MATS + name)
+    return _mat_cache[name]
+
+
+def material_for(label):
+    for key, mi in MATERIAL_RULES:
+        if key in label:
+            return material(mi)
+    return material("MI_Stone")
+
+
 def shape(label, mesh, center, size, yaw=0.0, pitch=0.0, roll=0.0, climbable=False, collision=True, folder="Greybox"):
     """size in metres; engine basic shapes are 1 m across."""
     a = actors.spawn_actor_from_class(unreal.StaticMeshActor, v(*center), rot(pitch, yaw, roll))
@@ -54,6 +93,7 @@ def shape(label, mesh, center, size, yaw=0.0, pitch=0.0, roll=0.0, climbable=Fal
     a.set_folder_path(folder)
     comp = a.static_mesh_component
     comp.set_static_mesh(mesh)
+    comp.set_material(0, material_for(label))
     a.set_actor_scale3d(unreal.Vector(*size))
     if not collision:
         comp.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
@@ -82,28 +122,62 @@ def path(label, a, b, width=4.0):
     return ramp(label, (a[0], a[1], 0.05), (b[0], b[1], 0.05), width, 0.1)
 
 
+KIT = "/Game/LastSkyfarer/Environments/Brindle/Meshes/"
+
+
+def stable_hash(text):
+    """Like hash(), but the same in every run, so the map comes out identical each time."""
+    return sum((i + 1) * ord(ch) for i, ch in enumerate(text))
+
+
+def kit(label, mesh_name, center, yaw=0.0, scale=(1.0, 1.0, 1.0), folder="Art/Windrest", spin=None):
+    """Places a Windrest kit piece (Tools/import_windrest_kit.py). Visual only: no collision."""
+    cls = unreal.LSSpinningMesh if spin is not None else unreal.StaticMeshActor
+    a = actors.spawn_actor_from_class(cls, v(*center), rot(yaw=yaw))
+    a.set_actor_label(label)
+    a.set_folder_path(folder)
+    comp = a.get_editor_property("mesh") if spin is not None else a.static_mesh_component
+    comp.set_static_mesh(unreal.load_asset(KIT + mesh_name))
+    comp.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+    a.set_actor_scale3d(unreal.Vector(*scale))
+    if spin is not None:
+        a.set_editor_property("speed", spin)
+    return always_loaded(a)
+
+
+def hide(a):
+    """Keeps a greybox shape for collision but stops drawing it (the art piece shows instead)."""
+    a.set_actor_hidden_in_game(True)
+    return a
+
+
 def house(label, center, size, yaw=0.0, folder="Greybox/Village"):
     x, y, w, d, h = center[0], center[1], size[0], size[1], size[2]
     base = center[2] if len(center) > 2 else 0.0
-    box(label, (x, y, base + h / 2), (w, d, h), yaw=yaw, folder=folder)
-    # Pitched roof: a box rotated 45 degrees, squashed.
-    box(label + "_Roof", (x, y, base + h + 1.2), (w * 1.05, d * 0.75, d * 0.75), yaw=yaw, roll=45, folder=folder)
+    hide(box(label, (x, y, base + h / 2), (w, d, h), yaw=yaw, folder=folder))
+    # Art pass 1: a Windrest cottage (8 x 8 m, 6 m walls) scaled to the greybox footprint.
+    variant = "SM_Cottage_Blue" if "Elias" in label else "SM_Cottage_B" if ("Tavern" in label or label.endswith(("1", "4", "6"))) else "SM_Cottage_A"
+    kit(label + "_Art", variant, (x, y, base), yaw=yaw, scale=(w / 8.0, d / 8.0, h / 6.0))
 
 
 def tree(label, center, folder="Greybox/Trees"):
     x, y = center[0], center[1]
     base = center[2] if len(center) > 2 else 0.0
-    shape(label + "_Trunk", CYL, (x, y, base + 1.5), (0.6, 0.6, 3.0), folder=folder)
-    shape(label + "_Canopy", SPHERE, (x, y, base + 4.5), (5.0, 5.0, 4.0), folder=folder)
+    hide(shape(label + "_Trunk", CYL, (x, y, base + 1.5), (0.6, 0.6, 3.0), folder=folder))
+    hide(shape(label + "_Canopy", SPHERE, (x, y, base + 4.5), (5.0, 5.0, 4.0), folder=folder))
+    blossom = label.startswith("Orchard")
+    s = 0.85 + ((stable_hash(label) % 7) * 0.05)
+    kit(label + "_Art", "SM_Tree_Blossom" if blossom else "SM_Tree_Round", (x, y, base), yaw=(stable_hash(label) % 360), scale=(s, s, s))
 
 
 def windmill(label, center, folder="Greybox/Whispermill"):
     x, y = center
-    shape(label + "_Tower", CYL, (x, y, 9.0), (6.0, 6.0, 18.0), folder=folder)
-    shape(label + "_Cap", CONE, (x, y, 19.5), (7.0, 7.0, 3.0), folder=folder)
-    # Sails face east, so they read from the village and the Bluff.
-    for i, r in enumerate((45.0, 135.0)):
-        box(label + "_Sail%d" % i, (x, y + 3.6, 17.0), (0.5, 22.0, 1.6), roll=r, collision=False, folder=folder)
+    hide(shape(label + "_Tower", CYL, (x, y, 9.0), (6.0, 6.0, 18.0), folder=folder))
+    hide(shape(label + "_Cap", CONE, (x, y, 19.5), (7.0, 7.0, 3.0), folder=folder))
+    # Art pass 1: stone tower with turning sails facing east, so they read from the village and the Bluff.
+    s = 1.1
+    kit(label + "_Art", "SM_Windmill_Tower", (x, y, 0), yaw=180, scale=(s, s, s))
+    kit(label + "_Sails", "SM_Windmill_Sails", (x, y + 3.6 * s, 17.0 * s), yaw=180, scale=(s, s, s), spin=22.0 + (stable_hash(label) % 5) * 3)
 
 
 def struct_set(obj, names, value):
@@ -154,6 +228,9 @@ def inspect(label, center, size, prompt, rules, mesh=CUBE, folder="Story/Inspect
     a.set_actor_label(label)
     a.set_folder_path(folder)
     a.get_editor_property("mesh").set_static_mesh(mesh)
+    a.get_editor_property("mesh").set_material(0, material(
+        "MI_Sailcloth" if ("Glider" in label or "Maps" in label or "Sketches" in label or "Notes" in label)
+        else "MI_Brass" if "Instruments" in label else "MI_Stone" if "Fountain" in label else "MI_Wood"))
     a.set_actor_scale3d(unreal.Vector(*size))
     talk = a.get_editor_property("interactable")
     talk.set_editor_property("prompt", unreal.Text(prompt))
@@ -278,13 +355,21 @@ shape("Island_Top", CYL, (0, 0, -20), (1150, 1400, 40), folder="Greybox/Island")
 shape("Island_Underside", CONE, (0, 0, -120), (1050, 1300, 160), roll=180, folder="Greybox/Island")
 # Cloud sea far below (visual only). Falling below -200 m returns Kieran to his last safe ledge.
 shape("CloudSea_Visual", PLANE, (0, 0, -260), (6000, 6000, 1), collision=False, folder="Greybox/Island")
+# Soft cloud puffs hugging the island's rocky underside (cheap mist: opaque, no volumetrics).
+for i in range(28):
+    ang = i * (2 * math.pi / 28) + (i % 3) * 0.07
+    r = 0.78 + (i % 4) * 0.05
+    shape("CloudPuff_%02d" % i, SPHERE, (math.cos(ang) * 575 * r, math.sin(ang) * 700 * r, -70 - (i % 5) * 22),
+          (150 + (i % 3) * 50, 170 + (i % 4) * 40, 45 + (i % 2) * 20), yaw=math.degrees(ang), collision=False, folder="Greybox/Mist")
 
 # ------------------------------------------------------------------ Windrest Village (centre)
 shape("Square_Paving", CYL, (0, 0, 0.05), (44, 44, 0.1), folder="Greybox/Village")
-shape("Square_Fountain_Basin", CYL, (0, 0, 0.6), (7, 7, 1.2), folder="Greybox/Village")
-shape("Square_Fountain_Column", CYL, (0, 0, 2.2), (1.2, 1.2, 3.2), folder="Greybox/Village")
+hide(shape("Square_Fountain_Basin", CYL, (0, 0, 0.6), (7, 7, 1.2), folder="Greybox/Village"))
+hide(shape("Square_Fountain_Column", CYL, (0, 0, 2.2), (1.2, 1.2, 3.2), folder="Greybox/Village"))
 for i, (x, y) in enumerate(((14, -10), (14, 10), (-14, -10), (-14, 10))):
-    box("Market_Stall_%d" % i, (x, y, 1.3), (4, 3, 2.6), folder="Greybox/Village")
+    hide(box("Market_Stall_%d" % i, (x, y, 1.3), (4, 3, 2.6), folder="Greybox/Village"))
+    # Art pass 1: a striped market stall, counter facing the fountain.
+    kit("Market_Stall_%d_Art" % i, "SM_MarketStall", (x, y, 0), yaw=math.degrees(math.atan2(-x, y)))
 house("PostHouse", (55, 70), (16, 12, 8))
 house("WindsongTavern", (-70, 120), (20, 14, 9))
 for i, (x, y) in enumerate(((-110, -40), (-130, 30), (-160, 90), (-120, 165), (-180, -25), (-205, 60), (-90, -95), (-215, 140))):
@@ -323,13 +408,46 @@ for i in range(4):
 for i, (x, y) in enumerate(((10, -575), (18, -578), (-20, -570))):
     box("Orchard_Crate_%d" % i, (x, y, 0.5), (1.2, 1.2, 1), yaw=i * 25, folder="Greybox/Orchard")
 for i, x in enumerate(range(-90, 100, 12)):
-    shape("Orchard_FencePost_%d" % i, CYL, (x, -686, 0.6), (0.25, 0.25, 1.2), folder="Greybox/Orchard")
+    hide(shape("Orchard_FencePost_%d" % i, CYL, (x, -686, 0.6), (0.25, 0.25, 1.2), folder="Greybox/Orchard"))
+# Art pass 1: a wooden fence along the orchard's rim.
+for i, x in enumerate(range(-88, 92, 4)):
+    kit("Orchard_Fence_%d" % i, "SM_Fence_4m", (x, -686, 0), yaw=(i % 3) - 1)
+
+# Lantern posts around Central Square, and rocks breaking up the island's edges and plateau feet.
+for i in range(6):
+    ang = i * math.pi / 3 + 0.3
+    kit("Square_Lantern_%d" % i, "SM_LanternPost", (math.cos(ang) * 24, math.sin(ang) * 24, 0), yaw=math.degrees(ang) + 180)
+for i in range(6):
+    ang = i * math.pi / 3 + 0.82
+    kit("Square_Planter_%d" % i, "SM_Planter", (math.cos(ang) * 20, math.sin(ang) * 20, 0), yaw=math.degrees(ang) + 90)
+for i in range(4):
+    ang = i * math.pi / 2 + math.pi / 4
+    bx, by = math.cos(ang) * 9.5, math.sin(ang) * 9.5
+    kit("Square_Bench_%d" % i, "SM_Bench", (bx, by, 0), yaw=math.degrees(math.atan2(-bx, by)) + 180)
+# Benches on the Cloud Edge terrace, looking out north over the cloud sea.
+for i, y in enumerate((-118, -82)):
+    kit("CloudEdge_Bench_%d" % i, "SM_Bench", (556, y, 1.0), yaw=90)
+# Meadow grass that sways: around the village, the orchard, Cloud Edge's approach and the Upper Cliffs.
+GRASS = [(60, -60), (-60, -70), (70, 130), (-120, -150), (140, -120), (180, 60), (-40, 230), (110, 230), (-230, -60),
+         (-260, 120), (40, -250), (-60, -300), (60, -460), (-70, -520), (30, -600), (-110, -440), (430, -150), (470, -60),
+         (380, -200), (230, -80), (300, 120), (160, 330), (-150, 330)]
+for i, (x, y) in enumerate(GRASS):
+    kit("Grass_%02d" % i, "SM_GrassPatch", (x, y, 0), yaw=i * 61, folder="Art/Grass")
+for i, (x, y) in enumerate(((290, 300), (320, 360), (270, 350))):
+    kit("Grass_Cliffs_%d" % i, "SM_GrassPatch", (x, y, 15.0), yaw=i * 77, scale=(0.6, 0.6, 1.0), folder="Art/Grass")
+ROCK_SPOTS = [(560, 160), (540, 260), (470, -560), (420, -600), (-520, -350), (-560, 120), (-480, 380), (-300, 600),
+              (200, 640), (260, 520), (240, 240), (360, 230), (240, 420), (-10, 520), (130, 520), (140, 690),
+              (400, 90), (520, 0), (420, -30), (-200, -650), (120, -660), (300, -640)]
+for i, (x, y) in enumerate(ROCK_SPOTS):
+    s = 1.6 + (i % 4) * 0.8
+    kit("Rock_%02d" % i, "SM_Rock_%d" % (i % 3), (x, y, -0.4), yaw=i * 47, scale=(s, s * 0.8, s * 0.7), folder="Art/Rocks")
 
 # ------------------------------------------------------------------ Cloud Edge (north rim, D-25)
 # A flower terrace on the north rim, west of Skywatch Point, looking out over the cloud sea.
 box("CloudEdge_Terrace", (545, -100, 0.5), (40, 60, 1), folder="Greybox/CloudEdge")
 for i, y in enumerate((-125, -110, -90, -75)):
-    box("CloudEdge_FlowerBed_%d" % i, (535, y, 1.2), (3, 6, 0.4), folder="Greybox/CloudEdge")
+    hide(box("CloudEdge_FlowerBed_%d" % i, (535, y, 1.2), (3, 6, 0.4), folder="Greybox/CloudEdge"))
+    kit("CloudEdge_FlowerBed_%d_Art" % i, "SM_FlowerBed", (535, y, 1.0), yaw=90)
 for i, y in enumerate(range(-127, -70, 6)):
     shape("CloudEdge_Rail_%d" % i, CYL, (566, y, 1.5), (0.3, 0.3, 2), folder="Greybox/CloudEdge")
 
@@ -496,8 +614,10 @@ npc("NPC_Rowan", "rowan", (-8, 14, 0), 180, "Talk to Rowan", [
     rule([], "rowan_repeat", True),
 ])
 
-inspect("Inspect_BulletinBoard", (10, -18, 1.5), (0.3, 3, 2.5), "Read", [rule([], "board", True)])
-inspect("Inspect_Fountain", (0, 0, 2.2), (7.5, 7.5, 0.1), "Look", [rule([], "fountain", True)], mesh=CYL)
+hide(inspect("Inspect_BulletinBoard", (10, -18, 1.5), (0.3, 3, 2.5), "Read", [rule([], "board", True)]))
+kit("Square_NoticeBoard", "SM_NoticeBoard", (10, -18, 0), yaw=-90)
+hide(inspect("Inspect_Fountain", (0, 0, 2.2), (7.5, 7.5, 0.1), "Look", [rule([], "fountain", True)], mesh=CYL))
+kit("Square_Fountain_Art", "SM_Fountain", (0, 0, 0))
 inspect("Inspect_Windmill", (296, -276, 2), (1, 1, 1), "Look", [rule([], "windmill", True)])
 inspect("Inspect_WorkshopDoor", (75, 594.8, 21.5), (2, 0.3, 3), "Enter workshop", [
     rule(["!deed_received"], "workshop_locked_ch1", True),
