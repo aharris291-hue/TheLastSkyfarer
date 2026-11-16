@@ -435,7 +435,7 @@ void ALSBrindleCheck::Build()
 		Story->SetFlag(TEXT("bot_marker"));
 		Story->SetTimeOfDay(TEXT("Morning"));
 		const bool bLoaded = Story->LoadFromSlot(SaveSlot);
-		Director()->ApplyStoryState();
+		Director()->ApplyStoryState(true);
 		Check(TEXT("SaveAndLoad"), bSaved && bLoaded && !Story->HasFlag(TEXT("bot_marker")) && Story->HasFlag(TEXT("deed_received"))
 			&& Quest(TEXT("hidden_workshop")) == ELSQuestState::Active && Tod() == TEXT("Sunset"),
 			FString::Printf(TEXT("saved %d, loaded %d, time %s"), bSaved ? 1 : 0, bLoaded ? 1 : 0, *Tod()));

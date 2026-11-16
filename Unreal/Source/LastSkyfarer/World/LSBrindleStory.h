@@ -66,9 +66,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|Fog")
 	float FogDensity = 0.06f;
 
-	/** Re-applies everything that depends on story flags (after loading a save, for example). */
+	/** Re-applies everything that depends on story flags; bSnapTimeOfDay also snaps the lighting (after loading a save). */
 	UFUNCTION(BlueprintCallable, Category = "Story")
-	void ApplyStoryState();
+	void ApplyStoryState(bool bSnapTimeOfDay = false);
 
 	UFUNCTION(BlueprintPure, Category = "Story")
 	bool IsBusy() const { return Steps.Num() > 0; }
@@ -102,7 +102,7 @@ private:
 
 	void Queue(FName Conversation, float Delay = 0.f);
 	void QueueRun(TFunction<void()> Run, float Delay = 0.f);
-	void FadeThrough(TFunction<void()> Middle, const FText& Caption = FText::GetEmpty());
+	void FadeThrough(TFunction<void()> Middle, const FText& Caption = FText::GetEmpty(), TFunction<void()> ThenWhileBlack = nullptr);
 	void Notify(const FText& Message);
 	void Teleport(const FTransform& Where);
 	void UpdateFog();

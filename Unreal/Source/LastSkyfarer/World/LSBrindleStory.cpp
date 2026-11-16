@@ -58,7 +58,7 @@ void ALSBrindleStory::FindPiko()
 	}
 }
 
-void ALSBrindleStory::ApplyStoryState()
+void ALSBrindleStory::ApplyStoryState(bool bSnapTimeOfDay)
 {
 	const ULSStorySubsystem* Story = ULSStorySubsystem::Get(this);
 	if (!Story)
@@ -109,7 +109,8 @@ void ALSBrindleStory::ApplyStoryState()
 			It->Reveal();
 		}
 	}
-	for (TActorIterator<ALSTimeOfDayDirector> It(GetWorld()); It; ++It)
+	// The time-of-day director blends changes by itself; only a loaded save snaps the lighting into place.
+	for (TActorIterator<ALSTimeOfDayDirector> It(GetWorld()); bSnapTimeOfDay && It; ++It)
 	{
 		It->ApplyTimeOfDay(Story->GetTimeOfDay(), true);
 	}
@@ -131,7 +132,7 @@ void ALSBrindleStory::QueueRun(TFunction<void()> Run, float Delay)
 	Steps.Add(MoveTemp(S));
 }
 
-void ALSBrindleStory::FadeThrough(TFunction<void()> Middle, const FText& Caption)
+void ALSBrindleStory::FadeThrough(TFunction<void()> Middle, const FText& Caption, TFunction<void()> ThenWhileBlack)
 {
 	QueueRun([this, Caption]()
 	{
@@ -144,14 +145,20 @@ void ALSBrindleStory::FadeThrough(TFunction<void()> Middle, const FText& Caption
 			Notify(Caption);
 		}
 	});
-	QueueRun([this, Middle]()
+	// Teleport only once the screen is fully black, give the renderer a few frames at the new place, change the
+	// lighting while still black, then fade back in. Big changes stay spread over several frames instead of one.
+	QueueRun([Middle]() { Middle(); }, 0.8f);
+	if (ThenWhileBlack)
 	{
-		Middle();
+		QueueRun([ThenWhileBlack]() { ThenWhileBlack(); }, 0.4f);
+	}
+	QueueRun([this]()
+	{
 		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 		{
-			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.9f, FLinearColor::Black, false, false);
+			PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 1.f, FLinearColor::Black, false, false);
 		}
-	}, 0.8f);
+	}, 0.6f);
 }
 
 void ALSBrindleStory::RestoreSavedPosition()
@@ -168,7 +175,7 @@ void ALSBrindleStory::RestoreSavedPosition()
 	{
 		Teleport(FTransform(FRotator(0.f, Saved.Rotator().Yaw, 0.f), Saved.GetLocation()));
 	}
-	ApplyStoryState();
+	ApplyStoryState(true);
 	UE_LOG(LogTemp, Display, TEXT("LS_STORY continue at %s (chapter %d, %s)"), *(Saved.GetLocation() / 100.f).ToCompactString(), Story->GetChapter(), *Story->GetTimeOfDay().ToString());
 }
 
@@ -204,12 +211,8 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("enter_workshop"))
 	{
-		FadeThrough([this, Story]()
-		{
-			Teleport(InteriorSpawn);
-			// Indoors at night: lamplight inside, moonlight outside (workshop.gd after_ready).
-			Story->SetTimeOfDay(TEXT("Night"));
-		});
+		// Indoors at night: lamplight inside, moonlight outside (workshop.gd after_ready).
+		FadeThrough([this]() { Teleport(InteriorSpawn); }, FText::GetEmpty(), [Story]() { Story->SetTimeOfDay(TEXT("Night")); });
 		if (!Story->HasFlag(TEXT("workshop_entered")))
 		{
 			QueueRun([this, Story]()
@@ -227,14 +230,16 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("next_morning"))
 	{
-		// StoryEvents.json has already moved the story to Chapter 3 at dawn and started Into the Clouds.
+		// StoryEvents.json has already moved the story to Chapter 3 at dawn and started Into the Clouds. Keep the night
+		// lighting until the screen is black outside the door, then let dawn come in.
+		Story->SetTimeOfDay(TEXT("Night"));
 		QueueRun([this]() { Notify(NSLOCTEXT("LS", "Chapter2Done", "Chapter 2 complete. An impossible wind current appears on the map.")); });
 		FadeThrough([this, Story]()
 		{
 			Teleport(DoorSpawn);
 			ApplyStoryState();
 			Story->SetFlag(TEXT("chapter3_banner"));
-		}, FText::GetEmpty());
+		}, FText::GetEmpty(), [Story]() { Story->SetTimeOfDay(TEXT("Dawn")); });
 		QueueRun([this, Story]()
 		{
 			Notify(NSLOCTEXT("LS", "Chapter3", "Chapter 3: Into the Clouds"));
