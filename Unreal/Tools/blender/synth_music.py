@@ -183,8 +183,15 @@ if "--preview" in sys.argv:
     print("LS_MUSIC_OK")
     sys.exit(0)
 
+def soft_bell(f, d):
+    return 0.55 * bell(f, d)
+
+
 save("music_main_theme", main_theme())
-save("music_windrest", windrest())
+# Windrest in three moods, switched by the time of day.
+save("music_windrest_day", windrest())
+save("music_windrest_sunset", theme_track(72, 1, bell, with_bass=True))           # slower, golden, bells over the pad
+save("music_windrest_night", theme_track(58, 1, soft_bell, with_bass=False))     # hushed: pad and a soft bell only
 
 
 # Workshop at night: sparse bells over a low, slowly changing pad (D minor colours), 66 bpm, 12 bars.
@@ -201,7 +208,7 @@ def workshop():
     return reverb_circular(track, 3.4, 0.45)
 
 
-save("music_workshop", workshop())
+save("music_workshop_elias", workshop())   # the Elias motif: bittersweet bells over a low pad
 
 
 # Dawn launch and gliding: rising arpeggios in E major with a lifted fourth, 96 bpm, 16 bars.
@@ -226,6 +233,23 @@ def dawn():
 
 
 save("music_dawn", dawn())
+
+
+def glide_layer():
+    """A layer over the dawn piece (same key and tempo) that the game fades in with glide speed and height."""
+    beat = 60.0 / 96
+    bars = 16
+    track = np.zeros(int(bars * 4 * beat * SR))
+    roots = [64, 61, 57, 59]
+    for b in range(bars):
+        r = roots[(b // 2) % 4]
+        for k, step in enumerate((12, 19, 24, 28, 31, 28, 24, 19)):
+            place(track, 0.2 * pluck(midi(r + step), 0.7, 0.8), b * 4 * beat + k * 0.5 * beat)
+        place(track, 0.12 * bell(midi(r + 24), 2.5), b * 4 * beat)
+    return reverb_circular(track, 2.4, 0.4)
+
+
+save("music_glide_layer", glide_layer())
 
 
 # The fog: no pulse; slow shimmering clusters that drift between two harmonies, 40 s.

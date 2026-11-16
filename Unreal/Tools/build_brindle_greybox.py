@@ -742,6 +742,10 @@ story.set_editor_property("piko_perch", v(48, 664, 21.4))
 story.set_editor_property("glider_prop", glider)
 story.set_editor_property("edge_wall", edge_wall)
 story.set_editor_property("compartment_props", compartment_props)
+# Music for story moments (Tools/blender/synth_music.py): Windrest follows the time of day; the workshop, dawn and fog have their own.
+story.set_editor_property("music_cues", {cue: unreal.load_asset("/Game/LastSkyfarer/Audio/Music/" + name) for cue, name in (
+    ("village_day", "music_windrest_day"), ("village_sunset", "music_windrest_sunset"), ("village_night", "music_windrest_night"),
+    ("workshop", "music_workshop_elias"), ("dawn", "music_dawn"), ("fog", "music_fog"))})
 always_loaded(story)
 
 # Objective markers where the Milestone A objectives happen.
