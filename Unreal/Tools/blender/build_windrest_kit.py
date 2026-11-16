@@ -347,6 +347,203 @@ def wind_ribbon():
     finish("SM_WindRibbon")
 
 
+# ------------------------------------------------------------------ art pass 2: landforms (unit size, scaled in the level)
+def superellipse_ring(n, power, z, scale=1.0, jitter=0.0):
+    pts = []
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        c, s = math.cos(a), math.sin(a)
+        x = 0.5 * math.copysign(abs(c) ** (2 / power), c)
+        y = 0.5 * math.copysign(abs(s) ** (2 / power), s)
+        k = scale * (1 + random.uniform(-jitter, jitter))
+        pts.append((x * k, y * k, z))
+    return pts
+
+
+def plateau():
+    """A 1 x 1 x 1 m mesa: flat top at z = 1 (the walkable collision box stays underneath), rounded corners and
+    bulging, uneven rocky sides that flare out a little at the foot. Scaled per plateau in the level."""
+    reset()
+    mesh = bpy.data.meshes.new("plateau")
+    bm = bmesh.new()
+    n = 48
+    # (height, outward scale, jitter) from the top edge down to the foot.
+    rings = [(1.0, 0.985, 0.0), (0.97, 1.0, 0.004), (0.8, 1.012, 0.01), (0.55, 1.02, 0.012), (0.3, 1.03, 0.012), (0.0, 1.06, 0.01)]
+    verts = []
+    for z, sc, j in rings:
+        verts.append([bm.verts.new(p) for p in superellipse_ring(n, 6.0, z, sc, j)])
+    centre = bm.verts.new((0, 0, 1.0))
+    for i in range(n):
+        bm.faces.new((centre, verts[0][i], verts[0][(i + 1) % n]))
+    for r in range(len(rings) - 1):
+        for i in range(n):
+            bm.faces.new((verts[r][i], verts[r + 1][i], verts[r + 1][(i + 1) % n], verts[r][(i + 1) % n]))
+    bm.normal_update()
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new("plateau", mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(mat("MI_IslandGround"))
+    bpy.context.view_layer.objects.active = o
+    o.select_set(True)
+    bpy.ops.object.shade_smooth()
+    finish("SM_Plateau")
+
+
+def floating_isle():
+    """A 1 x 1 m floating island: flat top at z = 0, a lumpy rock underside tapering to a point 1 m below."""
+    reset()
+    mesh = bpy.data.meshes.new("isle")
+    bm = bmesh.new()
+    n = 32
+    rings = [(0.0, 1.0, 0.0), (-0.06, 1.02, 0.02), (-0.25, 0.85, 0.08), (-0.5, 0.6, 0.12), (-0.75, 0.32, 0.15), (-0.92, 0.12, 0.15)]
+    verts = [[bm.verts.new(p) for p in superellipse_ring(n, 3.0, z, sc, j)] for z, sc, j in rings]
+    top = bm.verts.new((0, 0, 0))
+    tip = bm.verts.new((0.03, -0.02, -1.0))
+    for i in range(n):
+        bm.faces.new((top, verts[0][i], verts[0][(i + 1) % n]))
+        bm.faces.new((tip, verts[-1][(i + 1) % n], verts[-1][i]))
+    for r in range(len(rings) - 1):
+        for i in range(n):
+            bm.faces.new((verts[r][i], verts[r + 1][i], verts[r + 1][(i + 1) % n], verts[r][(i + 1) % n]))
+    bm.normal_update()
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new("isle", mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(mat("MI_IslandGround"))
+    finish("SM_FloatingIsle")
+
+
+def observation_tower():
+    """Elias's observation tower on the Bluff: 30 m stone shaft, a wooden balcony and a blue conical roof."""
+    reset()
+    o = add_cyl("shaft", 3.2, 30.0, (0, 0, 15.0), "MI_Stone", verts=16, r2=2.6)
+    wobble(o, 0.05)
+    add_cyl("plinth", 3.8, 1.2, (0, 0, 0.6), "MI_Stone", verts=16, r2=3.5)
+    add_cyl("balcony", 4.2, 0.35, (0, 0, 27.0), "MI_Wood", verts=16)
+    for i in range(12):
+        a = 2 * math.pi * i / 12
+        add_cube("rail", (0.15, 0.15, 1.1), (math.cos(a) * 4.0, math.sin(a) * 4.0, 27.7), "MI_Wood", bevel=0.02)
+    add_cyl("railtop", 4.05, 0.12, (0, 0, 28.25), "MI_Wood", verts=16)
+    add_cyl("roof", 3.8, 4.5, (0, 0, 32.2), "MI_RoofBlue", verts=16, r2=0.15)
+    add_blob("finial", 0.35, (0, 0, 34.6), "MI_Brass", lumps=0.02)
+    for i in range(3):
+        add_cube("window", (0.15, 0.7, 1.2), (math.cos(i * 2.1) * 2.9, math.sin(i * 2.1) * 2.9, 8 + i * 7), "MI_Wood", bevel=0.03,
+                 rot=(0, 0, i * 2.1))
+    finish("SM_ObservationTower")
+
+
+def launch_deck():
+    """The glider launch at the Bluff edge: a 20 x 6 m plank deck, posts at the back corners, a brass wind vane."""
+    reset()
+    for i in range(10):
+        add_cube("plank", (0.55, 6.0, 0.15), (-9.4 + i * 2.09, 0, -0.075), "MI_WoodFloor", bevel=0.02)
+    for i in range(10):
+        add_cube("plank", (1.5, 6.0, 0.15), (-9.4 + i * 2.09 + 1.0, 0, -0.08), "MI_Wood", bevel=0.02)
+    for sx in (-1, 1):
+        add_cyl("post", 0.15, 2.2, (sx * 9.8, -2.8, 1.0), "MI_Wood", verts=8)
+    add_cyl("vanepost", 0.06, 1.0, (9.8, -2.8, 2.6), "MI_Brass", verts=6)
+    add_cube("vane", (0.9, 0.05, 0.35), (10.1, -2.8, 3.0), "MI_Brass", bevel=0.01)
+    finish("SM_LaunchDeck")
+
+
+# ------------------------------------------------------------------ art pass 2: Elias's workshop
+def workbench():
+    reset()
+    add_cube("top", (2.2, 3.2, 0.12), (0, 0, 0.9), "MI_Wood", bevel=0.03)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            add_cube("leg", (0.14, 0.14, 0.88), (sx * 0.95, sy * 1.45, 0.44), "MI_Wood", bevel=0.02)
+    add_cube("shelf", (2.0, 3.0, 0.06), (0, 0, 0.25), "MI_Wood", bevel=0.01)
+    for i, (x, y, r) in enumerate(((-0.4, -0.6, 0.2), (0.3, 0.3, -0.15), (-0.2, 0.9, 0.4))):
+        add_cube("map", (0.9, 0.7, 0.01), (x, y, 0.965 + i * 0.006), "MI_Sailcloth", bevel=0.0, rot=(0, 0, r))
+    add_cyl("roll", 0.06, 0.9, (0.7, -1.2, 1.02), "MI_Sailcloth", verts=8, rot=(0, math.pi / 2, 0.3))
+    add_cyl("roll", 0.06, 0.8, (0.7, -1.05, 1.02), "MI_Sailcloth", verts=8, rot=(0, math.pi / 2, 0.1))
+    for i in range(4):
+        add_cube("journal", (0.28, 0.2, 0.05), (-0.75, 1.3, 0.985 + i * 0.05), ("MI_RoofTerracotta", "MI_RoofGreen", "MI_Wood", "MI_RoofBlue")[i],
+                 bevel=0.01, rot=(0, 0, i * 0.15))
+    add_cyl("inkpot", 0.05, 0.08, (0.6, 0.8, 1.0), "MI_Brass", verts=8)
+    add_cube("ruler", (0.03, 0.5, 0.01), (0.2, -0.2, 0.98), "MI_Brass", bevel=0.0, rot=(0, 0, 0.6))
+    add_cube("lamp", (0.18, 0.18, 0.3), (0.85, 1.3, 1.11), "MI_Brass", bevel=0.03)
+    finish("SM_Workbench")
+
+
+def bookshelf():
+    reset()
+    add_cube("back", (4.0, 0.1, 2.8), (0, 0.25, 1.4), "MI_Wood", bevel=0.02)
+    for sx in (-1, 1):
+        add_cube("side", (0.1, 0.6, 2.8), (sx * 1.95, 0, 1.4), "MI_Wood", bevel=0.02)
+    cols = ("MI_RoofTerracotta", "MI_RoofGreen", "MI_RoofBlue", "MI_Wood", "MI_Sailcloth", "MI_Brass")
+    for shelf in range(4):
+        z = 0.1 + shelf * 0.7
+        add_cube("shelf", (3.9, 0.55, 0.06), (0, 0, z), "MI_Wood", bevel=0.01)
+        x = -1.8
+        while x < 1.75:
+            w = random.uniform(0.06, 0.13)
+            h = random.uniform(0.35, 0.55)
+            tilt = random.uniform(-0.08, 0.08) if random.random() < 0.2 else 0.0
+            add_cube("book", (w, 0.35, h), (x + w / 2, -0.05, z + 0.03 + h / 2), random.choice(cols), bevel=0.0, rot=(0, tilt, 0))
+            x += w + random.uniform(0.0, 0.05)
+    finish("SM_Bookshelf")
+
+
+def armillary():
+    reset()
+    add_cyl("stand", 0.08, 1.0, (0, 0, 0.5), "MI_Wood", verts=8)
+    add_cyl("base", 0.4, 0.1, (0, 0, 0.05), "MI_Wood", verts=12)
+    for i, rot in enumerate(((0, 0, 0), (math.pi / 2, 0, 0), (math.pi / 2, 0, math.pi / 2), (0.5, 0.4, 0))):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.55 - i * 0.04, minor_radius=0.025, major_segments=24, minor_segments=6,
+                                         location=(0, 0, 1.55), rotation=rot)
+        bpy.context.active_object.data.materials.append(mat("MI_Brass"))
+    add_blob("core", 0.12, (0, 0, 1.55), "MI_RoofBlue", lumps=0.0)
+    finish("SM_Armillary")
+
+
+def sketch_board():
+    reset()
+    add_cube("board", (2.0, 0.08, 1.4), (0, 0, 0), "MI_WoodFloor", bevel=0.03)
+    for i, (x, z, r) in enumerate(((-0.55, 0.25, 0.1), (0.3, 0.3, -0.1), (-0.2, -0.3, 0.05), (0.6, -0.25, 0.15))):
+        add_cube("sketch", (0.6, 0.02, 0.45), (x, -0.06, z), "MI_Sailcloth", bevel=0.0, rot=(0, r, 0))
+        add_cyl("pin", 0.025, 0.03, (x, -0.08, z + 0.18), "MI_RoofTerracotta", verts=6, rot=(math.pi / 2, 0, 0))
+    finish("SM_SketchBoard")
+
+
+def portrait_frame():
+    reset()
+    add_cube("frame", (1.1, 0.1, 1.4), (0, 0, 0), "MI_Brass", bevel=0.04)
+    add_cube("canvas", (0.9, 0.05, 1.2), (0, -0.04, 0), "MI_Plaster", bevel=0.0)
+    finish("SM_PortraitFrame")
+
+
+def chest():
+    reset()
+    add_cube("box", (1.0, 1.6, 0.6), (0, 0, 0.3), "MI_Wood", bevel=0.05)
+    add_cube("lid", (1.05, 1.65, 0.25), (0, 0, 0.72), "MI_Wood", bevel=0.08)
+    for y in (-0.6, 0.6):
+        add_cube("band", (1.08, 0.08, 0.9), (0, y, 0.45), "MI_Brass", bevel=0.01)
+    finish("SM_Chest")
+
+
+def hanging_lantern():
+    reset()
+    add_cyl("chain", 0.015, 0.9, (0, 0, -0.45), "MI_Brass", verts=6)
+    add_cube("lantern", (0.3, 0.3, 0.4), (0, 0, -1.1), "MI_Brass", bevel=0.05)
+    add_blob("glow", 0.11, (0, 0, -1.1), "MI_Sailcloth", lumps=0.0, subdiv=1)
+    finish("SM_HangingLantern")
+
+
+plateau()
+floating_isle()
+observation_tower()
+launch_deck()
+workbench()
+bookshelf()
+armillary()
+sketch_board()
+portrait_frame()
+chest()
+hanging_lantern()
 wind_ribbon()
 market_stall()
 fountain()
