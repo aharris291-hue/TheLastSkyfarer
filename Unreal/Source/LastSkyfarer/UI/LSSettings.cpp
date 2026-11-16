@@ -86,7 +86,7 @@ void ULSSettings::Apply(const UObject* WorldContext)
 		Quality = DetectQuality();
 		if (Quality == 0)
 		{
-			ResolutionScale = 50; // integrated graphics are fill-rate bound: render the 3D view at half size and scale it up
+			ResolutionScale = 60; // integrated graphics are fill-rate bound: render the 3D view smaller and scale it up
 			FrameCap = 30;        // and a steady 30 fps leaves the GPU headroom instead of running flat out
 		}
 		SaveConfig();
@@ -115,6 +115,9 @@ void ULSSettings::Apply(const UObject* WorldContext)
 	// GPU timeouts on the Intel UHD 630 (DirectX 11) were reported while creating occlusion queries; the greybox is
 	// cheap to draw without occlusion culling.
 	SetCVar(TEXT("r.AllowOcclusionQueries"), bLow ? 0 : 1);
+	// TSR's upscaling took over two thirds of each frame on the UHD 630 (TSR RejectShading ~34 ms of 50 ms); temporal AA
+	// upsampling does the same job for a fraction of the cost there. Medium and up keep TSR.
+	SetCVar(TEXT("r.AntiAliasingMethod"), bLow ? 2 : 4);
 	UE_LOG(LogTemp, Display, TEXT("LS_SETTINGS graphics %s, %d%% resolution, vsync %d, cap %d"), *QualityName(Level).ToString(), ResolutionScale, bVSync ? 1 : 0, FrameCap);
 }
 

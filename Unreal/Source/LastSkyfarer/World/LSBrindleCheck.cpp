@@ -188,6 +188,11 @@ void ALSBrindleCheck::Build()
 				}
 				if (T > 3.f) // let the view settle
 				{
+					if (FParse::Param(FCommandLine::Get(), TEXT("LSProfileGPU")) && T - GetWorld()->GetDeltaSeconds() <= 8.f && T > 8.f)
+					{
+						UE_LOG(LogTemp, Display, TEXT("LS_PROFILE %s"), Where);
+						GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("ProfileGPU"));
+					}
 					ProbeTime += GetWorld()->GetDeltaSeconds();
 					++ProbeFrames;
 				}
@@ -202,10 +207,21 @@ void ALSBrindleCheck::Build()
 		};
 		Probe(TEXT("upper cliffs"), []() {});
 		Probe(TEXT("village square"), [this]() { Place(FVector(40.f, 45.f, 1.2f), -130.f); });
+		Probe(TEXT("orchard"), [this]() { Place(FVector(20.f, -380.f, 1.2f), -100.f); });
 		Probe(TEXT("workshop at night"), [this, Story]()
 		{
 			Place(Director()->InteriorSpawn.GetLocation() / CmPerM, 20.f);
 			Story->SetTimeOfDay(TEXT("Night"));
+		});
+		Probe(TEXT("gliding at dawn"), [this, Story]()
+		{
+			Story->SetTimeOfDay(TEXT("Dawn"));
+			ALSPlayerCharacter* K = Kieran();
+			Place(FVector(60.f, 700.f, 30.f), 90.f);
+			K->Glider->bHasGlider = true;
+			K->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			K->GetCharacterMovement()->Velocity = FVector(0.f, 1400.f, 0.f);
+			K->Glider->TryDeploy();
 		});
 		Add(TEXT("probe done"), [this](float T)
 		{
