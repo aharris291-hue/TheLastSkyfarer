@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
 #include "GliderComponent.h"
@@ -44,6 +45,24 @@ void APikoCompanion::BeginPlay()
 	if (FollowTarget)
 	{
 		SetActorLocation(GetDesiredLocation());
+	}
+	for (int32 i = 1; i <= 4; ++i)
+	{
+		if (USoundBase* S = LoadObject<USoundBase>(nullptr, *FString::Printf(TEXT("/Game/LastSkyfarer/Audio/Piko/piko_chirp_%d.piko_chirp_%d"), i, i))) { Chirps.Add(S); }
+	}
+	for (int32 i = 1; i <= 2; ++i)
+	{
+		if (USoundBase* S = LoadObject<USoundBase>(nullptr, *FString::Printf(TEXT("/Game/LastSkyfarer/Audio/Piko/piko_trill_%d.piko_trill_%d"), i, i))) { Trills.Add(S); }
+	}
+	ChirpTimer = FMath::FRandRange(8.f, 20.f);
+}
+
+void APikoCompanion::Chirp(bool bTrill)
+{
+	const TArray<TObjectPtr<USoundBase>>& Set = bTrill && Trills.Num() > 0 ? Trills : Chirps;
+	if (Set.Num() > 0 && !IsHidden())
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Set[FMath::RandRange(0, Set.Num() - 1)], GetActorLocation(), 0.8f, FMath::FRandRange(0.95f, 1.08f));
 	}
 }
 
@@ -87,6 +106,7 @@ int32 APikoCompanion::Sense()
 	if (Revealed > 0)
 	{
 		RevealPulse = 1.f;
+		Chirp(true); // a delighted trill when he finds a hidden current
 		OnSensedCurrent.Broadcast(Revealed);
 	}
 	MarkingGlow = FMath::Max(Proximity, RevealPulse);
@@ -131,6 +151,14 @@ void APikoCompanion::Tick(float DeltaSeconds)
 	const FVector Bob = bFloating ? FVector(0.f, 0.f, BobAmplitude * FMath::Sin(BobTime * BobFrequency * 2.f * PI)) : FVector::ZeroVector;
 	SetActorLocation(Pos + Bob);
 	SetActorRotation(FRotator(0.f, FollowTarget->GetActorRotation().Yaw, 0.f));
+
+	// Now and then a little chirp while keeping Kieran company (non-verbal; D-12).
+	ChirpTimer -= DeltaSeconds;
+	if (ChirpTimer <= 0.f)
+	{
+		ChirpTimer = FMath::FRandRange(14.f, 32.f);
+		Chirp(false);
+	}
 
 	RevealPulse = FMath::Max(0.f, RevealPulse - DeltaSeconds * 0.5f);
 	SenseTimer -= DeltaSeconds;

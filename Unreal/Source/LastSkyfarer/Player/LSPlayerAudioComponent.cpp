@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "LSPlayerCharacter.h"
 #include "Materials/MaterialInterface.h"
+#include "Sound/ReverbEffect.h"
 #include "Sound/SoundBase.h"
 
 namespace
@@ -50,6 +51,13 @@ void ULSPlayerAudioComponent::BeginPlay()
 	HighLayer = MakeLayer(TEXT("Wind/wind_high_loop.wind_high_loop"));
 	RushLayer = MakeLayer(TEXT("Glide/glide_rush_loop.glide_rush_loop"));
 	FlutterLayer = MakeLayer(TEXT("Glide/glider_flutter_loop.glider_flutter_loop"));
+	for (int32 i = 1; i <= 3; ++i)
+	{
+		if (USoundBase* S = LoadSound(FString::Printf(TEXT("%sWind/wind_gust_%d.wind_gust_%d"), AudioRoot, i, i))) { Gusts.Add(S); }
+	}
+	DeploySound = LoadSound(FString(AudioRoot) + TEXT("Glide/glider_deploy.glider_deploy"));
+	LandSound = LoadSound(FString(AudioRoot) + TEXT("Glide/glider_land.glider_land"));
+	WorkshopReverb = LoadObject<UReverbEffect>(nullptr, *(FString(AudioRoot) + TEXT("Mix/RVB_Workshop.RVB_Workshop")));
 	for (int32 i = 1; i <= 4; ++i)
 	{
 		for (const TCHAR* Kind : { TEXT("grass"), TEXT("stone"), TEXT("wood") })
@@ -136,6 +144,38 @@ void ULSPlayerAudioComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		FlutterLayer->SetVolumeMultiplier(FMath::Max(Rush * 0.6f, 0.001f));
 		FlutterLayer->SetPitchMultiplier(0.8f + 0.5f * SpeedT);
+	}
+
+	// Glider deploy and landing.
+	if (bGliding != bWasGliding)
+	{
+		if (USoundBase* S = bGliding ? DeploySound.Get() : LandSound.Get())
+		{
+			UGameplayStatics::PlaySound2D(this, S, 0.8f);
+		}
+		bWasGliding = bGliding;
+	}
+
+	// Gusts swell over the wind now and then outdoors; more often up high and when fast.
+	GustTimer -= DeltaTime;
+	if (GustTimer <= 0.f && !bIndoors && Gusts.Num() > 0)
+	{
+		UGameplayStatics::PlaySound2D(this, Gusts[FMath::RandRange(0, Gusts.Num() - 1)], 0.25f + 0.5f * FMath::Max(AltT, SpeedT), FMath::FRandRange(0.9f, 1.1f));
+		GustTimer = FMath::Lerp(14.f, 5.f, FMath::Max(AltT, SpeedT)) * FMath::FRandRange(0.7f, 1.3f);
+	}
+
+	// A warm wooden-room reverb inside the workshop.
+	if (bIndoors != bReverbOn && WorkshopReverb)
+	{
+		bReverbOn = bIndoors;
+		if (bReverbOn)
+		{
+			UGameplayStatics::ActivateReverbEffect(this, WorkshopReverb, TEXT("Workshop"), 1.f, 1.f, 0.5f);
+		}
+		else
+		{
+			UGameplayStatics::DeactivateReverbEffect(this, TEXT("Workshop"));
+		}
 	}
 
 	// Footsteps on the ground, faster when running.

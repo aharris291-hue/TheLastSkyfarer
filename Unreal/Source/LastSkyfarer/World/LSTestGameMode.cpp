@@ -15,6 +15,7 @@
 #include "LSHUD.h"
 #include "LSSettings.h"
 #include "LSTimeOfDayDirector.h"
+#include "LSAudioDirector.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
@@ -56,6 +57,7 @@ void ALSTestGameMode::StartPlay()
 {
 	Super::StartPlay();
 	GetWorld()->SpawnActor<ALSTimeOfDayDirector>();
+	GetWorld()->SpawnActor<ALSAudioDirector>();
 	ULSSettings::Get()->Apply(this);
 	if (FParse::Param(FCommandLine::Get(), TEXT("LSBrindleCheck")) || FParse::Param(FCommandLine::Get(), TEXT("LSContinueCheck"))
 		|| FParse::Param(FCommandLine::Get(), TEXT("LSFpsProbe")) || FCString::Strifind(FCommandLine::Get(), TEXT("LSWorkshopStress=")) || FCString::Strifind(FCommandLine::Get(), TEXT("LSTeleportStress=")))

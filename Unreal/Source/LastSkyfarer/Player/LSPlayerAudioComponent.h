@@ -54,6 +54,13 @@ private:
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> GrassSteps;
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> StoneSteps;
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> WoodSteps;
+	UPROPERTY() TArray<TObjectPtr<USoundBase>> Gusts;
+	UPROPERTY() TObjectPtr<USoundBase> DeploySound;
+	UPROPERTY() TObjectPtr<USoundBase> LandSound;
+	UPROPERTY() TObjectPtr<class UReverbEffect> WorkshopReverb;
+	float GustTimer = 6.f;
+	bool bWasGliding = false;
+	bool bReverbOn = false;
 
 	float WindLow = 0.f;
 	float WindHigh = 0.f;

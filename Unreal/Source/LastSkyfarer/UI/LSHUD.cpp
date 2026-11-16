@@ -13,6 +13,8 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
 #include "LSStorySubsystem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 void ALSHUD::BeginPlay()
 {
@@ -167,6 +169,11 @@ void ALSHUD::ToggleMap()
 		return;
 	}
 	bMapOpen = !bMapOpen;
+	// Paper unfolding and folding (Audio/UI).
+	if (USoundBase* Paper = LoadObject<USoundBase>(nullptr, bMapOpen ? TEXT("/Game/LastSkyfarer/Audio/UI/map_open.map_open") : TEXT("/Game/LastSkyfarer/Audio/UI/map_close.map_close")))
+	{
+		UGameplayStatics::PlaySound2D(this, Paper, 0.7f);
+	}
 	MapWidget->SetVisibility(bMapOpen ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
 	HUDWidget->SetVisibility(bMapOpen ? ESlateVisibility::Collapsed : ESlateVisibility::SelfHitTestInvisible);
 	if (bMapOpen)

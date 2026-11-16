@@ -95,6 +95,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Piko")
 	int32 Sense();
 
+	/** A little chirp (or a trill), non-verbal; plays at Piko's position. */
+	UFUNCTION(BlueprintCallable, Category = "Piko")
+	void Chirp(bool bTrill = false);
+
 	UFUNCTION(BlueprintCallable, Category = "Piko")
 	void SetPerch(EPikoPerch NewPerch) { Perch = NewPerch; }
 
@@ -115,4 +119,7 @@ private:
 	float SenseTimer = 0.f;
 	float RevealPulse = 0.f;
 	float BobTime = 0.f;
+	float ChirpTimer = 10.f;
+	UPROPERTY() TArray<TObjectPtr<class USoundBase>> Chirps;
+	UPROPERTY() TArray<TObjectPtr<class USoundBase>> Trills;
 };

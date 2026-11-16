@@ -10,6 +10,7 @@
 #include "GliderComponent.h"
 #include "HAL/FileManager.h"
 #include "LSBrindleStory.h"
+#include "LSAudioDirector.h"
 #include "LSCompassComponent.h"
 #include "LSHUD.h"
 #include "LSInteractableComponent.h"
@@ -648,6 +649,10 @@ void ALSBrindleCheck::Build()
 			Check(TEXT("PikoRevealsUpdraft"), Story->HasFlag(TEXT("revealed_wind_1")) && Conversations.Contains(TEXT("piko_found_wind")), TEXT("hidden updraft and piko_found_wind"));
 			Check(TEXT("GlidesToTheFog"), Story->HasFlag(TEXT("reached_fog")) && Done(TEXT("into_the_clouds"), TEXT("glide")) && P.Y > 1400.f,
 				FString::Printf(TEXT("Kieran at %s, %.0f m east of the Bluff"), *P.ToCompactString(), P.Y - GlideStart.Y / CmPerM));
+			for (TActorIterator<ALSAudioDirector> It(GetWorld()); It; ++It)
+			{
+				Check(TEXT("StoryStingers"), It->GetStingersPlayed() >= 4, FString::Printf(TEXT("%d stingers (quests and new places)"), It->GetStingersPlayed()));
+			}
 			Check(TEXT("WindWhileGliding"), MaxWind > 0.3f, FString::Printf(TEXT("high wind layer reached %.2f"), MaxWind));
 			Check(TEXT("DemoComplete"), Story->HasFlag(TEXT("demo_complete")) && Quest(TEXT("into_the_clouds")) == ELSQuestState::Complete
 				&& Quest(TEXT("morning_deliveries")) == ELSQuestState::Complete && Quest(TEXT("hidden_workshop")) == ELSQuestState::Complete
