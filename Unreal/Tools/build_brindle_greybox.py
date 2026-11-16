@@ -716,6 +716,28 @@ note("note_sky_map", (512, 40, 25.5))
 note("note_three_decades", (350, 380, 17.1))
 note("note_each_island", (60, 920, -1.5))
 
+# ------------------------------------------------------------------ sound (Tools/import_audio.py): ambience beds and windmill creaks
+AUDIO = "/Game/LastSkyfarer/Audio/"
+
+
+def ambience(label, sound, center, att):
+    a = actors.spawn_actor_from_class(unreal.AmbientSound, v(*center), rot())
+    a.set_actor_label(label)
+    a.set_folder_path("Audio")
+    comp = a.get_editor_property("audio_component")
+    comp.set_sound(unreal.load_asset(AUDIO + sound))
+    comp.set_editor_property("attenuation_settings", unreal.load_asset(AUDIO + "Mix/" + att))
+    return always_loaded(a)
+
+
+for label, spot in (("Village", (0, 0, 4)), ("Orchard", (0, -460, 4)), ("CloudEdge", (545, -100, 4)), ("UpperCliffs", (300, 330, 18))):
+    ambience("Ambience_" + label, "Ambience/village_ambience_loop", spot, "ATT_Ambience")
+ambience("Ambience_Workshop", "Ambience/workshop_tone_loop", (IX, IY, 2), "ATT_Room")
+creaks = [unreal.load_asset(AUDIO + "World/windmill_creak_%d" % i) for i in (1, 2)]
+for a in actors.get_all_level_actors():
+    if isinstance(a, unreal.LSSpinningMesh):
+        a.set_editor_property("creaks", creaks)
+        a.set_editor_property("creak_attenuation", unreal.load_asset(AUDIO + "Mix/ATT_Windmill"))
 # Greybox inspect meshes now covered by art (interaction finds them by position, so hiding is safe).
 for a in actors.get_all_level_actors():
     if a.get_actor_label() in ("Inspect_Maps", "Inspect_Sketches", "Inspect_Notes", "Inspect_Portrait", "Inspect_Instruments"):
