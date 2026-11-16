@@ -37,7 +37,7 @@ def mpfb():
 
 
 # ------------------------------------------------------------------ body
-def make_human(name, pheno, race, parts, skin, arms_down=52):
+def make_human(name, pheno, race, parts, skin, arms_down=52, targets=None):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     HS = mpfb()
     info = HS._create_default_human_info_dict()
@@ -45,6 +45,8 @@ def make_human(name, pheno, race, parts, skin, arms_down=52):
     info["phenotype"]["race"] = race
     info.update(parts)
     info.update({"skin_mhmat": skin, "skin_material_type": "ENHANCED_SSS", "rig": "default", "name": name})
+    if targets:
+        info["targets"] = [{"target": t, "value": v} for t, v in targets.items()]
     st = HS.get_default_deserialization_settings()
     st["load_clothes"] = False
     st["subdiv_levels"] = 0
@@ -294,6 +296,7 @@ def kieran():
     tint_skin(body, 0.72)
     hip_z = seg["thighL"][0].z
     neck_z = seg["neck"][0].z
+    CLS[body.name], HIP[body.name] = cls, hip_z
 
     def side(k):
         return k[-1] if k[-1] in "LR" else ""
@@ -315,12 +318,25 @@ def kieran():
         a, b = seg["farm" + s]
         band(pt(seg, "farm" + s, 0.45), 0.052, b - a, 0.05, 0.012, SHIRT)
     # Trousers, belt and boots
+    # Loose travel/cargo cut: plenty of ease, deep folds, a cargo pocket on each outer thigh
     garment(body, cls, "trousers", PANTS, lambda c, co: (c[0].startswith("thigh")) or (c[0].startswith("shin") and c[1] < 0.6)
-            or (c[0] == "spine" and co.z < hip_z + 0.1), 0.022, 0.004, folds=0.012)
+            or (c[0] == "spine" and co.z < hip_z + 0.1), 0.038, 0.004, folds=0.022)
+    for s, sx in (("L", 1), ("R", -1)):
+        z = pt(seg, "thigh" + s, 0.55).z
+        rx, ry, c = extent(body, z, ("thigh" + s,))
+        x = c.x + sx * (rx + 0.04)
+        pk = cd.box((x, c.y, z), (0.012, 0.055, 0.07), PANTS, 0.3)
+        cd.box((x + sx * 0.004, c.y, z + 0.065), (0.013, 0.058, 0.02), PANTS, 0.35)
+        cd.sph((x + sx * 0.016, c.y, z + 0.06), (0.004, 0.006, 0.006), BRASS)
     band(Vector((0, seg["spine"][0].y, hip_z + 0.04)), 0.165, (0, 0, 1), 0.045, 0.008, LEATHER, scale=(1.0, 0.72, 1.0))
     garment(body, cls, "boots", BOOT, lambda c, co: c[0].startswith("foot") or (c[0].startswith("shin") and c[1] > 0.45),
             0.014, 0.006, folds=0.0, smooth=1)
     KIND["#2E211A"] = "leather"
+    for s in "LR":   # stitched leather soles under each boot
+        pts = [v.co for v in SRC[body.name].vertices if cls[v.index][0] == "foot" + s or (cls[v.index][0] == "shin" + s and v.co.z < 0.06)]
+        xs, ys = [p.x for p in pts], [p.y for p in pts]
+        cx, cy = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2
+        cd.box((cx, cy - 0.006, 0.012), ((max(xs) - min(xs)) / 2 + 0.018, (max(ys) - min(ys)) / 2 + 0.02, 0.012), "#2E211A", 0.35)
     for s in "LR":
         a, b = seg["shin" + s]
         band(pt(seg, "shin" + s, 0.58), 0.066, b - a, 0.055, 0.014, SOCK)     # cream sock cuff over the boot top
@@ -333,8 +349,11 @@ def kieran():
     # Sky-blue scarf wrapped at the neck with a knot falling at the front
     nz = neck_z + 0.03
     band(Vector((0, seg["neck"][0].y, nz)), 0.075, (0, 0, 1), 0.07, 0.03, SCARF, scale=(1.1, 1.05, 1))
-    rd_knot = strap([(0.02, seg["neck"][0].y - 0.09, nz - 0.01), (0.035, seg["neck"][0].y - 0.11, nz - 0.08),
-                     (0.03, seg["neck"][0].y - 0.115, nz - 0.16)], 0.06, 0.012, SCARF)
+    # a second, looser turn of the scarf and two soft ends falling over the left collarbone
+    lw = band(Vector((0.01, seg["neck"][0].y - 0.01, nz - 0.045)), 0.085, (0.15, -0.25, 1), 0.06, 0.025, SCARF, scale=(1.12, 1.05, 1))
+    ny = seg["neck"][0].y
+    strap([(0.05, ny - 0.085, nz - 0.03), (0.075, ny - 0.105, nz - 0.1), (0.085, ny - 0.11, nz - 0.17)], 0.07, 0.014, SCARF)
+    strap([(0.035, ny - 0.09, nz - 0.035), (0.05, ny - 0.115, nz - 0.08), (0.055, ny - 0.125, nz - 0.12)], 0.06, 0.014, SCARF)
     # Goggles pushed up on the forehead, strap round the head
     hz = seg["head"][0].z + (seg["head"][1].z - seg["head"][0].z) * 0.62
     hy = seg["head"][0].y

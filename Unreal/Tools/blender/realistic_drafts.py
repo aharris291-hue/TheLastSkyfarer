@@ -1,4 +1,4 @@
-﻿"""Realistic design drafts (Cycles): real materials, fur and lighting, rendered to turnaround sheets for Adam's approval.
+"""Realistic design drafts (Cycles): real materials, fur and lighting, rendered to turnaround sheets for Adam's approval.
 
 Props reuse the shapes from character_drafts.py with physically based wood, brass, sailcloth and leather; Piko is
 rebuilt as one organic furred body following Adam's turnaround. Nothing goes into the game until Adam approves.
@@ -354,7 +354,7 @@ def metaball_body(elements, res=0.012):
         e.radius = radius
         if kind == "ELLIPSOID":
             e.size_x, e.size_y, e.size_z = size
-        e.stiffness = 2.0
+        e.stiffness = 1.4
     bpy.context.view_layer.objects.active = o
     o.select_set(True)
     bpy.context.view_layer.update()
@@ -364,7 +364,7 @@ def metaball_body(elements, res=0.012):
 
 def piko():
     cd.reset()
-    FUR, BLUE, AMBER, MARK = "#FFFFFF", "#87C7FF", "#F4BC42", "#ADEFFF"
+    FUR, BLUE, AMBER, MARK = "#FFF6E6", "#87C7FF", "#F4BC42", "#ADEFFF"   # warm ivory
     skin, nt, out = node_mat("piko_skin")
     b = principled(nt, hexrgb("#E9E2DA"), 0.6)
     b.inputs["Subsurface Weight"].default_value = 0.3
@@ -372,6 +372,7 @@ def piko():
     body = metaball_body([
         ("ELLIPSOID", (0, 0, 0.17), 0.1, (0.85, 0.75, 1.15)),        # body
         ("ELLIPSOID", (0, -0.01, 0.37), 0.1, (1.0, 0.9, 0.9)),       # head
+        ("ELLIPSOID", (0, -0.008, 0.27), 0.085, (0.95, 0.85, 0.9)),  # neck and shoulders join head and body in one shape
         ("ELLIPSOID", (0, -0.075, 0.35), 0.04, (1.0, 0.7, 0.7)),     # muzzle
         ("ELLIPSOID", (-0.055, -0.05, 0.34), 0.035, (1.0, 0.8, 0.8)),  # cheeks
         ("ELLIPSOID", (0.055, -0.05, 0.34), 0.035, (1.0, 0.8, 0.8)),
