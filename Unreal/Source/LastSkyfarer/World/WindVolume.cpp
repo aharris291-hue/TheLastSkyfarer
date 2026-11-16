@@ -5,6 +5,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/SplineComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Materials/MaterialInterface.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -22,10 +23,22 @@ AWindVolume::AWindVolume()
 	Visual->SetCastShadow(false);
 	Visual->SetMobility(EComponentMobility::Static);
 
+	// Glowing ribbon streaks along the current (art pass 1); plain beads if the art is not in the project.
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Ribbon(TEXT("/Game/LastSkyfarer/Environments/Brindle/Meshes/SM_WindRibbon.SM_WindRibbon"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> RibbonBlue(TEXT("/Game/LastSkyfarer/Materials/Instances/MI_WindRibbon_Impossible.MI_WindRibbon_Impossible"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
-	if (Sphere.Succeeded())
+	if (Ribbon.Succeeded())
+	{
+		Visual->SetStaticMesh(Ribbon.Object);
+		bRibbons = true;
+	}
+	else if (Sphere.Succeeded())
 	{
 		Visual->SetStaticMesh(Sphere.Object);
+	}
+	if (RibbonBlue.Succeeded())
+	{
+		ImpossibleMaterial = RibbonBlue.Object;
 	}
 }
 
@@ -126,6 +139,10 @@ void AWindVolume::RebuildVisual()
 		return;
 	}
 	Visual->ClearInstances();
+	if (ImpossibleMaterial && ActorHasTag(TEXT("impossible_route")))
+	{
+		Visual->SetMaterial(0, ImpossibleMaterial); // the impossible current glows Aerian blue
+	}
 	const float Length = Spline->GetSplineLength();
 	const int32 Count = FMath::Clamp(FMath::FloorToInt(Length / FMath::Max(BeadSpacing, 50.f)) + 1, 2, 400);
 	const float BeadScale = WindType == EWindVolumeType::Updraft ? 0.6f : 0.4f;
@@ -133,7 +150,17 @@ void AWindVolume::RebuildVisual()
 	{
 		const float D = Length * i / (Count - 1);
 		const FVector Loc = Spline->GetLocationAtDistanceAlongSpline(D, ESplineCoordinateSpace::Local);
-		Visual->AddInstance(FTransform(FRotator::ZeroRotator, Loc, FVector(BeadScale)));
+		if (bRibbons)
+		{
+			// A streak along the current, most of the way to the next one.
+			const FRotator Along = Spline->GetRotationAtDistanceAlongSpline(D, ESplineCoordinateSpace::Local);
+			const float Long = Length / FMath::Max(Count - 1, 1) / 100.f * 0.8f;
+			Visual->AddInstance(FTransform(Along, Loc, FVector(Long, BeadScale * 2.f, BeadScale * 2.f)));
+		}
+		else
+		{
+			Visual->AddInstance(FTransform(FRotator::ZeroRotator, Loc, FVector(BeadScale)));
+		}
 	}
 	UpdateVisibility();
 }

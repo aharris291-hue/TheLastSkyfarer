@@ -107,6 +107,10 @@ private:
 	UPROPERTY(VisibleInstanceOnly, Category = "Wind")
 	bool bRevealed = false;
 
+	bool bRibbons = false;
+
+	UPROPERTY() TObjectPtr<class UMaterialInterface> ImpossibleMaterial;
+
 	void UpdateVisibility();
 };
 

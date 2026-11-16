@@ -196,6 +196,10 @@ void ALSBrindleCheck::Build()
 					ProbeTime += GetWorld()->GetDeltaSeconds();
 					++ProbeFrames;
 				}
+				if (At(12.f))
+				{
+					Shot(*FString(Where).Replace(TEXT(" "), TEXT("_")));
+				}
 				if (T > 13.f)
 				{
 					UE_LOG(LogTemp, Display, TEXT("LS_FPS %s, graphics %s: %.1f fps"), Where,
@@ -208,6 +212,7 @@ void ALSBrindleCheck::Build()
 		Probe(TEXT("upper cliffs"), []() {});
 		Probe(TEXT("village square"), [this]() { Place(FVector(40.f, 45.f, 1.2f), -130.f); });
 		Probe(TEXT("orchard"), [this]() { Place(FVector(20.f, -380.f, 1.2f), -100.f); });
+		Probe(TEXT("cloud edge"), [this]() { Place(FVector(522.f, -60.f, 2.2f), -50.f); });
 		Probe(TEXT("workshop at night"), [this, Story]()
 		{
 			Place(Director()->InteriorSpawn.GetLocation() / CmPerM, 20.f);
@@ -342,11 +347,11 @@ void ALSBrindleCheck::Build()
 		{
 			ShotFrom(FVector(-900.f * CmPerM, -700.f * CmPerM, 420.f * CmPerM), FRotator(-24.f, 38.f, 0.f));
 		}
-		if (At(3.f))
+		if (At(8.f)) // let new materials finish preparing first
 		{
 			Shot(TEXT("overview"));
 		}
-		if (T > 3.6f)
+		if (T > 8.6f)
 		{
 			GetWorld()->GetFirstPlayerController()->SetViewTarget(Kieran());
 			return true;

@@ -32,19 +32,20 @@ ALSTimeOfDayDirector::ALSTimeOfDayDirector()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bTickEvenWhenPaused = false;
 
-	// Starting values from the STYLE_GUIDE Act I colour script; tune in the editor.
+	// Starting values from the STYLE_GUIDE Act I colour script; tune in the editor. Sky light is kept strong so shadowed
+	// walls stay soft and readable (storybook look), which matters most on Low where there is no bounce light.
 	// Morning deliveries: clear warm daylight.
-	Presets.Add(TEXT("Morning"), MakePreset(FRotator(-28.f, 60.f, 0.f), FLinearColor(1.f, 0.93f, 0.82f), 8.f, 1.f, FLinearColor(0.62f, 0.74f, 0.9f), 0.008f));
+	Presets.Add(TEXT("Morning"), MakePreset(FRotator(-28.f, 60.f, 0.f), FLinearColor(1.f, 0.93f, 0.82f), 8.f, 2.6f, FLinearColor(0.62f, 0.74f, 0.9f), 0.008f));
 	// Letter of Inheritance: deep golden sunset, orange rim light.
-	Presets.Add(TEXT("Sunset"), MakePreset(FRotator(-6.f, 250.f, 0.f), FLinearColor(1.f, 0.56f, 0.28f), 5.f, 0.6f, FLinearColor(0.95f, 0.58f, 0.38f), 0.014f));
+	Presets.Add(TEXT("Sunset"), MakePreset(FRotator(-6.f, 250.f, 0.f), FLinearColor(1.f, 0.56f, 0.28f), 5.f, 1.8f, FLinearColor(0.95f, 0.58f, 0.38f), 0.014f));
 	// Workshop at night: cool blue moonlight outside. The sun sets below the horizon (so the sky goes
 	// dark) and a separate moon light takes over; exposure is pulled down so night stays night.
-	FLSTimeOfDayPreset Night = MakePreset(FRotator(8.f, 200.f, 0.f), FLinearColor(0.55f, 0.66f, 1.f), 0.f, 0.15f, FLinearColor(0.03f, 0.04f, 0.09f), 0.018f);
+	FLSTimeOfDayPreset Night = MakePreset(FRotator(8.f, 200.f, 0.f), FLinearColor(0.55f, 0.66f, 1.f), 0.f, 0.4f, FLinearColor(0.03f, 0.04f, 0.09f), 0.018f);
 	Night.MoonIntensity = 0.6f;
 	Night.ExposureBias = -1.5f;
 	Presets.Add(TEXT("Night"), Night);
 	// Dawn launch: pale gold horizon over a lilac cloud sea.
-	Presets.Add(TEXT("Dawn"), MakePreset(FRotator(-4.f, 85.f, 0.f), FLinearColor(1.f, 0.78f, 0.62f), 3.5f, 0.5f, FLinearColor(0.78f, 0.68f, 0.88f), 0.014f));
+	Presets.Add(TEXT("Dawn"), MakePreset(FRotator(-12.f, 85.f, 0.f), FLinearColor(1.f, 0.78f, 0.62f), 3.5f, 1.6f, FLinearColor(0.78f, 0.68f, 0.88f), 0.014f));
 }
 
 void ALSTimeOfDayDirector::BeginPlay()
