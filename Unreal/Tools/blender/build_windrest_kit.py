@@ -533,6 +533,182 @@ def hanging_lantern():
     finish("SM_HangingLantern")
 
 
+# ------------------------------------------------------------------ art polish (build h)
+def path_segment(name, surface):
+    """A 20 m length of 4 m wide path along +X: a gently domed surface with rounded edge stones on both sides."""
+    reset()
+    mesh = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    nx, ny = 16, 6
+    grid = []
+    for i in range(nx + 1):
+        row = []
+        for j in range(ny + 1):
+            y = -1.9 + 3.8 * j / ny
+            z = 0.1 + 0.05 * (1 - (y / 1.9) ** 2) + random.uniform(-0.01, 0.01)
+            row.append(bm.verts.new((-10 + 20 * i / nx, y, z)))
+        grid.append(row)
+    for i in range(nx):
+        for j in range(ny):
+            bm.faces.new((grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]))
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(mat(surface))
+    for side in (-1, 1):
+        x = -9.7
+        while x < 9.8:
+            s = random.uniform(0.22, 0.38)
+            add_blob("edge", s, (x, side * random.uniform(2.0, 2.2), 0.08), "MI_Stone", squash=(1.3, 1.0, 0.6), lumps=0.2, subdiv=1)
+            x += s * 2.2 + random.uniform(0.05, 0.3)
+    finish(name)
+
+
+def wheat_patch():
+    """A 20 x 20 m patch of wheat stalks with heads (crossed cards), denser and taller than grass."""
+    reset()
+    mesh = bpy.data.meshes.new("wheat")
+    bm = bmesh.new()
+    for _ in range(420):
+        x, y = random.uniform(-10, 10), random.uniform(-10, 10)
+        h = random.uniform(0.8, 1.15)
+        w = random.uniform(0.18, 0.3)
+        lean = random.uniform(-0.15, 0.15)
+        for a in (0.0, math.pi / 2):
+            dx, dy = math.cos(a) * w, math.sin(a) * w
+            bm.faces.new([bm.verts.new((x - dx * 0.4, y - dy * 0.4, 0)), bm.verts.new((x + dx * 0.4, y + dy * 0.4, 0)),
+                          bm.verts.new((x + dx + lean, y + dy, h)), bm.verts.new((x - dx + lean, y - dy, h))])
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new("wheat", mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(mat("MI_Wheat"))
+    finish("SM_WheatPatch")
+
+
+def crate():
+    """A 1 m wooden crate with plank edges (scaled to the greybox mantle crates)."""
+    reset()
+    add_cube("body", (0.96, 0.96, 0.96), (0, 0, 0.5), "MI_WoodFloor", bevel=0.03)
+    for z in (0.06, 0.94):
+        for sx, sy, w, d in ((0, -0.49, 1.0, 0.06), (0, 0.49, 1.0, 0.06), (-0.49, 0, 0.06, 1.0), (0.49, 0, 0.06, 1.0)):
+            add_cube("edge", (w, d, 0.1), (sx, sy, z), "MI_Wood", bevel=0.01)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            add_cube("post", (0.08, 0.08, 1.0), (sx * 0.47, sy * 0.47, 0.5), "MI_Wood", bevel=0.01)
+    finish("SM_Crate")
+
+
+def fruit_crate():
+    reset()
+    add_cube("box", (1.0, 0.7, 0.45), (0, 0, 0.225), "MI_Wood", bevel=0.03)
+    for i in range(10):
+        add_blob("fruit", 0.11, (random.uniform(-0.38, 0.38), random.uniform(-0.25, 0.25), 0.47), random.choice(("MI_RoofTerracotta", "MI_Wheat", "MI_RoofGreen")),
+                 lumps=0.05, subdiv=1)
+    finish("SM_FruitCrate")
+
+
+def ladder():
+    reset()
+    for sx in (-1, 1):
+        add_cube("rail", (0.07, 0.07, 3.2), (sx * 0.25, 0, 1.6), "MI_Wood", bevel=0.01)
+    for i in range(9):
+        add_cyl("rung", 0.025, 0.5, (0, 0, 0.3 + i * 0.35), "MI_Wood", verts=6, rot=(0, math.pi / 2, 0))
+    finish("SM_Ladder")
+
+
+def beehive():
+    """A straw skep on a little stand."""
+    reset()
+    add_cube("stand", (0.8, 0.8, 0.5), (0, 0, 0.25), "MI_Wood", bevel=0.04)
+    for i in range(6):
+        r = 0.42 * (1 - (i / 6) ** 1.6)
+        add_cyl("ring", max(r, 0.06), 0.13, (0, 0, 0.56 + i * 0.12), "MI_Wheat", verts=14)
+    add_cube("door", (0.14, 0.05, 0.1), (0, -0.4, 0.58), "MI_Wood", bevel=0.0)
+    finish("SM_Beehive")
+
+
+def petals():
+    """Fallen blossom: a 6 x 6 m scatter of small pink flecks lying on the grass."""
+    reset()
+    mesh = bpy.data.meshes.new("petals")
+    bm = bmesh.new()
+    for _ in range(260):
+        x, y = random.gauss(0, 1.6), random.gauss(0, 1.6)
+        s = random.uniform(0.04, 0.08)
+        a = random.uniform(0, math.pi)
+        c, sn = math.cos(a) * s, math.sin(a) * s
+        bm.faces.new([bm.verts.new((x - c, y - sn, 0.03)), bm.verts.new((x - sn, y + c, 0.03)),
+                      bm.verts.new((x + c, y + sn, 0.03)), bm.verts.new((x + sn, y - c, 0.03))])
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new("petals", mesh)
+    bpy.context.scene.collection.objects.link(o)
+    o.data.materials.append(mat("MI_FoliageBlossom"))
+    finish("SM_Petals")
+
+
+def stone_steps():
+    """A unit (1 x 1 x 1 m) ramp slab dressed as stone steps: risers along +X, rising from z 0 to 1."""
+    reset()
+    steps = 8
+    for i in range(steps):
+        x0 = -0.5 + i / steps
+        add_cube("step", (1.0 / steps + 0.01, 1.0, (i + 1) / steps), (x0 + 0.5 / steps, 0, (i + 1) / steps / 2), "MI_Stone", bevel=0.01)
+    finish("SM_StoneSteps")
+
+
+def deck():
+    """A 1 x 1 m unit plank deck, top at z = 0 (scaled per deck; railings are fence pieces)."""
+    reset()
+    add_cube("planks", (1.0, 1.0, 0.5), (0, 0, -0.25), "MI_WoodFloor", bevel=0.01)
+    finish("SM_Deck")
+
+
+def telescope():
+    reset()
+    for i in range(3):
+        a = i * 2 * math.pi / 3
+        leg = add_cyl("leg", 0.04, 1.6, (math.cos(a) * 0.35, math.sin(a) * 0.35, 0.75), "MI_Wood", verts=6)
+        leg.rotation_euler = (math.sin(a) * 0.25, -math.cos(a) * 0.25, 0)
+    add_cyl("tube", 0.12, 1.8, (0, 0, 1.75), "MI_Brass", verts=12, r2=0.08, rot=(0, math.radians(60), 0))
+    add_cyl("eyepiece", 0.05, 0.3, (-0.85, 0, 1.25), "MI_Brass", verts=8, rot=(0, math.radians(60), 0))
+    finish("SM_Telescope")
+
+
+def climb_rock():
+    """A unit (1 x 1 x 1 m) slab of craggy rock with ledges for handholds, scaled over the climbable face."""
+    reset()
+    o = add_blob("face", 0.5, (0, 0, 0.5), "MI_CliffRock", squash=(0.35, 1.0, 1.0), lumps=0.12, subdiv=3)
+    for i in range(7):
+        add_blob("ledge", 0.05, (-0.2, random.uniform(-0.35, 0.35), 0.1 + i * 0.12), "MI_Stone", squash=(1.2, 3.0, 0.5), lumps=0.1, subdiv=1)
+    finish("SM_ClimbRock")
+
+
+def hanging_sign(name, emblem_mat):
+    reset()
+    add_cyl("post", 0.09, 3.2, (0, 0, 1.6), "MI_Wood", verts=8)
+    add_cube("arm", (1.4, 0.1, 0.1), (0.65, 0, 3.0), "MI_Wood", bevel=0.02)
+    add_cube("board", (1.0, 0.08, 0.7), (0.8, 0, 2.45), "MI_WoodFloor", bevel=0.04)
+    add_blob("emblem", 0.2, (0.8, -0.06, 2.45), emblem_mat, squash=(1.3, 0.3, 0.9), lumps=0.0, subdiv=2)
+    finish(name)
+
+
+path_segment("SM_Path_Cobble", "MI_PathStone")
+path_segment("SM_Path_Dirt", "MI_PathDirt")
+wheat_patch()
+crate()
+fruit_crate()
+ladder()
+beehive()
+petals()
+stone_steps()
+deck()
+telescope()
+climb_rock()
+hanging_sign("SM_Sign_PostHouse", "MI_RoofBlue")
+hanging_sign("SM_Sign_Tavern", "MI_Wheat")
 plateau()
 floating_isle()
 observation_tower()
