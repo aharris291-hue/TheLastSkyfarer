@@ -13,7 +13,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "LSPlayerCharacter.h"
 #include "LSStorySubsystem.h"
+#include "LSPlayerAudioComponent.h"
 #include "LSTimeOfDayDirector.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 #include "PikoCompanion.h"
 #include "WindVolume.h"
 
@@ -179,6 +182,26 @@ void ALSBrindleStory::RestoreSavedPosition()
 	UE_LOG(LogTemp, Display, TEXT("LS_STORY continue at %s (chapter %d, %s)"), *(Saved.GetLocation() / 100.f).ToCompactString(), Story->GetChapter(), *Story->GetTimeOfDay().ToString());
 }
 
+void ALSBrindleStory::PlayMusicCue(FName Cue)
+{
+	// Placeholder hook: no music is in the project yet. When cues are added to MusicCues, they cross-fade here.
+	TObjectPtr<USoundBase>* Sound = MusicCues.Find(Cue);
+	if (MusicPlayer)
+	{
+		MusicPlayer->FadeOut(2.f, 0.f);
+		MusicPlayer = nullptr;
+	}
+	if (Sound && *Sound)
+	{
+		MusicPlayer = UGameplayStatics::SpawnSound2D(this, *Sound, 1.f, 1.f, 0.f, nullptr, true, false);
+		if (MusicPlayer)
+		{
+			MusicPlayer->FadeIn(3.f);
+		}
+	}
+	UE_LOG(LogTemp, Display, TEXT("LS_MUSIC cue %s (%s)"), *Cue.ToString(), Sound && *Sound ? TEXT("playing") : TEXT("no music yet"));
+}
+
 void ALSBrindleStory::Notify(const FText& Message)
 {
 	if (ULSStorySubsystem* Story = ULSStorySubsystem::Get(this))
@@ -197,6 +220,11 @@ void ALSBrindleStory::Teleport(const FTransform& Where)
 	}
 	K->SetActorLocationAndRotation(Where.GetLocation(), Where.Rotator(), false, nullptr, ETeleportType::TeleportPhysics);
 	PC->SetControlRotation(Where.Rotator());
+	if (ULSPlayerAudioComponent* Audio = K->FindComponentByClass<ULSPlayerAudioComponent>())
+	{
+		// The wind is muffled inside the workshop.
+		Audio->bIndoors = Where.GetLocation().Equals(InteriorSpawn.GetLocation(), 100.f);
+	}
 }
 
 void ALSBrindleStory::HandleStoryEvent(FName EventId)
@@ -211,6 +239,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("enter_workshop"))
 	{
+		PlayMusicCue(TEXT("workshop"));
 		// Indoors at night: lamplight inside, moonlight outside (workshop.gd after_ready).
 		FadeThrough([this]() { Teleport(InteriorSpawn); }, FText::GetEmpty(), [Story]() { Story->SetTimeOfDay(TEXT("Night")); });
 		if (!Story->HasFlag(TEXT("workshop_entered")))
@@ -230,6 +259,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("next_morning"))
 	{
+		PlayMusicCue(TEXT("dawn"));
 		// StoryEvents.json has already moved the story to Chapter 3 at dawn and started Into the Clouds. Keep the night
 		// lighting until the screen is black outside the door, then let dawn come in.
 		Story->SetTimeOfDay(TEXT("Night"));
@@ -252,6 +282,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("piko_joins"))
 	{
+		PlayMusicCue(TEXT("glide"));
 		Story->SetFlag(TEXT("has_glider"));
 		ApplyStoryState();
 		QueueRun([this, Story]()
@@ -262,6 +293,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("demo_end"))
 	{
+		PlayMusicCue(TEXT("fog"));
 		QueueRun([this, Story]()
 		{
 			Story->SaveToSlot(TEXT("autosave"));

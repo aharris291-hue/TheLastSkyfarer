@@ -11,6 +11,7 @@ class UGliderComponent;
 class ULSTraversalComponent;
 class ULSInteractorComponent;
 class ULSCompassComponent;
+class ULSPlayerAudioComponent;
 class UInputAction;
 class UInputMappingContext;
 
@@ -37,6 +38,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Compass")
 	TObjectPtr<ULSCompassComponent> Compass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+	TObjectPtr<ULSPlayerAudioComponent> Audio;
 
 	// Movement (cm/s). GDD 1: walk 1.8, run 4.5, sprint 6.5 m/s.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")

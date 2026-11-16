@@ -24,4 +24,14 @@ public:
 	/** Degrees per second. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spin")
 	float Speed = 24.f;
+
+	/** Played now and then from the hub (windmill creaks); none = silent. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spin")
+	TArray<TObjectPtr<class USoundBase>> Creaks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spin")
+	TObjectPtr<class USoundAttenuation> CreakAttenuation;
+
+private:
+	float CreakTimer = 2.f;
 };

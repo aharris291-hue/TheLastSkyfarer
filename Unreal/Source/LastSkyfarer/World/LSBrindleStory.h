@@ -73,6 +73,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Story")
 	bool IsBusy() const { return Steps.Num() > 0; }
 
+	/** Music for story moments (placeholder: empty until music exists). Keys: chapter1, workshop, dawn, glide, fog. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|Music")
+	TMap<FName, TObjectPtr<class USoundBase>> MusicCues;
+
+	/** Cross-fades to the cue's music (does nothing for cues with no music yet). */
+	UFUNCTION(BlueprintCallable, Category = "Story|Music")
+	void PlayMusicCue(FName Cue);
+
 	UFUNCTION(BlueprintPure, Category = "Story")
 	bool HasDemoEnded() const { return bDemoEnded; }
 
@@ -99,6 +107,7 @@ private:
 
 	UPROPERTY() TObjectPtr<APikoCompanion> Piko;
 	UPROPERTY() TObjectPtr<ACameraActor> EndCamera;
+	UPROPERTY() TObjectPtr<class UAudioComponent> MusicPlayer;
 
 	void Queue(FName Conversation, float Delay = 0.f);
 	void QueueRun(TFunction<void()> Run, float Delay = 0.f);

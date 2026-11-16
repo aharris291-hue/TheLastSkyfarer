@@ -4,6 +4,7 @@
 
 #include "Components/Button.h"
 #include "LSUIHelpers.h"
+#include "Sound/SoundBase.h"
 
 UButton* LSUI::MakeMenuButton(UWidgetTree* Tree, const FText& Label, int32 Size, UObject* Owner,
 	TArray<TObjectPtr<ULSClickProxy>>& Keep, TFunction<void()> Fn, UTextBlock** OutLabel)
@@ -13,6 +14,11 @@ UButton* LSUI::MakeMenuButton(UWidgetTree* Tree, const FText& Label, int32 Size,
 	Style.Normal.TintColor = FSlateColor(FLinearColor(0.12f, 0.1f, 0.08f, 1.f));
 	Style.Hovered.TintColor = FSlateColor(FLinearColor(0.32f, 0.25f, 0.13f, 1.f));
 	Style.Pressed.TintColor = FSlateColor(FLinearColor(0.45f, 0.35f, 0.16f, 1.f));
+	// Soft UI sounds (synthesised; Audio/UI). Missing assets just mean silent buttons.
+	USoundBase* Click = LoadObject<USoundBase>(nullptr, TEXT("/Game/LastSkyfarer/Audio/UI/ui_click.ui_click"));
+	USoundBase* Hover = LoadObject<USoundBase>(nullptr, TEXT("/Game/LastSkyfarer/Audio/UI/ui_hover.ui_hover"));
+	if (Click) { Style.PressedSlateSound.SetResourceObject(Click); }
+	if (Hover) { Style.HoveredSlateSound.SetResourceObject(Hover); }
 	B->SetStyle(Style); // buttons are focusable by default, so the gamepad can move between them
 	UTextBlock* Text = MakeText(Tree, Label, Size);
 	Text->SetAutoWrapText(false);

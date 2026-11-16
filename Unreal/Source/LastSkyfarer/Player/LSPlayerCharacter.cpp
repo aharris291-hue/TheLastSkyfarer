@@ -2,6 +2,7 @@
 
 #include "LSPlayerCharacter.h"
 #include "LSSettings.h"
+#include "LSPlayerAudioComponent.h"
 
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -32,6 +33,7 @@ ALSPlayerCharacter::ALSPlayerCharacter()
 	Traversal = CreateDefaultSubobject<ULSTraversalComponent>(TEXT("Traversal"));
 	Interactor = CreateDefaultSubobject<ULSInteractorComponent>(TEXT("Interactor"));
 	Compass = CreateDefaultSubobject<ULSCompassComponent>(TEXT("Compass"));
+	Audio = CreateDefaultSubobject<ULSPlayerAudioComponent>(TEXT("Audio"));
 
 	// Template input actions and placeholder mannequin, so the class works without a Blueprint child.
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveIA(TEXT("/Game/Input/Actions/IA_Move.IA_Move"));

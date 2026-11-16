@@ -15,6 +15,7 @@
 #include "LSInteractableComponent.h"
 #include "LSMapWidget.h"
 #include "LSPlayerCharacter.h"
+#include "LSPlayerAudioComponent.h"
 #include "LSSettings.h"
 #include "LSStorySubsystem.h"
 #include "LSStoryVolumes.h"
@@ -378,6 +379,7 @@ void ALSBrindleCheck::Build()
 		if (At(3.f))
 		{
 			Check(TEXT("WalksIntoVillage"), Story->GetState().Discovered.Contains(TEXT("windrest")), FString::Printf(TEXT("at %s"), *(Kieran()->GetActorLocation() / CmPerM).ToCompactString()));
+			Check(TEXT("FootstepsPlay"), Kieran()->Audio && Kieran()->Audio->GetStepsPlayed() > 0, FString::Printf(TEXT("%d steps"), Kieran()->Audio ? Kieran()->Audio->GetStepsPlayed() : 0));
 			Shot(TEXT("square"));
 		}
 		return T > 3.6f;
@@ -625,6 +627,10 @@ void ALSBrindleCheck::Build()
 				bDeployed = K->Glider->IsGliding();
 			}
 		}
+		if (K->Glider->IsGliding() && K->Audio)
+		{
+			MaxWind = FMath::Max(MaxWind, K->Audio->GetWindLevel());
+		}
 		LogTimer += GetWorld()->GetDeltaSeconds();
 		if (LogTimer > 5.f)
 		{
@@ -642,6 +648,7 @@ void ALSBrindleCheck::Build()
 			Check(TEXT("PikoRevealsUpdraft"), Story->HasFlag(TEXT("revealed_wind_1")) && Conversations.Contains(TEXT("piko_found_wind")), TEXT("hidden updraft and piko_found_wind"));
 			Check(TEXT("GlidesToTheFog"), Story->HasFlag(TEXT("reached_fog")) && Done(TEXT("into_the_clouds"), TEXT("glide")) && P.Y > 1400.f,
 				FString::Printf(TEXT("Kieran at %s, %.0f m east of the Bluff"), *P.ToCompactString(), P.Y - GlideStart.Y / CmPerM));
+			Check(TEXT("WindWhileGliding"), MaxWind > 0.3f, FString::Printf(TEXT("high wind layer reached %.2f"), MaxWind));
 			Check(TEXT("DemoComplete"), Story->HasFlag(TEXT("demo_complete")) && Quest(TEXT("into_the_clouds")) == ELSQuestState::Complete
 				&& Quest(TEXT("morning_deliveries")) == ELSQuestState::Complete && Quest(TEXT("hidden_workshop")) == ELSQuestState::Complete
 				&& Quest(TEXT("elias_was_here")) == ELSQuestState::Complete, TEXT("all four quests complete"));

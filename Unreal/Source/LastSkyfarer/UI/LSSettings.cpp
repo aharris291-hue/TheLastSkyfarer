@@ -3,6 +3,9 @@
 #include "LSSettings.h"
 
 #include "AudioDevice.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundClass.h"
+#include "Sound/SoundMix.h"
 #include "DynamicRHI.h"
 #include "Engine/World.h"
 #include "GameFramework/GameUserSettings.h"
@@ -79,6 +82,21 @@ void ULSSettings::Apply(const UObject* WorldContext)
 	if (FAudioDeviceHandle Device = World ? World->GetAudioDevice() : FAudioDeviceHandle())
 	{
 		Device->SetTransientPrimaryVolume(MasterVolume);
+	}
+	// The sound classes follow the sliders through one settings mix (Audio/Mix).
+	USoundMix* Mix = LoadObject<USoundMix>(nullptr, TEXT("/Game/LastSkyfarer/Audio/Mix/SMix_Settings.SMix_Settings"));
+	if (World && Mix)
+	{
+		const TPair<const TCHAR*, float> Classes[] = { { TEXT("SC_Music"), MusicVolume }, { TEXT("SC_SFX"), EffectsVolume },
+			{ TEXT("SC_Ambience"), EffectsVolume }, { TEXT("SC_UI"), EffectsVolume }, { TEXT("SC_Dialogue"), 1.f } };
+		for (const TPair<const TCHAR*, float>& C : Classes)
+		{
+			if (USoundClass* SC = LoadObject<USoundClass>(nullptr, *FString::Printf(TEXT("/Game/LastSkyfarer/Audio/Mix/%s.%s"), C.Key, C.Key)))
+			{
+				UGameplayStatics::SetSoundMixClassOverride(WorldContext, Mix, SC, C.Value, 1.f, 0.2f, true);
+			}
+		}
+		UGameplayStatics::PushSoundMixModifier(WorldContext, Mix);
 	}
 
 	if (Quality < 0)
