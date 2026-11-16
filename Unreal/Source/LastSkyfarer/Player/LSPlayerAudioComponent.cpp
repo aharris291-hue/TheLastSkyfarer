@@ -51,6 +51,7 @@ void ULSPlayerAudioComponent::BeginPlay()
 	HighLayer = MakeLayer(TEXT("Wind/wind_high_loop.wind_high_loop"));
 	RushLayer = MakeLayer(TEXT("Glide/glide_rush_loop.glide_rush_loop"));
 	FlutterLayer = MakeLayer(TEXT("Glide/glider_flutter_loop.glider_flutter_loop"));
+	GlideMusic = MakeLayer(TEXT("Music/music_glide_layer.music_glide_layer"));
 	for (int32 i = 1; i <= 3; ++i)
 	{
 		if (USoundBase* S = LoadSound(FString::Printf(TEXT("%sWind/wind_gust_%d.wind_gust_%d"), AudioRoot, i, i))) { Gusts.Add(S); }
@@ -139,6 +140,11 @@ void ULSPlayerAudioComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	{
 		RushLayer->SetVolumeMultiplier(FMath::Max(Rush * 0.8f, 0.001f));
 		RushLayer->SetPitchMultiplier(0.85f + 0.4f * SpeedT);
+	}
+	if (GlideMusic)
+	{
+		// The gliding music swells with speed and height.
+		GlideMusic->SetVolumeMultiplier(FMath::Max(Rush * (0.35f + 0.65f * AltT) * 0.8f, 0.001f));
 	}
 	if (FlutterLayer)
 	{

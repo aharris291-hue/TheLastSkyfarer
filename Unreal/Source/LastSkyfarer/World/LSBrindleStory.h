@@ -81,6 +81,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Story|Music")
 	void PlayMusicCue(FName Cue);
 
+	UFUNCTION(BlueprintPure, Category = "Story|Music")
+	bool IsMusicPlaying() const;
+
+	UFUNCTION(BlueprintPure, Category = "Story|Music")
+	FName GetMusicCue() const { return CurrentCue; }
+
 	UFUNCTION(BlueprintPure, Category = "Story")
 	bool HasDemoEnded() const { return bDemoEnded; }
 
@@ -108,6 +114,8 @@ private:
 	UPROPERTY() TObjectPtr<APikoCompanion> Piko;
 	UPROPERTY() TObjectPtr<ACameraActor> EndCamera;
 	UPROPERTY() TObjectPtr<class UAudioComponent> MusicPlayer;
+	FName CurrentCue;
+	bool bInWorkshop = false;
 
 	void Queue(FName Conversation, float Delay = 0.f);
 	void QueueRun(TFunction<void()> Run, float Delay = 0.f);
@@ -121,4 +129,5 @@ private:
 	UFUNCTION() void HandleStoryEvent(FName EventId);
 	UFUNCTION() void HandleFlagChanged(FName Flag, bool bSet);
 	UFUNCTION() void HandlePikoSensed(int32 NumRevealed);
+	UFUNCTION() void HandleTimeOfDay(FName TimeOfDay);
 };

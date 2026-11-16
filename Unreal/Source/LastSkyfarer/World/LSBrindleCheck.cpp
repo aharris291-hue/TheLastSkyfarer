@@ -380,6 +380,7 @@ void ALSBrindleCheck::Build()
 		if (At(3.f))
 		{
 			Check(TEXT("WalksIntoVillage"), Story->GetState().Discovered.Contains(TEXT("windrest")), FString::Printf(TEXT("at %s"), *(Kieran()->GetActorLocation() / CmPerM).ToCompactString()));
+			Check(TEXT("MusicPlays"), Director()->IsMusicPlaying(), FString::Printf(TEXT("cue %s"), *Director()->GetMusicCue().ToString()));
 			Check(TEXT("FootstepsPlay"), Kieran()->Audio && Kieran()->Audio->GetStepsPlayed() > 0, FString::Printf(TEXT("%d steps"), Kieran()->Audio ? Kieran()->Audio->GetStepsPlayed() : 0));
 			Shot(TEXT("square"));
 		}

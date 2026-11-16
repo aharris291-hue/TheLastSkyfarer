@@ -51,6 +51,7 @@ private:
 	UPROPERTY() TObjectPtr<UAudioComponent> HighLayer;
 	UPROPERTY() TObjectPtr<UAudioComponent> RushLayer;
 	UPROPERTY() TObjectPtr<UAudioComponent> FlutterLayer;
+	UPROPERTY() TObjectPtr<UAudioComponent> GlideMusic;
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> GrassSteps;
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> StoneSteps;
 	UPROPERTY() TArray<TObjectPtr<USoundBase>> WoodSteps;

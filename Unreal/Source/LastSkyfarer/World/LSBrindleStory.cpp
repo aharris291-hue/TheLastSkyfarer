@@ -40,6 +40,8 @@ void ALSBrindleStory::BeginPlay()
 	{
 		Story->OnStoryEvent.AddUniqueDynamic(this, &ALSBrindleStory::HandleStoryEvent);
 		Story->OnFlagChanged.AddUniqueDynamic(this, &ALSBrindleStory::HandleFlagChanged);
+		Story->OnTimeOfDayChanged.AddUniqueDynamic(this, &ALSBrindleStory::HandleTimeOfDay);
+		HandleTimeOfDay(Story->GetTimeOfDay()); // start the music for wherever the story is
 	}
 	// Opened from the title screen's Continue: put Kieran back where the save was made.
 	const AGameModeBase* GM = GetWorld()->GetAuthGameMode();
@@ -182,8 +184,24 @@ void ALSBrindleStory::RestoreSavedPosition()
 	UE_LOG(LogTemp, Display, TEXT("LS_STORY continue at %s (chapter %d, %s)"), *(Saved.GetLocation() / 100.f).ToCompactString(), Story->GetChapter(), *Story->GetTimeOfDay().ToString());
 }
 
+void ALSBrindleStory::HandleTimeOfDay(FName TimeOfDay)
+{
+	// Windrest's theme follows the day; the workshop keeps Elias's piece while Kieran is inside.
+	if (bInWorkshop)
+	{
+		return;
+	}
+	PlayMusicCue(TimeOfDay == TEXT("Sunset") ? FName(TEXT("village_sunset")) : TimeOfDay == TEXT("Night") ? FName(TEXT("village_night"))
+		: TimeOfDay == TEXT("Dawn") ? FName(TEXT("dawn")) : FName(TEXT("village_day")));
+}
+
 void ALSBrindleStory::PlayMusicCue(FName Cue)
 {
+	if (Cue == CurrentCue && MusicPlayer)
+	{
+		return;
+	}
+	CurrentCue = Cue;
 	// Placeholder hook: no music is in the project yet. When cues are added to MusicCues, they cross-fade here.
 	TObjectPtr<USoundBase>* Sound = MusicCues.Find(Cue);
 	if (MusicPlayer)
@@ -200,6 +218,11 @@ void ALSBrindleStory::PlayMusicCue(FName Cue)
 		}
 	}
 	UE_LOG(LogTemp, Display, TEXT("LS_MUSIC cue %s (%s)"), *Cue.ToString(), Sound && *Sound ? TEXT("playing") : TEXT("no music yet"));
+}
+
+bool ALSBrindleStory::IsMusicPlaying() const
+{
+	return MusicPlayer && MusicPlayer->IsPlaying();
 }
 
 void ALSBrindleStory::Notify(const FText& Message)
@@ -225,6 +248,11 @@ void ALSBrindleStory::Teleport(const FTransform& Where)
 		// The wind is muffled inside the workshop.
 		Audio->bIndoors = Where.GetLocation().Equals(InteriorSpawn.GetLocation(), 100.f);
 	}
+	bInWorkshop = Where.GetLocation().Equals(InteriorSpawn.GetLocation(), 100.f);
+	if (bInWorkshop)
+	{
+		PlayMusicCue(TEXT("workshop"));
+	}
 }
 
 void ALSBrindleStory::HandleStoryEvent(FName EventId)
@@ -239,6 +267,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("enter_workshop"))
 	{
+		bInWorkshop = true;
 		PlayMusicCue(TEXT("workshop"));
 		// Indoors at night: lamplight inside, moonlight outside (workshop.gd after_ready).
 		FadeThrough([this]() { Teleport(InteriorSpawn); }, FText::GetEmpty(), [Story]() { Story->SetTimeOfDay(TEXT("Night")); });
@@ -259,6 +288,7 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("next_morning"))
 	{
+		bInWorkshop = false;
 		PlayMusicCue(TEXT("dawn"));
 		// StoryEvents.json has already moved the story to Chapter 3 at dawn and started Into the Clouds. Keep the night
 		// lighting until the screen is black outside the door, then let dawn come in.
@@ -278,11 +308,17 @@ void ALSBrindleStory::HandleStoryEvent(FName EventId)
 	}
 	else if (EventId == TEXT("leave"))
 	{
-		FadeThrough([this]() { Teleport(DoorSpawn); });
+		FadeThrough([this]()
+		{
+			Teleport(DoorSpawn);
+			if (const ULSStorySubsystem* S = ULSStorySubsystem::Get(this))
+			{
+				HandleTimeOfDay(S->GetTimeOfDay()); // back outside: the village music for this time of day
+			}
+		});
 	}
 	else if (EventId == TEXT("piko_joins"))
 	{
-		PlayMusicCue(TEXT("glide"));
 		Story->SetFlag(TEXT("has_glider"));
 		ApplyStoryState();
 		QueueRun([this, Story]()

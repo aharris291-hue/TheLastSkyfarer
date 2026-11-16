@@ -7,6 +7,9 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/FileManager.h"
 #include "LSSettings.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "LSTitleWidget.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -34,6 +37,13 @@ void ALSTitleHUD::BeginPlay()
 		break;
 	}
 	ULSSettings::Get()->Apply(this);
+	if (USoundBase* Theme = LoadObject<USoundBase>(nullptr, TEXT("/Game/LastSkyfarer/Audio/Music/music_main_theme.music_main_theme")))
+	{
+		if (UAudioComponent* Music = UGameplayStatics::SpawnSound2D(this, Theme, 1.f, 1.f, 0.f, nullptr, false, false))
+		{
+			Music->FadeIn(2.5f); // The Last Skyfarer main theme
+		}
+	}
 
 	Title = CreateWidget<ULSTitleWidget>(PC, ULSTitleWidget::StaticClass());
 	Title->AddToViewport();
