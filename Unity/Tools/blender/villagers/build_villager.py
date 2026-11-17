@@ -4,6 +4,13 @@ the body surface, rigid accessories on bones, procedural hair). One script, one 
   tessa  Tessa Reed (art_source/characters/Tessa Reed Turnaround.jpeg): Kieran's age, big curly auburn hair, green
          eyes, freckles; long cream tunic under an open green jacket with rolled sleeves, brown belt with leather gloves,
          canvas satchel across the body, beaded bracelet, loose brown trousers bunched over brown boots.
+  maren  Maren Holt, postmaster (no sheet yet: designed from the Bible role and docs/unreal/FIREFLY_PROMPTS.md, for Adam's
+         approval): in her fifties, greying hair pinned up in a bun, reading glasses on a cord, wool waistcoat over a
+         rolled-sleeve blouse, long canvas apron with pockets of letters and a pencil, satchel strap, postal-blue
+         neckerchief, calf-length skirt, laced boots.
+  rowan  Rowan Finch, village elder (designed the same way): older man, kind but cautious face, neat white beard, soft
+         knitted cap, long striped knitted shawl over a simple cream tunic, grey-green trousers, walking stick carved
+         with a windmill.
   elara  Elara Greenborough (art_source/characters/Elara Greenborough Turnaround.jpeg), the Orchard Vale grower (D-10):
          dark curly hair with a long braid, hazel eyes; cream button shirt with rolled sleeves, high-waisted green
          trousers rolled above laced dark boots, belt with seed pouches, leather bag across the body.
@@ -44,10 +51,29 @@ CAST = {
                            "trousers_dark": "#4E6237", "boots": "#3E2C22", "boot_dark": "#2C1F18", "sole": "#1E1612", "belt": "#4A3222",
                            "brass": "#A88645", "steel": "#A9AEB0", "bag": "#7A4F30", "bag_dark": "#63402A", "pouch": "#9A7752",
                            "button": "#C9BFA8", "lace": "#2A1E16"}),
+    "maren": dict(name="Maren", export="Maren_Holt", seed=13,
+                  pheno={"gender": 0.0, "age": 0.72, "muscle": 0.5, "weight": 0.58, "height": 0.56, "proportions": 0.55, "cupsize": 0.5, "firmness": 0.4},
+                  race={"african": 0.2, "asian": 0.0, "caucasian": 0.8}, eyes="grey_eye.png", brows="eyebrow006.mhclo",
+                  targets={"mouth-angles-down": 0.15},
+                  palette={"skin": "#B98468", "hair": "#8A7E74", "shirt": "#E9E0CB", "cuff": "#DDD3BC", "waistcoat": "#7C5636",
+                           "waistcoat_dark": "#5E3F26", "apron": "#BBA780", "apron_dark": "#9C8862", "skirt": "#5B4B3E", "postal": "#3E6A9A",
+                           "boots": "#4E3626", "boot_dark": "#3A281C", "sole": "#211812", "belt": "#4E3523", "brass": "#A88645", "steel": "#A9AEB0",
+                           "bag": "#7A5234", "bag_dark": "#5E3E26", "letter": "#F1EAD8", "lens": "#9FC6D6", "lace": "#2A1E16", "pencil": "#C9A640"}),
+    "rowan": dict(name="Rowan", export="Rowan_Finch", seed=17,
+                  pheno={"gender": 1.0, "age": 0.9, "muscle": 0.42, "weight": 0.48, "height": 0.52, "proportions": 0.5},
+                  race={"african": 0.1, "asian": 0.0, "caucasian": 0.9}, eyes="brownlight_eye.png", brows="eyebrow001.mhclo",
+                  targets={"mouth-angles-up": 0.2},
+                  palette={"skin": "#C08F72", "hair": "#E4E1DA", "beard": "#E9E6DF", "tunic": "#E3DAC2", "trousers": "#626B54",
+                           "trousers_dark": "#4F5743", "shawl": "#6F8456", "shawl_band": "#E1D5B5", "shawl_dark": "#566A42", "cap": "#5F7148",
+                           "boots": "#5A402B", "boot_dark": "#43301F", "sole": "#211812", "belt": "#4E3523", "stick": "#8A6A45",
+                           "stick_dark": "#6B4F32", "brass": "#A88645", "steel": "#A9AEB0", "cuff": "#DCD2BA", "lace": "#2A1E16"}),
 }
 C = CAST[WHO]
 NAME = C["name"]
 dk.PAL.update(C["palette"])
+dk.KIND.update({"waistcoat": "wool", "waistcoat_dark": "wool", "apron": "cloth", "apron_dark": "cloth", "skirt": "wool", "postal": "cloth",
+                "letter": "paper", "pencil": "paint", "beard": "hair", "shawl": "wool", "shawl_band": "wool", "shawl_dark": "wool", "cap": "wool",
+                "stick": "cloth", "stick_dark": "cloth"})
 dk.KIND.update({"tunic": "linen", "jacket": "cloth", "trousers_dark": "cloth", "bag": "cloth", "bag_dark": "leather", "gloves": "leather",
                 "bead_a": "paint", "bead_b": "paint", "pouch": "cloth", "lace": "cloth"})
 _orig_mat = dk.mat
@@ -468,6 +494,212 @@ def dress_elara(body, rig):
     curly_hair(body, rig, B, length=0.05, volume=0.035, braid=True)
 
 
+# ------------------------------------------------------------------ shared: beards, caps, pinned-up hair
+def face_profile(body, B):
+    me = body.data
+    h0, h1 = B["head"]
+    hl = (h1 - h0).length
+    prof = [v for v in me.vertices if abs(v.co.x) < 0.01 and h0.z - hl * 0.6 < v.co.z < h0.z + hl * 0.9]
+    nose = min(prof, key=lambda v: v.co.y)
+    front = [v for v in prof if v.co.y < nose.co.y + 0.04 and v.co.z < nose.co.z]
+    chin_z = min(v.co.z for v in front)
+    mouth_z = nose.co.z - (nose.co.z - chin_z) * 0.42
+    return nose.co.z, nose.co.y, mouth_z, chin_z
+
+
+def beard(body, rig, B, depth_chin, key="beard"):
+    """A neat beard and moustache placed from the measured profile (as Bram's, trimmed shorter)."""
+    me = body.data
+    nose_z, nose_y, mouth_z, chin_z = face_profile(body, B)
+    els = []
+    for v in me.vertices:
+        co = v.co
+        if co.y > nose_y + 0.09 or co.z > nose_z - 0.014 or co.z < chin_z - 0.03:
+            continue
+        side = abs(co.x)
+        if side > 0.072 or (side < 0.03 and mouth_z - 0.012 < co.z < mouth_z + 0.014) or (side < 0.05 and co.z > mouth_z + 0.014):
+            continue
+        n = v.normal.normalized()
+        if n.z > 0.6:
+            continue
+        below = max(0.0, mouth_z - co.z) / max(mouth_z - chin_z + 0.03, 0.01)
+        els.append((co + n * (0.005 + depth_chin * min(1.0, below)) + Vector((0, 0, -0.006 * below)), random.uniform(0.011, 0.014)))
+    for sx in (-1, 1):
+        for k in range(8):
+            t = k / 7
+            els.append((Vector((sx * (0.004 + 0.03 * t), nose_y + 0.012 + 0.016 * t, mouth_z + 0.015 - 0.026 * t * t)), 0.011 - 0.003 * t))
+    m = metaball_mesh(NAME + "_beard", els, key, rig, "head", resolution=0.005)
+    dk.fold_bands(scale=0.006, strength=0.0018, name="wavy")(m)
+
+
+def close_cap_hair(body, rig, B, key, depth=0.008):
+    me = body.data
+    h0, h1 = B["head"]
+    hl = (h1 - h0).length
+    scalp = body.vertex_groups.get("scalp")
+    sidx = [v.index for v in me.vertices if scalp and any(g.group == scalp.index and g.weight > 0.4 for g in v.groups)]
+    els = []
+    for i in sidx:
+        v = me.vertices[i]
+        up = (v.co.z - h0.z) / hl
+        els.append((v.co + v.normal.normalized() * (depth + 0.008 * max(0.0, up - 0.4)), random.uniform(0.019, 0.023)))
+    m = metaball_mesh(NAME + "_hair", els, key, rig, "head", resolution=0.008)
+    dk.fold_bands(scale=0.008, strength=0.002, name="combed")(m)
+    on = set(sidx)
+    body.data.materials.append(mat(key))
+    slot = len(body.data.materials) - 1
+    for p in body.data.polygons:
+        if sum(1 for i in p.vertices if i in on) >= 3:
+            p.material_index = slot
+    return sidx
+
+
+# ------------------------------------------------------------------ Maren
+def dress_maren(body, rig):
+    seg, B, cls = base(body, rig)
+    G = lambda *a, **k: dk.garment(body, rig, cls, *a, **k)   # noqa: E731
+    hip_z = seg["thigh_l"][0].z
+    neck_z = seg["neck"][0].z
+    chest_z = neck_z - 0.17
+    waist_z = hip_z + 0.12
+    knee_z = seg["shin_l"][0].z
+    sy = seg["spine"][1].y
+    # Cream blouse, sleeves rolled to the forearm.
+    G(NAME + "_shirt", "shirt", lambda c, co: (c[0] == "spine" and co.z > waist_z - 0.05) or (c[0] == "neck" and c[1] < 0.22) or
+      c[0].startswith("uarm") or (c[0].startswith("farm") and c[1] < 0.3), lambda c, co: 0.009, 0.003, folds=dk.fold_bands(strength=0.003), smooth=2)
+    for s in "lr":
+        rolled_cuff(body, rig, cls, seg, s, 0.28, "cuff", 0.014)
+    # Wool waistcoat, buttoned down the front.
+    vest = G(NAME + "_waistcoat", "waistcoat", lambda c, co: c[0] == "spine" and waist_z - 0.06 < co.z < neck_z - 0.04 and
+             not (abs(co.x) < 0.035 and co.y < sy - 0.02 and co.z > chest_z + 0.04), lambda c, co: 0.019, 0.004,
+             folds=dk.fold_bands(scale=0.05, strength=0.002), hide=False, smooth=14)
+    dk.hem_piping(vest, "waistcoat_dark", 0.0035)
+    for k in range(4):
+        z = chest_z + 0.02 - k * 0.045
+        c, rx, ry = dk.ring_at(body, cls, z, ("spine",), 0.02)
+        dk.cyl("%s_vest_button_%d" % (NAME, k), (0, c.y - ry - 0.003, z), 0.006, 0.004, "brass", rot=(math.radians(90), 0, 0), verts=12,
+               parent=rig, bone="spine_02")
+    # Postal-blue neckerchief.
+    nk = dk.pt(seg, "neck", 0.3)
+    dk.ring_band(NAME + "_neckerchief", Vector((nk.x, nk.y - 0.004, nk.z - 0.02)), 0.06, 0.064, 0.016, 0.005, "postal", parent=rig, bone="neck_01")
+    dk.box(NAME + "_neckerchief_knot", (0, nk.y - 0.068, nk.z - 0.05), (0.014, 0.006, 0.016), "postal", 0.8, rot=(0, math.radians(45), 0), parent=rig, bone="spine_03")
+    dk.box(NAME + "_neckerchief_tail", (0.004, nk.y - 0.07, nk.z - 0.085), (0.012, 0.004, 0.03), "postal", 0.6, rot=(0, math.radians(8), 0), parent=rig, bone="spine_03")
+    # Calf-length wool skirt over the legs, long canvas apron in front.
+    skirt(NAME + "_skirt", "skirt", rig, cls, body, waist_z - 0.02, knee_z - 0.2, 0.034, 0.75, rings=12, hip_z=hip_z)
+    dk.COVERED.update(i for i, c in cls.items() if c[0].startswith("thigh") or (c[0].startswith("shin") and c[1] < 0.55))
+    c, rx, ry = dk.ring_at(body, cls, waist_z - 0.02, ("spine",), 0.03)
+    apron = skirt(NAME + "_apron", "apron", rig, cls, body, waist_z - 0.01, knee_z - 0.12, 0.036, 0.5, open_front=0.0, rings=10, hip_z=hip_z)
+    bm = bmesh.new(); bm.from_mesh(apron.data)                       # keep only the front of the tube: an apron, not a skirt
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.y > c.y - ry * 0.25], context="VERTS")
+    bm.to_mesh(apron.data); bm.free()
+    for k, sx in enumerate((-1, 1)):                                  # pockets with letters and a pencil
+        pz = hip_z - 0.06
+        py = c.y - ry - 0.06
+        dk.box("%s_apron_pocket_%d" % (NAME, k), (sx * 0.1, py, pz), (0.07, 0.006, 0.065), "apron_dark", 0.3, parent=rig, bone="pelvis")
+        for j in range(3):
+            dk.box("%s_letter_%d_%d" % (NAME, k, j), (sx * 0.1 + (j - 1) * 0.022, py - 0.004, pz + 0.07 + 0.008 * j), (0.022, 0.002, 0.03), "letter", 0.2,
+                   rot=(0, math.radians((j - 1) * 8), 0), parent=rig, bone="pelvis")
+    dk.cyl(NAME + "_pencil", (0.13, c.y - ry - 0.068, hip_z + 0.0), 0.004, 0.11, "pencil", verts=6, rot=(0, math.radians(12), 0), parent=rig, bone="pelvis")
+    dk.ring_band(NAME + "_apron_tie", c, rx + 0.006, ry + 0.006, 0.02, 0.004, "apron_dark", parent=rig, bone="pelvis")
+    boots(body, rig, cls, seg, 0.68, laces=True)
+    crossbody(body, rig, cls, seg, neck_z, hip_z, sy, "bag_dark", "bag", "bag_dark")
+    # Reading glasses on a cord.
+    gz = chest_z + 0.03
+    c2, rx2, ry2 = dk.ring_at(body, cls, gz, ("spine",), 0.02)
+    gy = c2.y - ry2 - 0.03
+    for sx in (-1, 1):
+        bpy.ops.mesh.primitive_torus_add(major_radius=0.016, minor_radius=0.0025, location=(sx * 0.02, gy, gz), rotation=(math.radians(80), 0, 0),
+                                         major_segments=16, minor_segments=4)
+        r = bpy.context.active_object; r.name = "%s_glasses_rim_%d" % (NAME, sx)
+        r.data.materials.append(mat("brass")); dk.attach(r, rig, "spine_03")
+        dk.cyl("%s_glasses_lens_%d" % (NAME, sx), (sx * 0.02, gy + 0.001, gz), 0.014, 0.002, "lens", rot=(math.radians(80), 0, 0), verts=16, parent=rig, bone="spine_03")
+    dk.strap(NAME + "_glasses_cord", [Vector((0.034, gy, gz)), Vector((0.06, gy + 0.01, gz + 0.06)), Vector((0.07, sy - 0.04, neck_z + 0.01)),
+                                       Vector((0.0, sy + 0.07, neck_z + 0.02)), Vector((-0.07, sy - 0.04, neck_z + 0.01)),
+                                       Vector((-0.06, gy + 0.01, gz + 0.06)), Vector((-0.034, gy, gz))], 0.003, 0.002, "lace", parent=rig, bone="spine_03")
+    finish(body)
+    # Greying hair pinned up in a bun.
+    sidx = close_cap_hair(body, rig, B, "hair", depth=0.01)
+    h0, h1 = B["head"]
+    hl = (h1 - h0).length
+    back_y = max(body.data.vertices[i].co.y for i in sidx)
+    bun = Vector((0, back_y + 0.01, h0.z + hl * 0.78))
+    els = [(bun + Vector((math.cos(a) * 0.024, math.sin(a) * 0.012, math.sin(a * 2) * 0.006)), 0.03) for a in [k * math.pi / 4 for k in range(8)]]
+    els.append((bun + Vector((0, 0.012, 0)), 0.035))
+    b = metaball_mesh(NAME + "_bun", els, "hair", rig, "head", resolution=0.005)
+    dk.fold_bands(scale=0.005, strength=0.0018, name="twist")(b)
+    dk.cyl(NAME + "_hairpin", (0.01, bun.y + 0.02, bun.z + 0.02), 0.0025, 0.08, "brass", verts=6, rot=(math.radians(60), math.radians(30), 0), parent=rig, bone="head")
+
+
+# ------------------------------------------------------------------ Rowan
+def dress_rowan(body, rig):
+    seg, B, cls = base(body, rig)
+    G = lambda *a, **k: dk.garment(body, rig, cls, *a, **k)   # noqa: E731
+    hip_z = seg["thigh_l"][0].z
+    neck_z = seg["neck"][0].z
+    waist_z = hip_z + 0.11
+    sy = seg["spine"][1].y
+    # Simple cream tunic to mid-thigh, long sleeves.
+    G(NAME + "_tunic", "tunic", lambda c, co: (c[0] == "spine" and co.z > hip_z - 0.04) or (c[0] == "neck" and c[1] < 0.2) or
+      c[0].startswith("uarm") or (c[0].startswith("farm") and c[1] < 0.85), lambda c, co: 0.012, 0.003, folds=dk.fold_bands(strength=0.003), smooth=3)
+    skirt(NAME + "_tunic_tail", "tunic", rig, cls, body, hip_z + 0.01, hip_z - 0.2, 0.034, 0.25, hip_z=hip_z)
+    for s in "lr":
+        rolled_cuff(body, rig, cls, seg, s, 0.84, "cuff", 0.016)
+    G(NAME + "_trousers", "trousers", lambda c, co: c[0].startswith("thigh") or (c[0].startswith("shin") and c[1] < 0.7) or
+      (c[0] == "spine" and co.z < hip_z - 0.03), lambda c, co: 0.016 if c[0].startswith("thigh") else (0.02 if c[0].startswith("shin") else 0.006),
+      0.004, folds=dk.fold_bands(scale=0.03, strength=0.004), smooth_group=("crotch", lambda co: abs(co.x) < 0.07 and hip_z - 0.15 < co.z < hip_z - 0.02, 8))
+    boots(body, rig, cls, seg, 0.66, laces=False)
+    c, rx, ry = dk.ring_at(body, cls, waist_z - 0.02, ("spine",), 0.026)
+    dk.ring_band(NAME + "_sash", c, rx, ry, 0.035, 0.008, "belt", parent=rig, bone="pelvis")
+    # The long knitted shawl: over the shoulders and hanging down the front in two striped panels to the thighs.
+    shawl = G(NAME + "_shawl", "shawl", lambda c, co: (c[0] == "spine" and co.z > neck_z - 0.2 and (co.y > sy - 0.02 or abs(co.x) > 0.09)) or
+              (c[0] == "neck" and c[1] < 0.3 and co.y > sy - 0.04) or (c[0].startswith("uarm") and c[1] < 0.2), lambda c, co: 0.017, 0.006,
+              folds=dk.fold_bands(scale=0.012, strength=0.003, name="knit"), hide=False, smooth=6)
+    dk.hem_piping(shawl, "shawl_dark", 0.005)
+    for sx in (-1, 1):
+        top = neck_z - 0.03
+        x0 = sx * 0.085
+        y = sy - 0.1
+        for k in range(9):                                            # striped panel, knitted bands
+            z = top - k * 0.06
+            cc, rxx, ryy = dk.ring_at(body, cls, max(z, hip_z + 0.02), ("spine",), 0.03)
+            y = min(cc.y - ryy * math.sqrt(max(0.0, 1 - (x0 / max(rxx, 0.01)) ** 2)) - 0.012, cc.y - 0.02)
+            dk.box("%s_shawl_panel_%d_%d" % (NAME, sx, k), (x0 + sx * 0.003 * k, y - 0.004 * max(0, k - 5), z - 0.03), (0.04, 0.007, 0.034),
+                   "shawl_band" if k % 3 == 1 else "shawl", 0.12, parent=rig, bone="spine_03" if k < 4 else "pelvis")
+        for t in range(5):                                            # fringe
+            dk.cyl("%s_fringe_%d_%d" % (NAME, sx, t), (x0 + sx * 0.024 - 0.03 + t * 0.015, y - 0.02, top - 9 * 0.06 - 0.02), 0.003, 0.05, "shawl_band",
+                   verts=5, parent=rig, bone="pelvis")
+    # Walking stick in the right hand, carved with a little windmill at the top.
+    hand = dk.pt(seg, "hand_r", 0.45)
+    ground = min(v.co.z for v in dk.SRC["body"].vertices)
+    foot = Vector((hand.x + 0.02, hand.y - 0.1, ground))
+    top = hand + Vector((0, -0.01, 0.1))
+    mid = (foot + top) / 2
+    d = top - foot
+    bpy.ops.mesh.primitive_cylinder_add(vertices=8, radius=0.014, depth=d.length, location=mid)
+    st = bpy.context.active_object; st.name = NAME + "_stick"
+    st.rotation_mode = "QUATERNION"; st.rotation_quaternion = Vector((0, 0, 1)).rotation_difference(d.normalized())
+    st.data.materials.append(mat("stick"))
+    dk.attach(st, rig, "hand_r")
+    dk.cyl(NAME + "_stick_knob", tuple(top + Vector((0, 0, 0.02))), 0.022, 0.04, "stick_dark", verts=10, parent=rig, bone="hand_r")
+    for k in range(4):                                                # windmill sails carved on the knob
+        a = k * math.pi / 2 + 0.3
+        dk.box("%s_stick_sail_%d" % (NAME, k), (top.x + math.cos(a) * 0.03, top.y - 0.024, top.z + 0.04 + math.sin(a) * 0.03), (0.007, 0.003, 0.024),
+               "stick_dark", 0.3, rot=(0, -a + math.pi / 2, 0), parent=rig, bone="hand_r")
+    finish(body)
+    # Short white hair under a soft knitted cap, neat white beard.
+    sidx = close_cap_hair(body, rig, B, "hair", depth=0.006)
+    h0, h1 = B["head"]
+    hl = (h1 - h0).length
+    els = []
+    for i in sidx:
+        v = body.data.vertices[i]
+        if (v.co.z - h0.z) / hl > 0.62:
+            els.append((v.co + v.normal.normalized() * 0.024 + Vector((0, 0.008, 0.008)), 0.032))
+    cap = metaball_mesh(NAME + "_cap", els, "cap", rig, "head", resolution=0.008)
+    dk.fold_bands(scale=0.01, strength=0.002, name="knit")(cap)
+    beard(body, rig, B, 0.012)
+
+
 # ------------------------------------------------------------------ previews (same lights as Kieran's sheet)
 def render_views():
     sc = bpy.context.scene
@@ -505,7 +737,7 @@ def render_views():
 body, rig = build_body()
 z = [(body.matrix_world @ v.co).z for v in body.data.vertices]
 print("LS_VILLAGER %s height %.3f m" % (NAME, max(z) - min(z)), flush=True)
-{"tessa": dress_tessa, "elara": dress_elara}[WHO](body, rig)
+{"tessa": dress_tessa, "elara": dress_elara, "maren": dress_maren, "rowan": dress_rowan}[WHO](body, rig)
 render_views()
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "%s_Master.blend" % C["export"]))
 print("LS_VILLAGER_OK", NAME, flush=True)
