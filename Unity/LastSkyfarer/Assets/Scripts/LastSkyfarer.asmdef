@@ -1,0 +1,6 @@
+{
+    "name": "LastSkyfarer",
+    "rootNamespace": "LastSkyfarer",
+    "references": ["Unity.InputSystem"],
+    "autoReferenced": true
+}
