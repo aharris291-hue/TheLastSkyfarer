@@ -1,0 +1,18 @@
+# Unity: generated folders (rebuilt by the editor)
+LastSkyfarer/[Ll]ibrary/
+LastSkyfarer/[Tt]emp/
+LastSkyfarer/[Ll]ogs/
+LastSkyfarer/[Oo]bj/
+LastSkyfarer/[Bb]uild/
+LastSkyfarer/[Bb]uilds/
+LastSkyfarer/[Uu]ser[Ss]ettings/
+LastSkyfarer/MemoryCaptures/
+LastSkyfarer/*.csproj
+LastSkyfarer/*.sln
+LastSkyfarer/*.slnx
+LastSkyfarer/.vs/
+LastSkyfarer/.idea/
+LastSkyfarer/*.pidb
+LastSkyfarer/*.userprefs
+LastSkyfarer/crashlytics-buildid.txt
+Builds/
