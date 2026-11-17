@@ -1,16 +1,16 @@
 {
  "atlas": "C:\\Users\\Adam\\Desktop\\The Last Skyfarer\\repo\\Unreal\\SourceArt\\Characters\\Kieran\\export\\T_Kieran_BaseColor.png",
- "game_triangles": 44870,
- "game_vertices": 29949,
+ "game_triangles": 44849,
+ "game_vertices": 29916,
  "materials": 2,
  "bones": 53,
- "glb_bytes": 6017476,
- "fbx_bytes": 1982044,
+ "glb_bytes": 6031244,
+ "fbx_bytes": 1984540,
  "reimport": {
   "meshes": 1,
   "armatures": 1,
   "bones": 53,
-  "triangles": 44870,
+  "triangles": 44848,
   "skinned": true
  }
 }

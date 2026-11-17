@@ -566,8 +566,8 @@ def dress(body, rig):
 
     def jacket_ease(c, co):
         if c[0].startswith("uarm") or c[0].startswith("farm"):
-            return 0.011
-        return 0.013 if co.z > waist_z else 0.016   # a touch of room over the belt, never inflated
+            return 0.009
+        return 0.011 if co.z > waist_z else 0.014   # a touch of room over the belt, never inflated
     jacket = G("Kieran_jacket", "jacket", jacket_pick, jacket_ease, 0.004, folds=fold_bands(strength=0.003), hide=False, smooth=1)
     hem_piping(jacket, "jacket_dark", 0.0035)
     for s, sg in (("l", 1), ("r", -1)):   # rolled cream cuffs over the forearm
@@ -610,10 +610,10 @@ def dress(body, rig):
 
     def trouser_ease(c, co):
         if c[0].startswith("thigh"):
-            return 0.021 + 0.003 * c[1]
+            return 0.013 + 0.003 * c[1]
         if c[0].startswith("shin"):
-            return 0.024
-        return 0.013
+            return 0.018
+        return 0.011
     trousers = G("Kieran_trousers", "trousers", trouser_pick, trouser_ease, 0.004, folds=fold_bands(scale=0.035, strength=0.004),
                  smooth_group=("crotch", lambda co: abs(co.x) < 0.06 and hip_z - 0.14 < co.z < hip_z - 0.02, 8))
     for s in "lr":
@@ -629,7 +629,7 @@ def dress(body, rig):
     # Laced leather boots: shaped from the foot and lower calf, real soles, folded cuffs, laces and eyelets
     toe_y = min(seg["foot_" + s][0].y for s in "lr") - 0.05
     boots = G("Kieran_boots", "boots", lambda c, co: (c[0].startswith("shin") and c[1] > 0.45) or (c[0].startswith("foot") and co.z > 0.075),
-              lambda c, co: 0.02, 0.006, smooth=2)
+              lambda c, co: 0.017, 0.006, smooth=2)
     for s in "lr":
         fv = [v.co.copy() for i, v in enumerate(SRC["body"].vertices) if i in cls and (cls[i][0] == "foot_" + s or
               (cls[i][0] == "shin_" + s and cls[i][1] > 0.85))]
