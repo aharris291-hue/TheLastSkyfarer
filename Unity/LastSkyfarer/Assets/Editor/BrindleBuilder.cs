@@ -55,29 +55,35 @@ namespace LastSkyfarer.EditorTools
             public float BrushScale = 4f, StrokeMix = 0.4f, TopAmount = 0f, TopStart = 0.6f, ShadeBottom = -120f, ShadeRange = 120f, ShadeAmount = 0.65f;
             public float WindAmountCm = 8f, WindSpeed = 1.3f, SwayHeight = 4f;
             public string Emission;
+            public float Spec = 0.06f, Gloss = 20f, Rim = 0.22f, Bump = 0.6f;   // polish pass 1
         }
         static readonly Dictionary<string, Paint> Paints = new Dictionary<string, Paint>
         {
-            ["MI_IslandGround"] = new Paint { A = "#A99278", B = "#86705B", TopA = "#86AE4C", TopB = "#5F8F3C", TopAmount = 1f, BrushScale = 9f },
-            ["MI_CliffRock"] = new Paint { A = "#8E7C6B", B = "#6E5F55", BrushScale = 14f, ShadeBottom = -200f, ShadeRange = 160f, ShadeAmount = 0.55f },
-            ["MI_Stone"] = new Paint { A = "#CDBB9C", B = "#AD9877", TopA = "#86AE4C", TopB = "#5F8F3C", TopAmount = 0.25f, BrushScale = 2f },
-            ["MI_PathStone"] = new Paint { A = "#C9B596", B = "#A8916F", BrushScale = 1.5f, StrokeMix = 0.2f },
+            ["MI_IslandGround"] = new Paint { Bump = 0.9f, A = "#A99278", B = "#86705B", TopA = "#86AE4C", TopB = "#5F8F3C", TopAmount = 1f, BrushScale = 9f },
+            ["MI_CliffRock"] = new Paint { Bump = 1.3f, Rim = 0.15f, A = "#8E7C6B", B = "#6E5F55", BrushScale = 14f, ShadeBottom = -200f, ShadeRange = 160f, ShadeAmount = 0.55f },
+            ["MI_Stone"] = new Paint { Bump = 1.0f, Spec = 0.05f, A = "#CDBB9C", B = "#AD9877", TopA = "#86AE4C", TopB = "#5F8F3C", TopAmount = 0.25f, BrushScale = 2f },
+            ["MI_PathStone"] = new Paint { Bump = 1.0f, A = "#C9B596", B = "#A8916F", BrushScale = 1.5f, StrokeMix = 0.2f },
             ["MI_PathDirt"] = new Paint { A = "#B4936A", B = "#987A55", BrushScale = 2.5f },
-            ["MI_Wood"] = new Paint { A = "#8F6A45", B = "#6E4E33", BrushScale = 1f, StrokeMix = 0.85f },
-            ["MI_WoodFloor"] = new Paint { A = "#9A7650", B = "#7A5A3C", BrushScale = 1.2f, StrokeMix = 0.9f },
-            ["MI_Plaster"] = new Paint { A = "#EFE3C8", B = "#DCCBA8", BrushScale = 2f, ShadeAmount = 0.85f },
-            ["MI_RoofTerracotta"] = new Paint { A = "#C8693F", B = "#A9512F", BrushScale = 1.5f, StrokeMix = 0.7f },
-            ["MI_RoofBlue"] = new Paint { A = "#4F86B8", B = "#3B6A96", BrushScale = 1.5f, StrokeMix = 0.7f },
-            ["MI_RoofGreen"] = new Paint { A = "#6F9A5A", B = "#557D45", BrushScale = 1.5f, StrokeMix = 0.7f },
-            ["MI_Sailcloth"] = new Paint { A = "#EDE1C6", B = "#D6C49F", BrushScale = 3f, StrokeMix = 0.8f },
-            ["MI_Brass"] = new Paint { A = "#C79A3B", B = "#A57C2C", BrushScale = 0.6f },
-            ["MI_LanternGlow"] = new Paint { A = "#E9C377", B = "#D9A653", BrushScale = 0.6f, Emission = "#000000" },
-            ["MI_Foliage"] = new Paint { Foliage = true, A = "#6E9C44", B = "#4E7A33", BrushScale = 3f, ShadeBottom = -10f, ShadeRange = 20f, ShadeAmount = 0.8f },
-            ["MI_FoliageBlossom"] = new Paint { Foliage = true, A = "#8DB255", B = "#E7A6B8", BrushScale = 2f, StrokeMix = 0.2f, ShadeAmount = 0.85f },
-            ["MI_Wheat"] = new Paint { Foliage = true, A = "#E2BE5E", B = "#C99A3E", BrushScale = 3f, WindAmountCm = 4f, WindSpeed = 1.8f, SwayHeight = 0.3f },
-            ["MI_Water"] = new Paint { A = "#7CC3DE", B = "#4E98BE", BrushScale = 0.8f, StrokeMix = 0.6f, ShadeAmount = 0.9f },
-            ["MI_Grass"] = new Paint { Foliage = true, A = "#8DB651", B = "#5F8F3C", BrushScale = 1.5f, WindAmountCm = 6f, WindSpeed = 1.6f, ShadeAmount = 0.9f, SwayHeight = 0.8f },
-            ["MI_FlowerBed"] = new Paint { Foliage = true, A = "#E77FA0", B = "#F2C84B", BrushScale = 0.5f, StrokeMix = 0.1f, WindAmountCm = 2f, SwayHeight = 0.6f },
+            ["MI_Wood"] = new Paint { Bump = 0.9f, Spec = 0.08f, Gloss = 16f, A = "#8F6A45", B = "#6E4E33", BrushScale = 1f, StrokeMix = 0.85f },
+            ["MI_WoodFloor"] = new Paint { Bump = 0.8f, Spec = 0.1f, A = "#9A7650", B = "#7A5A3C", BrushScale = 1.2f, StrokeMix = 0.9f },
+            ["MI_Plaster"] = new Paint { Bump = 0.5f, Spec = 0.04f, A = "#EFE3C8", B = "#DCCBA8", BrushScale = 2f, ShadeAmount = 0.85f },
+            ["MI_RoofTerracotta"] = new Paint { Bump = 0.8f, Spec = 0.12f, Gloss = 24f, A = "#C8693F", B = "#A9512F", BrushScale = 1.5f, StrokeMix = 0.7f },
+            ["MI_RoofBlue"] = new Paint { Bump = 0.8f, Spec = 0.14f, Gloss = 28f, A = "#4F86B8", B = "#3B6A96", BrushScale = 1.5f, StrokeMix = 0.7f },
+            ["MI_RoofGreen"] = new Paint { Bump = 0.8f, Spec = 0.12f, Gloss = 24f, A = "#6F9A5A", B = "#557D45", BrushScale = 1.5f, StrokeMix = 0.7f },
+            ["MI_Sailcloth"] = new Paint { Bump = 0.4f, Spec = 0.03f, Rim = 0.3f, A = "#EDE1C6", B = "#D6C49F", BrushScale = 3f, StrokeMix = 0.8f },
+            ["MI_Brass"] = new Paint { Bump = 0.2f, Spec = 0.7f, Gloss = 60f, Rim = 0.35f, A = "#C79A3B", B = "#A57C2C", BrushScale = 0.6f },
+            ["MI_LanternGlow"] = new Paint { Bump = 0.2f, Spec = 0.6f, Gloss = 60f, A = "#B98E52", B = "#9A7140", BrushScale = 0.6f, Emission = "#000000" },
+            ["MI_Foliage"] = new Paint { Bump = 0.7f, Spec = 0.05f, Rim = 0.4f, Foliage = true, A = "#6E9C44", B = "#4E7A33", BrushScale = 3f, ShadeBottom = -10f, ShadeRange = 20f, ShadeAmount = 0.8f },
+            ["MI_FoliageBlossom"] = new Paint { Bump = 0.7f, Spec = 0.05f, Rim = 0.4f, Foliage = true, A = "#8DB255", B = "#E7A6B8", BrushScale = 2f, StrokeMix = 0.2f, ShadeAmount = 0.85f },
+            ["MI_Wheat"] = new Paint { Bump = 0.5f, Rim = 0.4f, Foliage = true, A = "#E2BE5E", B = "#C99A3E", BrushScale = 3f, WindAmountCm = 4f, WindSpeed = 1.8f, SwayHeight = 0.3f },
+            ["MI_Water"] = new Paint { Bump = 0.4f, Spec = 0.9f, Gloss = 140f, Rim = 0.4f, A = "#7CC3DE", B = "#4E98BE", BrushScale = 0.8f, StrokeMix = 0.6f, ShadeAmount = 0.9f },
+            ["MI_Grass"] = new Paint { Bump = 0.4f, Rim = 0.35f, Foliage = true, A = "#8DB651", B = "#5F8F3C", BrushScale = 1.5f, WindAmountCm = 6f, WindSpeed = 1.6f, ShadeAmount = 0.9f, SwayHeight = 0.8f },
+            ["MI_FlowerBed"] = new Paint { Bump = 0.4f, Rim = 0.3f, Foliage = true, A = "#E77FA0", B = "#F2C84B", BrushScale = 0.5f, StrokeMix = 0.1f, WindAmountCm = 2f, SwayHeight = 0.6f },
+            ["MI_Burlap"] = new Paint { Bump = 0.9f, Spec = 0.02f, A = "#B79B6B", B = "#9C805A", BrushScale = 0.6f, StrokeMix = 0.7f },
+            ["MI_Hay"] = new Paint { Bump = 1.0f, Spec = 0.03f, A = "#E0C46A", B = "#C7A44C", BrushScale = 0.4f, StrokeMix = 0.9f },
+            ["MI_Cloth_Red"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#C8553D", B = "#A8402E", BrushScale = 1.2f, StrokeMix = 0.6f },
+            ["MI_Cloth_Blue"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#4F7FB8", B = "#3D6799", BrushScale = 1.2f, StrokeMix = 0.6f },
+            ["MI_Cloth_Yellow"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#E8C24A", B = "#D1A53A", BrushScale = 1.2f, StrokeMix = 0.6f },
             ["MI_NotePaper"] = new Paint { A = "#F6EBD2", B = "#E8D7B2", BrushScale = 0.4f, Emission = "#3A2E1A" },
         };
         static readonly Dictionary<string, Material> Mats = new Dictionary<string, Material>();
@@ -87,6 +93,7 @@ namespace LastSkyfarer.EditorTools
 
         public static void Run()
         {
+            RenderingSetup.Run();
             EnsureLayers();
             PrepareNoise();
             BuildMaterials();
@@ -145,8 +152,16 @@ namespace LastSkyfarer.EditorTools
                 m.SetFloat("_ShadeBottom", p.ShadeBottom); m.SetFloat("_ShadeRange", p.ShadeRange); m.SetFloat("_ShadeAmount", p.ShadeAmount);
                 m.SetFloat("_WindAmount", p.Foliage ? p.WindAmountCm / 100f : 0f); m.SetFloat("_WindSpeed", p.WindSpeed); m.SetFloat("_SwayHeight", p.SwayHeight);
                 m.SetColor("_Emission", p.Emission != null ? Hex(p.Emission) : Color.black);
+                m.SetFloat("_Specular", p.Spec); m.SetFloat("_Gloss", p.Gloss); m.SetFloat("_Rim", p.Rim); m.SetFloat("_Bump", p.Bump);
+                m.SetFloat("_VertexAO", 0f); m.SetFloat("_EdgeWear", 0f);
                 m.enableInstancing = true;
                 EditorUtility.SetDirty(m);
+                // Kit variant: the Windrest kit carries baked corner shading (R) and worn edges (G) in its vertex colours.
+                var k = SaveMat(kv.Key + "_Kit", painterly);
+                k.CopyPropertiesFromMaterial(m);
+                k.SetFloat("_VertexAO", 1f); k.SetFloat("_EdgeWear", 0.8f);
+                k.enableInstancing = true;
+                EditorUtility.SetDirty(k);
             }
             var cloud = Shader.Find("LastSkyfarer/CloudSea");
             var sea = SaveMat("MI_CloudSea", cloud);
@@ -158,7 +173,9 @@ namespace LastSkyfarer.EditorTools
             ribbon.SetColor("_Color", Hex("#CFEFFF")); ribbon.SetFloat("_Intensity", 0.9f);
             var impossible = SaveMat("MI_WindRibbon_Impossible", Shader.Find("LastSkyfarer/WindRibbon"));
             impossible.SetColor("_Color", Hex("#4BB3FF")); impossible.SetFloat("_Intensity", 2.2f); impossible.SetFloat("_FlowSpeed", 9f);
-            SaveMat("M_PaintedSky", Shader.Find("LastSkyfarer/PaintedSky")).SetFloat("_SunSize", 0.0004f);
+            var sky = SaveMat("M_PaintedSky", Shader.Find("LastSkyfarer/PaintedSky"));
+            sky.SetFloat("_SunSize", 0.0004f);
+            sky.SetTexture("_BrushNoise", noise);
             // Villagers' stand-in figures take their speaker colour.
             foreach (var sp in StoryManager.Instance.Database.Speakers.Values)
             {
@@ -262,11 +279,14 @@ namespace LastSkyfarer.EditorTools
                 var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 var slots = model.GetComponentsInChildren<Renderer>().SelectMany(r => r.sharedMaterials).Where(m => m).Select(m => m.name).Distinct().ToList();
                 bool changed = false;
-                foreach (string slot in slots)
+                foreach (string seen in slots)
                 {
+                    // After a first run the slots show our material names; map back to the FBX's own slot name.
+                    string slot = seen.EndsWith("_Kit") ? seen.Substring(0, seen.Length - 4) : seen;
+                    if (slot == "MI_LanternGlow") slot = "MI_Brass";
                     string wanted = (name == "SM_LanternPost" || name == "SM_HangingLantern") && slot == "MI_Brass" ? "MI_LanternGlow" : slot;
                     if (!Mats.ContainsKey(wanted)) { Debug.LogWarning($"LS_KIT {name}: no material for slot {slot}"); continue; }
-                    mi.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), slot), Mats[wanted]);
+                    mi.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), slot), Mats.TryGetValue(wanted + "_Kit", out var kitMat) ? kitMat : Mats[wanted]);
                     changed = true;
                 }
                 if (changed) mi.SaveAndReimport();
@@ -316,6 +336,7 @@ namespace LastSkyfarer.EditorTools
             var lamps = new List<Light>();
             int shapes = 0, kits = 0;
             var byName = new Dictionary<string, GameObject>();
+            var placed = new List<(GameObject go, Item it)>();
             foreach (var it in layout.Items)
             {
                 Vector3 pos = it.Pos.ToV(), scale = it.Scale.ToV();
@@ -347,6 +368,7 @@ namespace LastSkyfarer.EditorTools
                         if (it.Climbable) go.AddComponent<Climbable>();
                         GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
                         byName[it.Name] = go;
+                        placed.Add((go, it));
                         shapes++;
                         break;
                     }
@@ -363,6 +385,7 @@ namespace LastSkyfarer.EditorTools
                         foreach (var r in go.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = it.Shadow ? ShadowCastingMode.On : ShadowCastingMode.Off;
                         if (it.Spin != 0f) go.AddComponent<Spinner>().DegreesPerSecond = -it.Spin;
                         else foreach (var t in go.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic);
+                        placed.Add((go, it));
                         kits++;
                         break;
                     }
@@ -417,7 +440,21 @@ namespace LastSkyfarer.EditorTools
             if (byName.TryGetValue("Bluff_EdgeWall", out var edge)) Conditional(edge, false, true, "!piko_joined");
             foreach (var kv in byName.Where(k => k.Key.StartsWith("Compartment_"))) Conditional(kv.Value, true, false, "compartment_open");
 
+            // Polish pass 1: dressing that makes the village square feel lived in (our new Windrest props).
+            foreach (var (mesh, x, z, yaw, sx, sy, sz, y) in SquareDressing)
+            {
+                if (!kit.TryGetValue(mesh, out var prefab)) { Debug.LogWarning("LS_BRINDLE no prop " + mesh); continue; }
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                go.name = "Dress_" + mesh.Substring(3);
+                go.transform.SetParent(Group("Art/Square/Dressing"), false);
+                go.transform.SetPositionAndRotation(new Vector3(x, y, z), Quaternion.Euler(0f, yaw, 0f));
+                go.transform.localScale = new Vector3(sx, sy, sz);
+                int layer = BrindleLevel.FirstCullLayer + (mesh == "SM_PottedPlant" || mesh == "SM_FlowerBox" ? 1 : 2);
+                foreach (var t in go.GetComponentsInChildren<Transform>(true)) { t.gameObject.layer = layer; GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic); }
+                placed.Add((go, new Item { Name = go.name }));
+            }
             BuildStoryPlacements(Group("Story"), meshes);
+            var ground = BuildGround(Group("Island"), placed, byName);
 
             // Light, sky and the level.
             var sunGo = new GameObject("Sun");
@@ -427,7 +464,25 @@ namespace LastSkyfarer.EditorTools
             var tod = new GameObject("TimeOfDay").AddComponent<TimeOfDayDirector>();
             tod.Sun = sun;
             tod.Sky = Mats["M_PaintedSky"];
-            tod.LampMaterials = new[] { Mats["MI_LanternGlow"] };
+            tod.LampMaterials = new[] { Mats["MI_LanternGlow"], Mats["MI_LanternGlow_Kit"] };
+            // Night: the square's lanterns throw warm pools of light (six small point lights, off by day).
+            var nightLights = new List<Light>();
+            foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Where(t => t.name.StartsWith("Square_Lantern_") && t.parent && t.parent.name == "Windrest"))
+            {
+                var l = new GameObject("NightLight").AddComponent<Light>();
+                l.transform.SetParent(t, false);
+                l.transform.position = t.position + Vector3.up * 2.45f - t.right * 0.0f;
+                l.type = LightType.Point; l.color = new Color(1f, 0.7f, 0.42f); l.range = 11f; l.intensity = 2.5f; l.shadows = LightShadows.None;
+                l.enabled = false;
+                nightLights.Add(l);
+            }
+            tod.NightLights = nightLights.ToArray();
+            Debug.Log($"LS_BRINDLE night lights {nightLights.Count}");
+            // Post-processing: tonemapping, a painterly grade that follows the time of day, soft bloom, vignette.
+            var post = new GameObject("PostProcessing").AddComponent<Volume>();
+            post.isGlobal = true;
+            post.sharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(RenderingSetup.PostProfile);
+            tod.Grade = post.sharedProfile;
             RenderSettings.skybox = Mats["M_PaintedSky"];
             RenderSettings.sun = sun;
             RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -461,6 +516,82 @@ namespace LastSkyfarer.EditorTools
             Debug.Log($"LS_BRINDLE scene {ScenePath}: {shapes} shapes, {kits} kit pieces, {layout.Items.Count(i => i.Kind == "wind")} wind lines, start {(playerStart ? playerStart.position.ToString() : "missing")}");
         }
 
+        // Square dressing: prop, x, z (Unity metres, square at the origin), yaw, scale x/y/z, height.
+        static readonly (string, float, float, float, float, float, float, float)[] SquareDressing =
+        {
+            ("SM_Barrel", -13.2f, 17.0f, 10f, 1, 1, 1, 0), ("SM_Barrel", -12.4f, 17.7f, 40f, 1, 1, 1, 0), ("SM_Barrel", -12.8f, 17.3f, 0f, 1, 1, 1, 0.9f),
+            ("SM_Barrel", 13.4f, 16.8f, 70f, 1, 1, 1, 0), ("SM_Barrel", -13.6f, -17.4f, 15f, 1, 1, 1, 0), ("SM_Barrel", -12.9f, -18.2f, 75f, 1, 1, 1, 0),
+            ("SM_Sacks", 7.6f, 17.2f, 20f, 1, 1, 1, 0), ("SM_Sacks", -7.8f, -17.6f, 200f, 1, 1, 1, 0), ("SM_Sacks", 13.6f, -16.6f, 110f, 1, 1, 1, 0),
+            ("SM_Cart", -19.5f, 5.5f, 100f, 1, 1, 1, 0), ("SM_HayBale", -21.2f, 2.4f, 12f, 1, 1, 1, 0), ("SM_HayBale", -21.0f, 2.6f, 5f, 1, 1, 1, 0.5f),
+            ("SM_Firewood", -21.8f, -5.5f, 90f, 1, 1, 1, 0), ("SM_Well", 12.0f, -20.0f, 25f, 1, 1, 1, 0), ("SM_Trough", 15.4f, -17.2f, 120f, 1, 1, 1, 0),
+            ("SM_PottedPlant", 7.2f, 0.6f, 0f, 1, 1, 1, 0), ("SM_PottedPlant", 0.4f, 7.2f, 60f, 1, 1, 1, 0), ("SM_PottedPlant", -0.4f, -7.2f, 120f, 1, 1, 1, 0),
+            ("SM_PottedPlant", 9.6f, 15.8f, 0f, 0.8f, 0.8f, 0.8f, 0), ("SM_PottedPlant", -9.8f, -15.6f, 0f, 0.8f, 0.8f, 0.8f, 0),
+            ("SM_Bunting", 0f, 14.0f, 90f, 1, 1, 2.0f, 0.9f), ("SM_Bunting", 0f, -14.0f, 90f, 1, 1, 2.0f, 0.9f), ("SM_Bunting", 0f, 0f, 0f, 1, 1, 2.6f, 2.2f),
+            ("SM_LaundryLine", -31f, 17f, 20f, 1, 1, 1, 0),
+            ("SM_Bush", 25.5f, 6.5f, 0f, 1.2f, 1.2f, 1.2f, 0), ("SM_Bush", 19.5f, 17.5f, 50f, 1, 1, 1, 0), ("SM_Bush", -6.5f, 25.5f, 100f, 1.3f, 1.1f, 1.3f, 0),
+            ("SM_Bush", -25.0f, -9.0f, 160f, 1.1f, 1.1f, 1.1f, 0), ("SM_Bush", 6.0f, -25.5f, 220f, 1.2f, 1.0f, 1.2f, 0), ("SM_Bush", -18.0f, -19.0f, 280f, 1, 1, 1, 0),
+        };
+
+        // ------------------------------------------------------------ the ground (polish pass 1)
+        static readonly string[] SnapKeys = { "Orchard_", "_Trunk", "_Canopy", "Tree", "Rock_", "RimRock", "Grass_", "Wheat_", "Petals", "Fence", "Beehive", "Orchard_Crate", "Ladder" };
+        static readonly string[] SkipKeys = { "Island_", "CloudPuff", "CloudSea", "MistIsland", "Sky", "FloatingIsle", "Workshop_", "Compartment_", "Square_Paving", "Bluff_EdgeWall" };
+
+        static IslandGround BuildGround(Transform parent, List<(GameObject go, Item it)> placed, Dictionary<string, GameObject> byName)
+        {
+            var input = new IslandTerrainBuilder.Input();
+            foreach (var (go, it) in placed)
+            {
+                string n = it.Name;
+                if (SkipKeys.Any(n.Contains)) continue;
+                if (SnapKeys.Any(n.Contains)) { if (go.transform.position.y < 2f) input.Snap.Add(go.transform); continue; }
+                if (n.StartsWith("Path_") && !n.Contains("_Art"))
+                {
+                    var size = new Vector2(go.transform.localScale.x, go.transform.localScale.z);
+                    input.Flat.Add(IslandTerrainBuilder.Zone.FromTransform(go.transform, size, 5f));
+                    bool village = n.Contains("PostHouse") || n.Contains("Tavern") || n.Contains("Homes");
+                    (village ? input.Cobble : input.Dirt).Add(IslandTerrainBuilder.Zone.FromTransform(go.transform, size * 0.9f, village ? 2f : 3.5f));
+                    if (village) input.Dirt.Add(IslandTerrainBuilder.Zone.FromTransform(go.transform, size, 3.5f));
+                    continue;
+                }
+                var rs = go.GetComponentsInChildren<Renderer>();
+                var cs = go.GetComponentsInChildren<Collider>();
+                if (rs.Length == 0 && cs.Length == 0) continue;
+                Bounds b = rs.Length > 0 ? rs[0].bounds : cs[0].bounds;
+                foreach (var r in rs) b.Encapsulate(r.bounds);
+                foreach (var c in cs) b.Encapsulate(c.bounds);
+                if (b.min.y > 1.5f || b.max.y < -2f || b.size.x > 300f) continue;
+                bool building = n.StartsWith("Home_") || n.StartsWith("PostHouse") || n.StartsWith("WindsongTavern") || n.StartsWith("EliasWorkshop") || n.Contains("Windmill");
+                input.Flat.Add(IslandTerrainBuilder.Zone.FromBounds(b, building ? 9f : 5f));
+                if (building) input.Dirt.Add(IslandTerrainBuilder.Zone.FromBounds(b, 3f));
+            }
+            // The village square: cobbles with a worn, ragged edge; story places stay level.
+            input.Flat.Add(new IslandTerrainBuilder.Zone { Round = true, Half = new Vector2(24f, 24f), Margin = 8f });
+            input.Cobble.Add(new IslandTerrainBuilder.Zone { Round = true, Half = new Vector2(19f, 19f), Margin = 4f });
+            input.Dirt.Add(new IslandTerrainBuilder.Zone { Round = true, Half = new Vector2(21f, 21f), Margin = 5f });
+            foreach (var d in NarrativeDatabase.LoadFromResources().Level.Interactables)
+                input.Flat.Add(new IslandTerrainBuilder.Zone { Round = true, Centre = new Vector2(d.Position.x, d.Position.z), Half = new Vector2(2f, 2f), Margin = 4f });
+            if (byName.TryGetValue("Square_Paving", out var paving) && paving.TryGetComponent<MeshRenderer>(out var pr)) pr.enabled = false;   // painted cobbles now
+            if (byName.TryGetValue("Island_Top", out var top)) top.transform.position += Vector3.down * 0.05f;          // the ground mesh covers it
+
+            var grassMesh = SaveMesh("GrassClump", IslandTerrainBuilder.GrassClump(false));
+            var flowerMesh = SaveMesh("Wildflowers", IslandTerrainBuilder.GrassClump(true));
+            var groundMat = SaveMat("M_Ground", Shader.Find("LastSkyfarer/PainterlyGround"));
+            groundMat.SetTexture("_BrushNoise", noise);
+            var grassMat = SaveMat("M_Grass", Shader.Find("LastSkyfarer/PainterlyGrass"));
+            grassMat.SetTexture("_BrushNoise", noise); grassMat.enableInstancing = true;
+            var flowerMat = SaveMat("M_Wildflowers", Shader.Find("LastSkyfarer/PainterlyGrass"));
+            flowerMat.SetTexture("_BrushNoise", noise); flowerMat.enableInstancing = true;
+            return IslandTerrainBuilder.Build(parent, input, groundMat, grassMesh, flowerMesh, grassMat, flowerMat);
+        }
+
+        static Mesh SaveMesh(string name, Mesh m)
+        {
+            string path = $"{GenDir}/{name}.asset";
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(m, path);
+            return m;
+        }
+
         static void Conditional(GameObject go, bool renderers, bool colliders, params string[] showIf)
         {
             var c = go.AddComponent<ConditionalObject>();
@@ -479,7 +610,17 @@ namespace LastSkyfarer.EditorTools
                 go.transform.SetPositionAndRotation(d.Position, Quaternion.Euler(0f, d.Yaw, 0f));
                 var it = go.AddComponent<Interactable>();
                 it.InteractableId = d.Id;
-                if (d.Kind == "npc")
+                var villager = d.Kind == "npc" ? VillagerSetup.Cast.FirstOrDefault(c => c.speaker == d.Speaker) : default;
+                var villagerPrefab = villager.name != null ? AssetDatabase.LoadAssetAtPath<GameObject>($"{VillagerSetup.PrefabDir}/{villager.name}.prefab") : null;
+                if (villagerPrefab)
+                {
+                    // A modelled villager (polish pass 1).
+                    var v = (GameObject)PrefabUtility.InstantiatePrefab(villagerPrefab);
+                    v.transform.SetParent(go.transform, false);
+                    var cap = go.AddComponent<CapsuleCollider>(); cap.center = new Vector3(0f, 0.9f, 0f); cap.height = 1.8f; cap.radius = 0.35f;
+                    it.FaceKieran = v.transform;
+                }
+                else if (d.Kind == "npc")
                 {
                     // Stand-in villager until the character art arrives: a painted body and head in the speaker's colour.
                     var body = new GameObject("Figure");

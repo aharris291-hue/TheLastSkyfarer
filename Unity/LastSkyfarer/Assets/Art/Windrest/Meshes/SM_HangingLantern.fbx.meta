@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Brass
-    second: {fileID: 2100000, guid: 90081fc566093534394a3cbd05795946, type: 2}
+    second: {fileID: 2100000, guid: 873dc63f50424a0489466ee83b64ad09, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -18,7 +18,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Sailcloth
-    second: {fileID: 2100000, guid: 0192a8691ba8c6543ac1156d9b6b925f, type: 2}
+    second: {fileID: 2100000, guid: 65b2f894c1009d2448054c1d7798e02e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Wheat
-    second: {fileID: 2100000, guid: a265ab4db37f9c2429e7af7f127fb923, type: 2}
+    second: {fileID: 2100000, guid: 46258bd3bb359ef4c9ae92c3c85996d4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Brass
-    second: {fileID: 2100000, guid: 0d4f5cca20febf54fa2b5ae3201bc88f, type: 2}
+    second: {fileID: 2100000, guid: 0dcc1d5007112d24f8fc5c497b1c2809, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Plaster
-    second: {fileID: 2100000, guid: 6a1d49f103b18a848a36e58c85af3bba, type: 2}
+    second: {fileID: 2100000, guid: 3b4e4244e8519bc41b99bb4c3f91a1a0, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

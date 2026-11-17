@@ -8,32 +8,32 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Brass
-    second: {fileID: 2100000, guid: 0d4f5cca20febf54fa2b5ae3201bc88f, type: 2}
+    second: {fileID: 2100000, guid: 0dcc1d5007112d24f8fc5c497b1c2809, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_RoofBlue
-    second: {fileID: 2100000, guid: f258b5737d9d0bc4693397d9b0d8ad0f, type: 2}
+    second: {fileID: 2100000, guid: 695bac74877e17340a8226c020f3a09a, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_RoofGreen
-    second: {fileID: 2100000, guid: 0e38fa13a0875f848a9055f1339363b7, type: 2}
+    second: {fileID: 2100000, guid: 28eca6bf7e0d43d4b826a65d94adc413, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_RoofTerracotta
-    second: {fileID: 2100000, guid: aab55579143de644f8cb35d0db938b94, type: 2}
+    second: {fileID: 2100000, guid: f54c7067463f62c4a838082b2da16b08, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Sailcloth
-    second: {fileID: 2100000, guid: 0192a8691ba8c6543ac1156d9b6b925f, type: 2}
+    second: {fileID: 2100000, guid: 65b2f894c1009d2448054c1d7798e02e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Wood
-    second: {fileID: 2100000, guid: c5f242971905f874d9f76f6f74068b11, type: 2}
+    second: {fileID: 2100000, guid: 86fe8d1154fef344aa95edefb8e5554e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

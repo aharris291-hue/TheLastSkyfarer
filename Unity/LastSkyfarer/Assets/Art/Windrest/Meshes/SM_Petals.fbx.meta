@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_FoliageBlossom
-    second: {fileID: 2100000, guid: e378f98a8cd56d54c95094ab8b7843a7, type: 2}
+    second: {fileID: 2100000, guid: d62f7352bc00e6c4885792df211c5537, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

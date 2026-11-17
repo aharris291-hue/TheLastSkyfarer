@@ -63,10 +63,13 @@ namespace LastSkyfarer.EditorTools
             {
                 string p = Root + "/" + n + ".mat";
                 var m = AssetDatabase.LoadAssetAtPath<Material>(p);
-                if (!m) { m = new Material(Shader.Find("Universal Render Pipeline/Lit")); AssetDatabase.CreateAsset(m, p); }
+                var shader = Shader.Find("LastSkyfarer/StylisedCharacter");      // polish pass 1: stylised shading
+                if (!m) { m = new Material(shader); AssetDatabase.CreateAsset(m, p); }
+                m.shader = shader;
                 m.SetTexture("_BaseMap", tex);
                 m.SetFloat("_Metallic", metallic);
-                m.SetFloat("_Smoothness", smooth);
+                m.SetFloat("_Specular", 0.1f + smooth * 0.4f);
+                m.SetColor("_ShadowTint", new Color(0.86f, 0.76f, 0.82f)); m.SetFloat("_Ambient", 1.35f);
                 EditorUtility.SetDirty(m);
                 return m;
             }

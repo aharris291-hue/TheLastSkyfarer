@@ -4,6 +4,7 @@
 using LastSkyfarer.Player;
 using LastSkyfarer.Story;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
 namespace LastSkyfarer.World
@@ -57,6 +58,12 @@ namespace LastSkyfarer.World
             Cam.layerCullSpherical = true;
             Cam.gameObject.AddComponent<AudioListener>();
             CameraRig.Cam = Cam;
+            var camData = Cam.GetUniversalAdditionalCameraData();
+            camData.renderPostProcessing = true;
+            camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            camData.antialiasingQuality = AntialiasingQuality.Medium;
+            var groundGrass = FindFirstObjectByType<IslandGround>();
+            if (groundGrass) groundGrass.Radius = QualitySettings.names[QualitySettings.GetQualityLevel()] == "PC" ? 75f : 40f;
             CameraRig.CollisionMask = ~(1 << 2);      // ignore Ignore Raycast (story volumes)
 
             Hud = gameObject.AddComponent<DevStoryHud>();

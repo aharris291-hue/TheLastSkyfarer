@@ -1,7 +1,9 @@
-// The Last Skyfarer: painterly surface for URP (port of M_Painterly_Surface / M_Painterly_Foliage, STYLE_GUIDE 5, D-27).
-// Two paint colours mixed by a world-aligned brush-noise texture, a separate colour on upward faces (grass on rock),
-// darker low down, a little paint grain, and an optional gentle wind sway for foliage. Opaque, one texture sample,
-// simple diffuse light: cheap enough for Low on integrated graphics.
+// The Last Skyfarer: painterly surface for URP (port of M_Painterly_Surface / M_Painterly_Foliage, STYLE_GUIDE 5, D-27),
+// polish pass 1. Two paint colours mixed by a world-aligned brush-noise texture, a separate colour on upward faces
+// (grass on rock), darker low down, paint grain, brush-stroke relief (bump from the same texture, no extra sample),
+// baked corner shading and worn edges from vertex colours (R = ambient occlusion, G = edge), soft highlights, rim light,
+// screen-space ambient occlusion when the renderer has it, and an optional wind sway for foliage. Still one texture
+// sample and a simple light model, so it stays cheap on Low.
 Shader "LastSkyfarer/Painterly"
 {
     Properties
@@ -18,6 +20,12 @@ Shader "LastSkyfarer/Painterly"
         _ShadeBottom ("Shade bottom (m)", Float) = -120
         _ShadeRange ("Shade range (m)", Float) = 120
         _ShadeAmount ("Shade amount", Range(0, 1)) = 0.65
+        _Bump ("Brush relief", Range(0, 2)) = 0.6
+        _Specular ("Highlight strength", Range(0, 1)) = 0.08
+        _Gloss ("Highlight tightness", Range(2, 256)) = 24
+        _Rim ("Rim light", Range(0, 1)) = 0.25
+        _VertexAO ("Baked corner shading (vertex R)", Range(0, 1)) = 0
+        _EdgeWear ("Worn edges (vertex G)", Range(0, 1)) = 0
         _WindAmount ("Wind amount (m)", Float) = 0
         _WindSpeed ("Wind speed", Float) = 1.3
         _SwayHeight ("Sway height (m)", Float) = 4
@@ -33,7 +41,7 @@ Shader "LastSkyfarer/Painterly"
         CBUFFER_START(UnityPerMaterial)
             float4 _BrushNoise_ST;
             half4 _ColorA, _ColorB, _TopColorA, _TopColorB, _Emission;
-            half _TopAmount, _TopStart, _StrokeMix, _ShadeAmount;
+            half _TopAmount, _TopStart, _StrokeMix, _ShadeAmount, _Bump, _Specular, _Gloss, _Rim, _VertexAO, _EdgeWear;
             float _BrushScale, _ShadeBottom, _ShadeRange, _WindAmount, _WindSpeed, _SwayHeight;
         CBUFFER_END
         TEXTURE2D(_BrushNoise); SAMPLER(sampler_BrushNoise);
@@ -44,8 +52,9 @@ Shader "LastSkyfarer/Painterly"
             if (_WindAmount <= 0) return positionWS;
             float3 origin = TransformObjectToWorld(float3(0, 0, 0));
             float s = sin(_Time.y * _WindSpeed + (positionWS.x + positionWS.z) * 0.3);
+            float gust = 0.6 + 0.4 * sin(_Time.y * 0.37 + positionWS.x * 0.01);
             float height = saturate((positionWS.y - origin.y) / max(_SwayHeight, 0.01));
-            return positionWS + float3(0.6, 0, 1.0) * (s * _WindAmount * height);
+            return positionWS + float3(0.6, 0, 1.0) * (s * gust * _WindAmount * height);
         }
         ENDHLSL
 
@@ -58,18 +67,20 @@ Shader "LastSkyfarer/Painterly"
             #pragma fragment Frag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; UNITY_VERTEX_INPUT_INSTANCE_ID };
+            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; half4 color : COLOR; UNITY_VERTEX_INPUT_INSTANCE_ID };
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
                 half3 normalWS : TEXCOORD1;
                 half4 fogAndVertexLight : TEXCOORD2;
+                half4 color : COLOR;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -82,11 +93,23 @@ Shader "LastSkyfarer/Painterly"
                 o.positionWS = ws;
                 o.positionCS = TransformWorldToHClip(ws);
                 o.normalWS = TransformObjectToWorldNormal(i.normalOS);
+                o.color = i.color;
                 o.fogAndVertexLight.x = ComputeFogFactor(o.positionCS.z);
                 #ifdef _ADDITIONAL_LIGHTS_VERTEX
                     o.fogAndVertexLight.yzw = VertexLighting(ws, o.normalWS);
                 #endif
                 return o;
+            }
+
+            // Brush-stroke relief: bend the normal along the painted height, from screen-space derivatives.
+            half3 BrushBump(half3 n, float3 positionWS, half height)
+            {
+                float3 dpdx = ddx(positionWS), dpdy = ddy(positionWS);
+                float dhdx = ddx(height), dhdy = ddy(height);
+                float3 r1 = cross(dpdy, n), r2 = cross(n, dpdx);
+                float det = dot(dpdx, r1);
+                float3 grad = sign(det) * (dhdx * r1 + dhdy * r2);
+                return normalize(abs(det) * n - grad);
             }
 
             half4 Frag(Varyings i) : SV_Target
@@ -104,22 +127,42 @@ Shader "LastSkyfarer/Painterly"
                 col = lerp(col * _ShadeAmount, col, low);
                 col *= 0.92 + tex.b * 0.16;               // paint grain
 
+                // Baked corner shading and worn, sunlit edges (vertex colours from the Blender bake).
+                half ao = lerp(1.0, i.color.r, _VertexAO);
+                col *= lerp(1.0, 1.0 + i.color.g * 0.35, _EdgeWear);
+
+                n = BrushBump(n, i.positionWS, paint * _Bump * 0.02 * _BrushScale);
                 float4 shadowCoord = TransformWorldToShadowCoord(i.positionWS);
                 Light sun = GetMainLight(shadowCoord);
+                half3 v = SafeNormalize(GetWorldSpaceViewDir(i.positionWS));
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    AmbientOcclusionFactor ssao = GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS));
+                    half ambientAO = ao * ssao.indirectAmbientOcclusion;
+                    half directAO = ssao.directAmbientOcclusion;
+                #else
+                    half ambientAO = ao, directAO = 1.0;
+                #endif
                 half ndl = dot(n, sun.direction);
                 half wrap = saturate(ndl * 0.8 + 0.2);    // soft, painted terminator
-                half3 light = sun.color * (wrap * sun.shadowAttenuation * sun.distanceAttenuation);
-                light += SampleSH(n);
+                half shadow = sun.shadowAttenuation * sun.distanceAttenuation * directAO;
+                half3 ambient = SampleSH(n);
+                half3 light = sun.color * (wrap * shadow) + ambient * ambientAO;
                 #ifdef _ADDITIONAL_LIGHTS_VERTEX
-                    light += i.fogAndVertexLight.yzw;
+                    light += i.fogAndVertexLight.yzw * ao;
                 #elif defined(_ADDITIONAL_LIGHTS)
                     uint count = GetAdditionalLightsCount();
                     LIGHT_LOOP_BEGIN(count)
                         Light l = GetAdditionalLight(lightIndex, i.positionWS);
-                        light += l.color * (saturate(dot(n, l.direction) * 0.8 + 0.2) * l.distanceAttenuation * l.shadowAttenuation);
+                        light += l.color * (saturate(dot(n, l.direction) * 0.8 + 0.2) * l.distanceAttenuation * l.shadowAttenuation) * ao;
                     LIGHT_LOOP_END
                 #endif
-                half3 c = col * light + _Emission.rgb;
+                half3 c = col * light;
+                // Soft highlight and a rim of sky light on silhouettes.
+                half3 h = SafeNormalize(sun.direction + v);
+                c += sun.color * (pow(saturate(dot(n, h)), _Gloss) * _Specular * shadow * saturate(ndl * 4.0));
+                half rim = pow(1.0 - saturate(dot(n, v)), 3.0) * _Rim;
+                c += (ambient * 0.8 + sun.color * 0.25 * shadow) * rim * ao;
+                c += _Emission.rgb;
                 c = MixFog(c, i.fogAndVertexLight.x);
                 return half4(c, 1);
             }
@@ -178,6 +221,30 @@ Shader "LastSkyfarer/Painterly"
                 return TransformWorldToHClip(Sway(TransformObjectToWorld(i.positionOS.xyz)));
             }
             half4 Frag() : SV_Target { return 0; }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            // For screen-space ambient occlusion.
+            Name "DepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+            ZWrite On
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma multi_compile_instancing
+            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; UNITY_VERTEX_INPUT_INSTANCE_ID };
+            struct Varyings { float4 positionCS : SV_POSITION; half3 normalWS : TEXCOORD0; };
+            Varyings Vert(Attributes i)
+            {
+                UNITY_SETUP_INSTANCE_ID(i);
+                Varyings o;
+                o.positionCS = TransformWorldToHClip(Sway(TransformObjectToWorld(i.positionOS.xyz)));
+                o.normalWS = TransformObjectToWorldNormal(i.normalOS);
+                return o;
+            }
+            half4 Frag(Varyings i) : SV_Target { return half4(NormalizeNormalPerPixel(i.normalWS), 0.0); }
             ENDHLSL
         }
     }

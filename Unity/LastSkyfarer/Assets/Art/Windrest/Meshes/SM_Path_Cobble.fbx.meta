@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_PathStone
-    second: {fileID: 2100000, guid: b24a728dd2d63a34d94edf76bc94335b, type: 2}
+    second: {fileID: 2100000, guid: e88c976eb0e44f34a92349373af3e1a7, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Stone
-    second: {fileID: 2100000, guid: a9ddacc7446fb7745a98f3ac2216a2b0, type: 2}
+    second: {fileID: 2100000, guid: b6b0cd8c2eabe0b42b8243291401a7e9, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

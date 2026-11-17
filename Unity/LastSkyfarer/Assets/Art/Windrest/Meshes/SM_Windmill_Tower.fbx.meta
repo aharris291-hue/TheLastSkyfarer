@@ -8,17 +8,17 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_RoofTerracotta
-    second: {fileID: 2100000, guid: aab55579143de644f8cb35d0db938b94, type: 2}
+    second: {fileID: 2100000, guid: f54c7067463f62c4a838082b2da16b08, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Stone
-    second: {fileID: 2100000, guid: a9ddacc7446fb7745a98f3ac2216a2b0, type: 2}
+    second: {fileID: 2100000, guid: b6b0cd8c2eabe0b42b8243291401a7e9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Wood
-    second: {fileID: 2100000, guid: c5f242971905f874d9f76f6f74068b11, type: 2}
+    second: {fileID: 2100000, guid: 86fe8d1154fef344aa95edefb8e5554e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

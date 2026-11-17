@@ -8,17 +8,17 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Brass
-    second: {fileID: 2100000, guid: 0d4f5cca20febf54fa2b5ae3201bc88f, type: 2}
+    second: {fileID: 2100000, guid: 0dcc1d5007112d24f8fc5c497b1c2809, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Stone
-    second: {fileID: 2100000, guid: a9ddacc7446fb7745a98f3ac2216a2b0, type: 2}
+    second: {fileID: 2100000, guid: b6b0cd8c2eabe0b42b8243291401a7e9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Water
-    second: {fileID: 2100000, guid: d338d0ede4152d74e9e4cd4603332949, type: 2}
+    second: {fileID: 2100000, guid: 279917ad0b0df324fb7642b4dec22fb4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

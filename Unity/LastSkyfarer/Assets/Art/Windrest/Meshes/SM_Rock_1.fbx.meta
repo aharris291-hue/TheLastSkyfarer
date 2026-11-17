@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_CliffRock
-    second: {fileID: 2100000, guid: 3490a25775e047f41b81fd66d7039ca0, type: 2}
+    second: {fileID: 2100000, guid: dc007c427b871f143b88e46a5de78c30, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

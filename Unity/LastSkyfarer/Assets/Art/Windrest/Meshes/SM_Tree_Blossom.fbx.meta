@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_FoliageBlossom
-    second: {fileID: 2100000, guid: e378f98a8cd56d54c95094ab8b7843a7, type: 2}
+    second: {fileID: 2100000, guid: d62f7352bc00e6c4885792df211c5537, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Wood
-    second: {fileID: 2100000, guid: c5f242971905f874d9f76f6f74068b11, type: 2}
+    second: {fileID: 2100000, guid: 86fe8d1154fef344aa95edefb8e5554e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -58,6 +58,40 @@ namespace LastSkyfarer.Dev
             yield return Place("Morning", Level.PlayerStart.position, Level.PlayerStart.eulerAngles.y - 160f, 4f, 6f, Level.PlayerStart.eulerAngles.y);
             yield return Shot("5_upper_cliffs_view", 2.5f);
 
+            // Character close-ups: Bram at the Windsong Tavern, then Kieran in the square (morning light).
+            var bram = Level.Story.Database.FindInteractable("NPC_Bram");
+            if (bram != null)
+            {
+                Level.TimeOfDay.Apply("Morning", true);
+                K.Teleport(bram.Position + Quaternion.Euler(0f, bram.Yaw, 0f) * new Vector3(1.6f, 0f, 2.4f), bram.Yaw + 200f);
+                // Aim from where he actually faces (the Humanoid body direction), not from the placement yaw.
+                float facing = bram.Yaw;
+                foreach (var an in FindObjectsByType<Animator>(FindObjectsSortMode.None))
+                    if (an.isHuman && !an.GetComponentInParent<KieranController>() && Vector3.Distance(an.transform.position, bram.Position) < 2f)
+                    {
+                        an.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                        yield return null;
+                        // The head's centroid sits behind the face (hair, ponytail).
+                        var head = an.GetBoneTransform(HumanBodyBones.Head);
+                        var smr = an.GetComponentInChildren<SkinnedMeshRenderer>();
+                        var baked = new Mesh(); smr.BakeMesh(baked, true);
+                        Vector3 sum = Vector3.zero; int count = 0;
+                        foreach (var vtx in baked.vertices)
+                        {
+                            Vector3 w = smr.transform.TransformPoint(vtx);
+                            if (Vector3.Distance(w, head.position + Vector3.up * 0.05f) < 0.16f) { sum += w; count++; }
+                        }
+                        Vector3 f = sum / Mathf.Max(count, 1) - head.position; f.y = 0f;
+                        if (f.sqrMagnitude > 1e-6f) facing = Quaternion.LookRotation(f).eulerAngles.y + 180f;   // the hair and ponytail outweigh the face: it is the other way
+                        Debug.Log($"LS_TOUR facing Bram: placed {bram.Yaw:F0}, body faces {facing:F0}");
+                    }
+                yield return CloseUp("6_bram_closeup", bram.Position, facing + 18f, 2.3f, 1.55f);
+                yield return CloseUp("6b_bram_full", bram.Position, facing - 30f, 3.6f, 1.0f);
+            }
+            yield return Place("Morning", new Vector3(-5f, 0.05f, -15f), 25f, 7f, 10f, 25f);
+            yield return CloseUp("7_kieran_closeup", K.transform.position, 25f + 20f, 2.0f, 1.35f);
+            Rig.enabled = true;
+
             // Frame rate: 10 s running round the square with the camera turning, then 8 s gliding.
             yield return Place("Morning", new Vector3(0f, 0.05f, -18f), 0f, 12f, 3.2f, 90f);
             K.Input.ScriptedMove = new Vector2(0f, 1f);
@@ -72,6 +106,17 @@ namespace LastSkyfarer.Dev
             float glideFps = 0f;
             yield return MeasureFor(8f, v => glideFps = v);
             Debug.Log($"LS_TOUR_FPS quality {QualitySettings.names[QualitySettings.GetQualityLevel()]}, {Screen.width}x{Screen.height}, cap {Application.targetFrameRate}: running {runFps:F1} fps, gliding {glideFps:F1} fps (worst frame {worst * 1000f:F0} ms)");
+            // Headroom: the same square view with the frame cap off.
+            int cap = Application.targetFrameRate, vsync = QualitySettings.vSyncCount;
+            Application.targetFrameRate = -1; QualitySettings.vSyncCount = 0;
+            yield return Place("Morning", new Vector3(-5f, 0.05f, -15f), 25f, 7f, 4f);
+            float free = 0f;
+            yield return MeasureFor(6f, v => free = v);
+            yield return Place("Sunset", new Vector3(-20f, 0.05f, -24f), 62f, 6f, 4f);
+            float freeSunset = 0f;
+            yield return MeasureFor(6f, v => freeSunset = v);
+            Application.targetFrameRate = cap; QualitySettings.vSyncCount = vsync;
+            Debug.Log($"LS_TOUR_HEADROOM uncapped square morning {free:F1} fps, sunset {freeSunset:F1} fps");
             Debug.Log("LS_TOUR_DONE " + outDir);
             Application.Quit();
         }
@@ -84,6 +129,19 @@ namespace LastSkyfarer.Dev
             int frames = 0; float time = 0f;
             while (time < seconds) { float dt = Time.unscaledDeltaTime; time += dt; frames++; worst = Mathf.Max(worst, dt); yield return null; }
             result(frames / time);
+        }
+
+        IEnumerator CloseUp(string name, Vector3 at, float yawFromFront, float distance, float lookHeight)
+        {
+            Rig.enabled = false;
+            var cam = Level.Cam.transform;
+            Vector3 dir = Quaternion.Euler(0f, yawFromFront, 0f) * Vector3.forward;
+            Vector3 target = at + Vector3.up * lookHeight;
+            cam.position = target + dir * distance + Vector3.up * 0.15f;
+            cam.LookAt(target);
+            Level.Cam.fieldOfView = 40f;
+            yield return Shot(name, 1.2f);
+            Level.Cam.fieldOfView = 80f;
         }
 
         IEnumerator Place(string tod, Vector3 at, float yaw, float pitch, float distance, float kieranYaw = float.NaN)

@@ -8,17 +8,17 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Brass
-    second: {fileID: 2100000, guid: 0d4f5cca20febf54fa2b5ae3201bc88f, type: 2}
+    second: {fileID: 2100000, guid: 0dcc1d5007112d24f8fc5c497b1c2809, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_Wood
-    second: {fileID: 2100000, guid: c5f242971905f874d9f76f6f74068b11, type: 2}
+    second: {fileID: 2100000, guid: 86fe8d1154fef344aa95edefb8e5554e, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: MI_WoodFloor
-    second: {fileID: 2100000, guid: ce696f830e521884a9164dbff434bc7b, type: 2}
+    second: {fileID: 2100000, guid: 2fdbb6ec07aebc941b5de16958682f85, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
