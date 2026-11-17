@@ -38,9 +38,11 @@ namespace LastSkyfarer.Player
         {
             if (!Target) return;
             float dt = Time.deltaTime;
-            Vector2 look = Target.Input.LookValue * LookSensitivity;
+            var settings = LastSkyfarer.Core.GameSettings.Current;
+            Vector2 look = Target.Input.LookValue * LookSensitivity * settings.LookSensitivity;
+            bool invert = InvertY ^ settings.InvertY;
             Yaw += look.x;
-            Pitch = Mathf.Clamp(Pitch - look.y * (InvertY ? -1f : 1f), MinPitch, MaxPitch);
+            Pitch = Mathf.Clamp(Pitch - look.y * (invert ? -1f : 1f), MinPitch, MaxPitch);
 
             bool gliding = Target.Mode == MoveMode.Gliding;
             float alpha = gliding ? Mathf.Lerp(0.4f, 1f, Mathf.InverseLerp(Target.Glider.TrimSpeed * 0.5f, Target.Glider.MaxDiveSpeed, Target.GlideState.Speed)) : 0f;
