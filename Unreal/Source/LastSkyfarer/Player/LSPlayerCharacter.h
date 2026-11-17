@@ -140,6 +140,10 @@ public:
 	virtual void DoLook(float Yaw, float Pitch) override;
 	virtual void DoJumpEnd() override;
 	virtual void Tick(float DeltaSeconds) override;
+
+	/** Kieran's glide pose (prone under the wing, hands on the bar), played while the glider is out. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Glider")
+	TObjectPtr<class UAnimSequence> GlidePose;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void NotifyControllerChanged() override;
 
@@ -149,6 +153,8 @@ protected:
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode = 0) override;
 
 private:
+	bool bInGlidePose = false;
+	void UpdateGlidePose();
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> ExtraMappingContext;
 

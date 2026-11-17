@@ -180,39 +180,16 @@ void ALSBrindleCheck::Build()
 
 	if (FParse::Param(FCommandLine::Get(), TEXT("LSFpsProbe")))
 	{
-		// TEST ONLY (-LSKieranTest): swap the player's placeholder mannequin for the draft Kieran from
-		// /Game/LastSkyfarer/TestOnly, playing his retargeted walk (or fall loop while gliding), to measure his cost.
+		// -LSKieranTest also adds front views of Kieran in the village square at morning, sunset and night.
 		const bool bKieranTest = FParse::Param(FCommandLine::Get(), TEXT("LSKieranTest"));
-		auto UseKieran = [this, bKieranTest](const TCHAR* Anim)
-		{
-			if (!bKieranTest || !Kieran())
-			{
-				return;
-			}
-			USkeletalMesh* KM = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/LastSkyfarer/TestOnly/Kieran/SK_KieranTest.SK_KieranTest"));
-			UAnimSequence* A = LoadObject<UAnimSequence>(nullptr, *FString::Printf(TEXT("/Game/LastSkyfarer/TestOnly/Kieran/%s.%s"), Anim, Anim));
-			USkeletalMeshComponent* Mesh = Kieran()->GetMesh();
-			if (KM && Mesh->GetSkeletalMeshAsset() != KM)
-			{
-				Mesh->SetSkeletalMeshAsset(KM);
-				Mesh->EmptyOverrideMaterials(); // the player blueprint overrides the mannequin's materials; use Kieran's own
-			}
-			if (A)
-			{
-				Mesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
-				Mesh->PlayAnimation(A, true);
-			}
-			UE_LOG(LogTemp, Display, TEXT("LS_KIERAN_TEST mesh %s anim %s"), KM ? TEXT("loaded") : TEXT("MISSING"), A ? Anim : TEXT("MISSING"));
-		};
 		// Frame rate in three views: the opening on the Upper Cliffs, the village square, and the workshop at night.
-		auto Probe = [this, UseKieran](const TCHAR* Where, TFunction<void()> Setup)
+		auto Probe = [this](const TCHAR* Where, TFunction<void()> Setup)
 		{
-			Add(Where, [this, Where, Setup, UseKieran](float T)
+			Add(Where, [this, Where, Setup](float T)
 			{
 				if (T == 0.f)
 				{
 					Setup();
-					UseKieran(FString(Where).Contains(TEXT("gliding")) ? TEXT("MM_Fall_Loop_Kieran") : TEXT("MF_Unarmed_Walk_Fwd_Kieran"));
 					ProbeTime = 0.f;
 					ProbeFrames = 0;
 				}

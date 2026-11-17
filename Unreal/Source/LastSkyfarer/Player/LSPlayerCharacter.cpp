@@ -5,6 +5,7 @@
 #include "LSPlayerAudioComponent.h"
 
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimSequence.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -45,12 +46,19 @@ ALSPlayerCharacter::ALSPlayerCharacter()
 	if (MouseLookIA.Succeeded()) { MouseLookAction = MouseLookIA.Object; }
 	if (JumpIA.Succeeded()) { JumpAction = JumpIA.Object; }
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAsset(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple.SKM_Quinn_Simple"));
-	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimClass(TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed"));
+	// Kieran (approved by Adam, 2026-11-17): 5 ft 8 in, so a 1.76 m capsule including boots; feet at the capsule bottom.
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAsset(TEXT("/Game/LastSkyfarer/Characters/Kieran/SK_Kieran.SK_Kieran"));
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimClass(TEXT("/Game/LastSkyfarer/Characters/Kieran/ABP_Unarmed_Kieran"));
+	static ConstructorHelpers::FObjectFinder<UAnimSequence> GlideAsset(TEXT("/Game/LastSkyfarer/Characters/Kieran/A_Kieran_Glide.A_Kieran_Glide"));
+	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.f);
 	if (MeshAsset.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(MeshAsset.Object);
-		GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -96.f), FRotator(0.f, -90.f, 0.f));
+		GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -88.f), FRotator(0.f, -90.f, 0.f));
+	}
+	if (GlideAsset.Succeeded())
+	{
+		GlidePose = GlideAsset.Object;
 	}
 	if (AnimClass.Succeeded())
 	{
@@ -430,4 +438,23 @@ void ALSPlayerCharacter::Tick(float DeltaSeconds)
 	SampleSafePoint(Now());
 	CheckRecovery();
 	UpdateCamera(DeltaSeconds);
+	UpdateGlidePose();
+}
+
+void ALSPlayerCharacter::UpdateGlidePose()
+{
+	const bool bWant = Glider && Glider->IsGliding() && GlidePose;
+	if (bWant == bInGlidePose)
+	{
+		return;
+	}
+	bInGlidePose = bWant;
+	if (bWant)
+	{
+		GetMesh()->PlayAnimation(GlidePose, true);   // hold the prone glide pose under the wing
+	}
+	else
+	{
+		GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);   // back to idle/walk/run/jump/fall blending
+	}
 }
