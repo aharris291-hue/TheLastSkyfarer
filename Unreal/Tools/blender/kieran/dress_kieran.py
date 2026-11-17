@@ -24,7 +24,7 @@ import build_kieran as bk   # noqa: E402
 KDIR = bk.KDIR
 ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else ["full"]
 PAL = {
-    "skin": "#8A5A3C", "hair": "#221D19", "jacket": "#677840", "jacket_dark": "#525F33", "shirt": "#D6C6A8",
+    "skin": "#8A5A3C", "hair": "#221D19", "jacket": "#5E6B37", "jacket_dark": "#4A552B", "shirt": "#D6C6A8",
     "cuff": "#DDCBAA", "scarf": "#7BB8D0", "trousers": "#7A6C53", "boots": "#7E5E40", "boot_dark": "#5A412C",
     "sole": "#2E2219", "belt": "#6B4C33", "satchel": "#92653E", "satchel_dark": "#7A532F", "gloves": "#594738",
     "iris": "#6B4226", "brass": "#A07A45", "lens": "#9FC6D6", "steel": "#B9BEC0", "dial": "#EFE6CF", "needle": "#B23A2E",
@@ -610,16 +610,16 @@ def dress(body, rig):
 
     def trouser_ease(c, co):
         if c[0].startswith("thigh"):
-            return 0.017 + 0.006 * c[1]
+            return 0.021 + 0.003 * c[1]
         if c[0].startswith("shin"):
-            return 0.024 + 0.008 * c[1]
-        return 0.012
+            return 0.024
+        return 0.013
     trousers = G("Kieran_trousers", "trousers", trouser_pick, trouser_ease, 0.004, folds=fold_bands(scale=0.035, strength=0.004),
                  smooth_group=("crotch", lambda co: abs(co.x) < 0.06 and hip_z - 0.14 < co.z < hip_z - 0.02, 8))
     for s in "lr":
         z = pt(seg, "shin_" + s, 0.52).z
         c, rx, ry = ring_at(body, cls, z, ("shin_" + s,), 0.024)
-        ring_band("Kieran_trouser_cuff_" + s, c, rx + 0.012, ry + 0.012, 0.034, 0.007, "trousers", parent=rig, bone="calf_" + s)
+        ring_band("Kieran_trouser_cuff_" + s, c, rx + 0.01, ry + 0.01, 0.032, 0.007, "trousers", parent=rig, bone="calf_" + s)
     # belt with buckle
     c, rx, ry = ring_at(body, cls, waist_z - 0.005, ("spine", "thigh_l", "thigh_r"), 0.017)
     ring_band("Kieran_belt", c, rx, ry, 0.03, 0.006, "belt", parent=rig, bone="pelvis")
@@ -704,25 +704,26 @@ def dress(body, rig):
     # Sky-blue scarf: a soft double wrap with a gathered drape at the front
     nz = neck_z + 0.02
     c, rx, ry = ring_at(body, cls, nz, ("neck",), 0.02)
-    ring_band("Kieran_scarf_wrap1", c, rx, ry, 0.045, 0.016, "scarf", parent=rig, bone="neck_01")
-    ring_band("Kieran_scarf_wrap2", c + Vector((0, -0.006, -0.03)), rx + 0.012, ry + 0.014, 0.04, 0.016, "scarf", parent=rig, bone="neck_01",
-              tilt=(math.radians(-12), 0, 0))
-    yf = c.y - ry
-    for k, (x0, L) in enumerate(((-0.012, 0.1), (0.014, 0.075))):
-        cu = bpy.data.curves.new("Kieran_scarf_tail%d" % k, "CURVE")
-        cu.dimensions, cu.bevel_depth, cu.bevel_resolution = "3D", 1.0, 4
-        sp = cu.splines.new("NURBS")
-        pts = [(x0, yf - 0.012, nz - 0.01), (x0 + 0.004, yf - 0.03, nz - 0.03), (x0 + 0.01, yf - 0.036, nz - 0.03 - L * 0.5),
-               (x0 + 0.014, yf - 0.034, nz - 0.03 - L)]
-        sp.points.add(len(pts) - 1)
-        for j, q in enumerate(pts):
-            sp.points[j].co = (q[0], q[1], q[2], 1)
-            sp.points[j].radius = (0.021, 0.019, 0.016, 0.012)[j]
-        sp.use_endpoint_u, sp.order_u = True, 3
-        o = bpy.data.objects.new("Kieran_scarf_tail%d" % k, cu)
-        bpy.context.scene.collection.objects.link(o)
-        cu.materials.append(mat("scarf"))
-        attach(o, rig, "spine_03")
+    for k, (dz, grow, wid, tilt) in enumerate(((0.0, 0.0, 0.05, 0), (-0.022, 0.014, 0.05, 12), (-0.038, 0.026, 0.045, 22))):
+        cw = c + Vector((0, -0.006 * k, dz))
+        band_o = ring_band("Kieran_scarf_wrap%d" % k, cw, rx + grow, ry + grow * 1.2, wid, 0.022, "scarf", parent=rig, bone="neck_01",
+                           tilt=(math.radians(tilt), 0, 0))
+        sm = band_o.modifiers.new("soft", "SUBSURF")
+        sm.levels = sm.render_levels = 2
+        tx = bpy.data.textures.new("scarf_folds%d" % k, "CLOUDS")
+        tx.noise_scale = 0.02
+        dp = band_o.modifiers.new("folds", "DISPLACE")
+        dp.texture, dp.texture_coords, dp.strength = tx, "GLOBAL", 0.008
+    # a soft gathered fold sitting in front, where the cowl bunches
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=20, ring_count=12, radius=1, location=(0.006, c.y - ry - 0.026, nz - 0.045))
+    knot = bpy.context.active_object
+    knot.name = "Kieran_scarf_gather"
+    knot.scale = (0.05, 0.016, 0.022)
+    bpy.context.view_layer.update()
+    knot.data.materials.append(mat("scarf"))
+    for p_ in knot.data.polygons:
+        p_.use_smooth = True
+    attach(knot, rig, "spine_03")
 
     # Aviator goggles pushed up over the curls: brass rims, pale-blue lenses, strap round the head
     h0, h1 = B["head"]
@@ -732,27 +733,28 @@ def dress(body, rig):
     ring_band("Kieran_goggle_strap", hc, hrx, hry, 0.022, 0.004, "belt", parent=rig, bone="head", tilt=(math.radians(-14), 0, 0))
     gy = hc.y - hry - 0.006
     for sx in (-1, 1):
-        rim = torus("Kieran_goggle_rim_%d" % sx, (sx * 0.034, gy, gz + 0.016), 0.022, 0.0055, "brass", rot=(math.radians(76), 0, 0),
+        rim = torus("Kieran_goggle_rim_%d" % sx, (sx * 0.037, gy - 0.004, gz + 0.018), 0.027, 0.0075, "brass", rot=(math.radians(76), 0, 0),
                     parent=rig, bone="head")
-        cyl("Kieran_goggle_cup_%d" % sx, (sx * 0.034, gy + 0.008, gz + 0.014), 0.023, 0.016, "brass", rot=(math.radians(76), 0, 0),
+        cyl("Kieran_goggle_cup_%d" % sx, (sx * 0.037, gy + 0.006, gz + 0.016), 0.029, 0.02, "belt", rot=(math.radians(76), 0, 0),
             parent=rig, bone="head")
+        box("Kieran_goggle_tab_%d" % sx, (sx * 0.068, gy + 0.012, gz + 0.014), (0.008, 0.012, 0.011), "belt", 0.3, parent=rig, bone="head")
         bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, radius=1, location=(sx * 0.034, gy - 0.002, gz + 0.017),
                                              rotation=(math.radians(76), 0, 0))
         lens = bpy.context.active_object
         lens.name = "Kieran_goggle_lens_%d" % sx
-        lens.scale = (0.019, 0.019, 0.006)
+        lens.scale = (0.024, 0.024, 0.007)
         lens.data.materials.append(mat("lens"))
         for p in lens.data.polygons:
             p.use_smooth = True
         attach(lens, rig, "head")
         for k in range(4):   # rivets on the rim
             a = k * math.pi / 2 + math.pi / 4
-            bpy.ops.mesh.primitive_uv_sphere_add(segments=8, ring_count=6, radius=0.0022,
-                                                 location=(sx * 0.034 + 0.022 * math.cos(a), gy - 0.004, gz + 0.016 + 0.022 * math.sin(a) * 0.97))
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=8, ring_count=6, radius=0.0026,
+                                                 location=(sx * 0.037 + 0.027 * math.cos(a), gy - 0.01, gz + 0.018 + 0.027 * math.sin(a) * 0.97))
             rv = bpy.context.active_object
             rv.data.materials.append(mat("brass"))
             attach(rv, rig, "head")
-    cyl("Kieran_goggle_bridge", (0, gy, gz + 0.014), 0.004, 0.024, "brass", rot=(0, math.radians(90), 0), parent=rig, bone="head")
+    cyl("Kieran_goggle_bridge", (0, gy - 0.004, gz + 0.016), 0.005, 0.02, "brass", rot=(0, math.radians(90), 0), parent=rig, bone="head")
 
     # Crossbody satchel: strap over the left shoulder, bag on the right hip, flap and buckle
     lsh = seg["uarm_r"][0]                                   # strap over his right shoulder
@@ -783,7 +785,7 @@ def dress(body, rig):
         rot=(0, math.radians(-35), 0), parent=rig, bone="spine_03")
     bag_c = Vector((rhip.x + 0.02, surf_y(rhip.x + 0.02, rhip.z, 0.035), rhip.z - 0.02))
     bag_c = bag_c + Vector((0.05, 0.035, -0.04))
-    bag = box("Kieran_satchel", tuple(bag_c), (0.08, 0.034, 0.095), "satchel", 0.9, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
+    bag = box("Kieran_satchel", tuple(bag_c), (0.105, 0.04, 0.1), "satchel", 0.9, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
     sub = bag.modifiers.new("soft", "SUBSURF")
     sub.levels = sub.render_levels = 2
     bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
@@ -792,7 +794,7 @@ def dress(body, rig):
     fm = flap.data
     bmf = bmesh.new()
     gw, gh = 8, 10
-    grid = [[bmf.verts.new((( i / gw - 0.5) * 0.172, -0.036 - 0.03 * math.sin(math.pi * 0.5 * j / gh) * 0.3,
+    grid = [[bmf.verts.new((( i / gw - 0.5) * 0.222, -0.036 - 0.03 * math.sin(math.pi * 0.5 * j / gh) * 0.3,
                             0.095 - 0.12 * j / gh + 0.02 * (1 - math.cos(math.pi * 0.5 * j / gh)))) for i in range(gw + 1)] for j in range(gh + 1)]
     for j in range(gh):
         for i in range(gw):
@@ -814,9 +816,9 @@ def dress(body, rig):
     attach(flap, rig, "pelvis")
     rot = Matrix.Rotation(math.radians(40), 3, "Z")
     for sx in (-1, 1):   # buckle straps down the flap
-        loc = bag_c + rot @ Vector((sx * 0.04, -0.045, -0.005))
+        loc = bag_c + rot @ Vector((sx * 0.05, -0.05, -0.005))
         box("Kieran_satchel_tab_%d" % sx, tuple(loc), (0.008, 0.003, 0.03), "belt", 0.3, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
-        loc2 = bag_c + rot @ Vector((sx * 0.04, -0.049, -0.03))
+        loc2 = bag_c + rot @ Vector((sx * 0.05, -0.054, -0.03))
         box("Kieran_satchel_buckle_%d" % sx, tuple(loc2), (0.01, 0.002, 0.008), "steel", 0.3, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
 
     # Compass on the belt at the left hip: metal case, readable dial, cardinal marks and needle
