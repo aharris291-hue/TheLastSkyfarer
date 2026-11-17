@@ -1,0 +1,15 @@
+{
+ "game_triangles": 46244,
+ "game_vertices": 32084,
+ "materials": 25,
+ "bones": 53,
+ "glb_bytes": 4627652,
+ "fbx_bytes": 1904844,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 46244,
+  "skinned": true
+ }
+}
