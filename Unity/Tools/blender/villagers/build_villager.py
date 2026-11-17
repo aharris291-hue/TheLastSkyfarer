@@ -659,12 +659,34 @@ def dress_rowan(body, rig):
         top = neck_z - 0.03
         x0 = sx * 0.085
         y = sy - 0.1
-        for k in range(9):                                            # striped panel, knitted bands
-            z = top - k * 0.06
+        # One continuous knitted strip per side, following the chest and then hanging, with woven stripes.
+        rows, verts, faces, mats = 18, [], [], []
+        for j in range(rows + 1):
+            z = top - 0.56 * j / rows
             cc, rxx, ryy = dk.ring_at(body, cls, max(z, hip_z + 0.02), ("spine",), 0.03)
-            y = min(cc.y - ryy * math.sqrt(max(0.0, 1 - (x0 / max(rxx, 0.01)) ** 2)) - 0.012, cc.y - 0.02)
-            dk.box("%s_shawl_panel_%d_%d" % (NAME, sx, k), (x0 + sx * 0.003 * k, y - 0.004 * max(0, k - 5), z - 0.03), (0.04, 0.007, 0.034),
-                   "shawl_band" if k % 3 == 1 else "shawl", 0.12, parent=rig, bone="spine_03" if k < 4 else "pelvis")
+            y = min(cc.y - ryy * math.sqrt(max(0.0, 1 - (x0 / max(rxx, 0.01)) ** 2)) - 0.014, cc.y - 0.02)
+            for i in range(3):
+                verts.append((x0 + sx * 0.002 * j + (i - 1) * 0.04, y - 0.003 * max(0, j - 10) + abs(i - 1) * 0.006, z))
+        for j in range(rows):
+            for i in range(2):
+                a = j * 3 + i
+                faces.append((a, a + 1, a + 4, a + 3))
+                mats.append(1 if (j // 2) % 3 == 1 else 0)
+        me = bpy.data.meshes.new("%s_shawl_end_%d" % (NAME, sx))
+        me.from_pydata(verts, [], faces)
+        me.materials.append(mat("shawl")); me.materials.append(mat("shawl_band"))
+        for f, m_ in zip(me.polygons, mats):
+            f.material_index = m_
+            f.use_smooth = True
+        strip = bpy.data.objects.new(me.name, me)
+        bpy.context.scene.collection.objects.link(strip)
+        dk.fold_bands(scale=0.01, strength=0.002, name="knit")(strip)
+        so = strip.modifiers.new("thick", "SOLIDIFY"); so.thickness, so.offset = 0.008, 1.0
+        sb = strip.modifiers.new("sub", "SUBSURF"); sb.levels = 1
+        chest = neck_z - 0.2
+        skin_weights_to(strip, [("spine_03", lambda co: max(0.0, (co.z - chest) / 0.1) + 0.001),
+                                ("pelvis", lambda co: max(0.0, (chest - co.z) / 0.15))])
+        skinned(strip, rig)
         for t in range(5):                                            # fringe
             dk.cyl("%s_fringe_%d_%d" % (NAME, sx, t), (x0 + sx * 0.024 - 0.03 + t * 0.015, y - 0.02, top - 9 * 0.06 - 0.02), 0.003, 0.05, "shawl_band",
                    verts=5, parent=rig, bone="pelvis")

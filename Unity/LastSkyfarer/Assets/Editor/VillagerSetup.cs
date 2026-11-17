@@ -16,7 +16,8 @@ namespace LastSkyfarer.EditorTools
         const string ControllerPath = "Assets/Art/Characters/Villagers/Villager.controller";
         const string IdlePath = "Assets/Art/Characters/Kieran/Animations/Mixamo_Idle.fbx";
         // speaker id (Speakers.json) -> villager name (folder Assets/Art/Characters/<Name>, model <Export>_GameReady.fbx)
-        public static readonly (string speaker, string name, string export)[] Cast = { ("tavern", "Bram", "Bram_Holloway"), ("tessa", "Tessa", "Tessa_Reed"), ("villager", "Elara", "Elara_Greenborough") };
+        public static readonly (string speaker, string name, string export)[] Cast = { ("tavern", "Bram", "Bram_Holloway"), ("tessa", "Tessa", "Tessa_Reed"), ("villager", "Elara", "Elara_Greenborough"),
+                                                                                    ("maren", "Maren", "Maren_Holt"), ("rowan", "Rowan", "Rowan_Finch") };
 
         public static void Run()
         {

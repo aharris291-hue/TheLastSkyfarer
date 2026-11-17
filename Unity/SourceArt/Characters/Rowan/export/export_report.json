@@ -1,0 +1,16 @@
+{
+ "atlas": "D:/TheLastSkyfarer/repo/Unity/SourceArt/Characters/Rowan/export\\T_Rowan_BaseColor.png",
+ "game_triangles": 40445,
+ "game_vertices": 31019,
+ "materials": 2,
+ "bones": 53,
+ "glb_bytes": 5368208,
+ "fbx_bytes": 1791692,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 40445,
+  "skinned": true
+ }
+}

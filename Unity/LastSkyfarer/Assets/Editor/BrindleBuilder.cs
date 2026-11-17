@@ -446,7 +446,7 @@ namespace LastSkyfarer.EditorTools
                 if (!kit.TryGetValue(mesh, out var prefab)) { Debug.LogWarning("LS_BRINDLE no prop " + mesh); continue; }
                 var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
                 go.name = "Dress_" + mesh.Substring(3);
-                go.transform.SetParent(Group("Art/Square/Dressing"), false);
+                go.transform.SetParent(Group("Art/Dressing"), false);
                 go.transform.SetPositionAndRotation(new Vector3(x, y, z), Quaternion.Euler(0f, yaw, 0f));
                 go.transform.localScale = new Vector3(sx, sy, sz);
                 int layer = BrindleLevel.FirstCullLayer + (mesh == "SM_PottedPlant" || mesh == "SM_FlowerBox" ? 1 : 2);
@@ -530,6 +530,28 @@ namespace LastSkyfarer.EditorTools
             ("SM_LaundryLine", -31f, 17f, 20f, 1, 1, 1, 0),
             ("SM_Bush", 25.5f, 6.5f, 0f, 1.2f, 1.2f, 1.2f, 0), ("SM_Bush", 19.5f, 17.5f, 50f, 1, 1, 1, 0), ("SM_Bush", -6.5f, 25.5f, 100f, 1.3f, 1.1f, 1.3f, 0),
             ("SM_Bush", -25.0f, -9.0f, 160f, 1.1f, 1.1f, 1.1f, 0), ("SM_Bush", 6.0f, -25.5f, 220f, 1.2f, 1.0f, 1.2f, 0), ("SM_Bush", -18.0f, -19.0f, 280f, 1, 1, 1, 0),
+            // Whispermill: a working farm round the first windmill.
+            ("SM_HayBale", -271f, 292f, 20f, 1, 1, 1, 0), ("SM_HayBale", -270.5f, 293.5f, 35f, 1, 1, 1, 0), ("SM_HayBale", -271f, 292.6f, 25f, 1, 1, 1, 0.5f),
+            ("SM_Sacks", -289f, 307f, 140f, 1, 1, 1, 0), ("SM_Cart", -262f, 314f, 30f, 1, 1, 1, 0), ("SM_Barrel", -276f, 309f, 0f, 1, 1, 1, 0),
+            ("SM_Barrel", -275.2f, 309.8f, 40f, 1, 1, 1, 0), ("SM_Trough", -292f, 296f, 70f, 1, 1, 1, 0), ("SM_Sacks", -378f, 362f, 60f, 1, 1, 1, 0),
+            ("SM_HayBale", -396f, 258f, 80f, 1, 1, 1, 0), ("SM_Bush", -238f, 300f, 0f, 1.3f, 1.2f, 1.3f, 0), ("SM_Bush", -236f, 340f, 90f, 1.1f, 1.1f, 1.1f, 0),
+            // Old Cartographer's Bluff: Elias's workshop, lived-in but left alone.
+            ("SM_Barrel", 591.0f, 70.0f, 0f, 1, 1, 1, 20f), ("SM_Barrel", 591.8f, 69.0f, 30f, 1, 1, 1, 20f), ("SM_Firewood", 594f, 88.5f, 0f, 1, 1, 1, 20f),
+            ("SM_PottedPlant", 590.4f, 78.6f, 0f, 1, 1, 1, 20f), ("SM_PottedPlant", 590.4f, 71.4f, 90f, 0.9f, 0.9f, 0.9f, 20f), ("SM_Bush", 562f, 42f, 0f, 1.3f, 1.2f, 1.3f, 20f),
+            ("SM_Bush", 622f, 30f, 120f, 1.2f, 1.1f, 1.2f, 20f), ("SM_Bush", 652f, 104f, 200f, 1.1f, 1.1f, 1.1f, 20f), ("SM_Sacks", 633f, 122f, 40f, 1, 1, 1, 20f),
+            ("SM_Bush", 548f, 120f, 60f, 1.3f, 1.2f, 1.3f, 20f),
+            // Skywatch Point: Tessa's lookout.
+            ("SM_PottedPlant", 34f, 472f, 0f, 1, 1, 1, 25.6f), ("SM_PottedPlant", 46.5f, 471.5f, 50f, 1, 1, 1, 25.6f), ("SM_Barrel", 32f, 486f, 0f, 1, 1, 1, 25.6f),
+            ("SM_Sacks", 33.5f, 488f, 30f, 0.8f, 0.8f, 0.8f, 25.6f), ("SM_Bunting", 40f, 489.5f, 90f, 1, 0.6f, 2.0f, 23.9f),
+            // Cloud Edge: the flower terrace over the cloud sea.
+            ("SM_PottedPlant", -108f, 548f, 0f, 1, 1, 1, 1f), ("SM_PottedPlant", -92f, 548f, 70f, 1, 1, 1, 1f), ("SM_Bunting", -100f, 557f, 90f, 1, 0.6f, 2.5f, -0.4f),
+            ("SM_Barrel", -127f, 530f, 0f, 1, 1, 1, 1f),
+            // Orchard Vale: harvest time.
+            ("SM_Cart", -352f, 26f, 95f, 1, 1, 1, 0), ("SM_HayBale", -356f, 33f, 10f, 1, 1, 1, 0), ("SM_Sacks", -346f, 19f, 200f, 1, 1, 1, 0),
+            ("SM_Barrel", -362f, 36f, 0f, 1, 1, 1, 0), ("SM_Barrel", -362.8f, 36.9f, 50f, 1, 1, 1, 0), ("SM_Trough", -414f, 34f, 20f, 1, 1, 1, 0),
+            ("SM_Bush", -342f, -40f, 0f, 1.3f, 1.2f, 1.3f, 0), ("SM_Bush", -470f, 40f, 90f, 1.2f, 1.1f, 1.2f, 0),
+            // Upper Cliffs, where the game opens.
+            ("SM_Bush", 300f, 340f, 0f, 1.2f, 1.1f, 1.2f, 15f), ("SM_Bush", 352f, 312f, 140f, 1.1f, 1.0f, 1.1f, 15f), ("SM_Bush", 278f, 296f, 220f, 1.3f, 1.2f, 1.3f, 15f),
         };
 
         // ------------------------------------------------------------ the ground (polish pass 1)
@@ -571,7 +593,13 @@ namespace LastSkyfarer.EditorTools
             foreach (var d in NarrativeDatabase.LoadFromResources().Level.Interactables)
                 input.Flat.Add(new IslandTerrainBuilder.Zone { Round = true, Centre = new Vector2(d.Position.x, d.Position.z), Half = new Vector2(2f, 2f), Margin = 4f });
             if (byName.TryGetValue("Square_Paving", out var paving) && paving.TryGetComponent<MeshRenderer>(out var pr)) pr.enabled = false;   // painted cobbles now
-            if (byName.TryGetValue("Island_Top", out var top)) top.transform.position += Vector3.down * 0.05f;          // the ground mesh covers it
+            if (byName.TryGetValue("Island_Top", out var top))
+            {
+                top.transform.position += Vector3.down * 0.05f;                                                        // the ground mesh covers it
+                if (top.TryGetComponent<MeshRenderer>(out var tr)) tr.enabled = false;                                 // the new cliffs show instead
+            }
+            if (byName.TryGetValue("Island_Underside", out var under) && under.TryGetComponent<MeshRenderer>(out var ur)) ur.enabled = false;
+            IslandTerrainBuilder.BuildUnderside(parent, Mats["MI_CliffRock_Kit"]);
 
             var grassMesh = SaveMesh("GrassClump", IslandTerrainBuilder.GrassClump(false));
             var flowerMesh = SaveMesh("Wildflowers", IslandTerrainBuilder.GrassClump(true));
@@ -581,7 +609,51 @@ namespace LastSkyfarer.EditorTools
             grassMat.SetTexture("_BrushNoise", noise); grassMat.enableInstancing = true;
             var flowerMat = SaveMat("M_Wildflowers", Shader.Find("LastSkyfarer/PainterlyGrass"));
             flowerMat.SetTexture("_BrushNoise", noise); flowerMat.enableInstancing = true;
-            return IslandTerrainBuilder.Build(parent, input, groundMat, grassMesh, flowerMesh, grassMat, flowerMat);
+            var ig = IslandTerrainBuilder.Build(parent, input, groundMat, grassMesh, flowerMesh, grassMat, flowerMat);
+
+            // The Whispermill wheat: dense instanced stalks over the field (the old wheat cards go).
+            var wheatMat = SaveMat("M_Wheat", Shader.Find("LastSkyfarer/PainterlyGrass"));
+            wheatMat.SetTexture("_BrushNoise", noise); wheatMat.enableInstancing = true;
+            wheatMat.SetColor("_Root", Hex("#8C6A2A")); wheatMat.SetColor("_TipA", Hex("#F0D27A")); wheatMat.SetColor("_TipB", Hex("#D8A84A"));
+            wheatMat.SetFloat("_Wind", 0.18f); wheatMat.SetFloat("_WindSpeed", 1.5f);
+            ig.WheatMesh = SaveMesh("WheatClump", IslandTerrainBuilder.WheatClump());
+            ig.WheatMaterial = wheatMat;
+            if (byName.TryGetValue("Whispermill_Wheat", out var field))
+            {
+                var fb = field.GetComponent<Collider>().bounds;
+                ig.WheatFields.Add(new Rect(fb.min.x + 2f, fb.min.z + 2f, fb.size.x - 4f, fb.size.z - 4f));
+            }
+            foreach (var kv in byName.Where(k => k.Key.EndsWith("_Tower") && k.Key.StartsWith("Windmill_")))
+                ig.WheatHoles.Add(new Vector3(kv.Value.transform.position.x, kv.Value.transform.position.z, 8f));
+            foreach (var (go, it) in placed.Where(p => p.it.Name.StartsWith("Mill_") || p.it.Name.StartsWith("Dress_")))
+                ig.WheatHoles.Add(new Vector3(go.transform.position.x, go.transform.position.z, 3.5f));
+            // The old grass and wheat cards are replaced by the instanced meadow and field.
+            foreach (var (go, it) in placed.Where(p => p.it.Mesh == "SM_GrassPatch" || p.it.Mesh == "SM_WheatPatch"))
+                foreach (var r in go.GetComponentsInChildren<Renderer>()) r.enabled = false;
+            // Rocky plateaus in place of the smooth slabs (Skywatch hill, the Upper Cliffs, the Bluff).
+            int seed = 1;
+            foreach (var (go, it) in placed.Where(p => p.it.Mesh == "SM_Plateau" && p.it.Scale != null && p.it.Scale.y > 5f).ToList())
+            {
+                foreach (var r in go.GetComponentsInChildren<Renderer>()) r.enabled = false;
+                IslandTerrainBuilder.BuildPlateau(parent, "Rocky_" + it.Name.Replace("_Art", ""), it.Pos.ToV(), it.Scale.ToV(), Mats["MI_CliffRock_Kit"], groundMat, seed++);
+                var sz = it.Scale.ToV();
+                ig.Plateaus.Add(new Vector4(it.Pos.x, it.Pos.z, sz.x * 0.5f, sz.z * 0.5f));
+                ig.PlateauHeights.Add(it.Pos.y + sz.y);
+            }
+            // Grass grows on the low terraces too (Cloud Edge, the Upper Cliffs lookout); their kit tops stay.
+            foreach (var (go, it) in placed.Where(p => p.it.Mesh == "SM_Plateau" && p.it.Scale != null && p.it.Scale.y <= 5f))
+            {
+                var sz = it.Scale.ToV();
+                ig.Plateaus.Add(new Vector4(it.Pos.x, it.Pos.z, sz.x * 0.5f, sz.z * 0.5f));
+                ig.PlateauHeights.Add(it.Pos.y + sz.y);
+            }
+            // Cloud puffs sit lower and smaller, so the cliffs of the island show above them.
+            foreach (var kv in byName.Where(k => k.Key.StartsWith("CloudPuff_")))
+            {
+                kv.Value.transform.position += Vector3.down * 55f;
+                kv.Value.transform.localScale *= 0.65f;
+            }
+            return ig;
         }
 
         static Mesh SaveMesh(string name, Mesh m)

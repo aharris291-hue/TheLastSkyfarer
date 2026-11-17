@@ -26,8 +26,22 @@ namespace LastSkyfarer.World
         [Tooltip("Grass clumps per square metre on full grass.")] public float Density = 2.2f;
         public float CellSize = 16f;
 
+        [Header("Wheat (Whispermill)")]
+        public Mesh WheatMesh;
+        public Material WheatMaterial;
+        public List<Rect> WheatFields = new List<Rect>();          // world x, z
+        public List<Vector3> WheatHoles = new List<Vector3>();      // x, z, radius: windmills and the like
+        public float WheatDensity = 3.5f;
+
+        [Header("Plateaus (grass grows on their tops too)")]
+        public List<Vector4> Plateaus = new List<Vector4>();       // centre x, centre z, half width, half depth
+        public List<float> PlateauHeights = new List<float>();
+        public Vector2 IslandRadii = new Vector2(700f, 575f);
+
         readonly Dictionary<Vector2Int, Matrix4x4[]> grassCells = new Dictionary<Vector2Int, Matrix4x4[]>();
         readonly Dictionary<Vector2Int, Matrix4x4[]> flowerCells = new Dictionary<Vector2Int, Matrix4x4[]>();
+        readonly Dictionary<Vector2Int, Matrix4x4[]> wheatCells = new Dictionary<Vector2Int, Matrix4x4[]>();
+        readonly List<Matrix4x4> wheatBatch = new List<Matrix4x4>(1023);
         readonly List<Matrix4x4> grassBatch = new List<Matrix4x4>(1023), flowerBatch = new List<Matrix4x4>(1023);
         static readonly int FadeId = Shader.PropertyToID("_LS_GrassFade");
 
@@ -45,6 +59,11 @@ namespace LastSkyfarer.World
 
         public float HeightAt(float x, float z)
         {
+            for (int pi = 0; pi < Plateaus.Count; pi++)
+            {
+                var p = Plateaus[pi];
+                if (Mathf.Abs(x - p.x) < p.z * 0.95f && Mathf.Abs(z - p.y) < p.w * 0.95f) return PlateauHeights[pi];
+            }
             if (Heights.Length == 0) return 0f;
             Cell(x, z, out int ix, out int iz, out float fx, out float fz);
             int i = iz * Width + ix;
@@ -76,16 +95,40 @@ namespace LastSkyfarer.World
             for (int k = 0; k < n; k++)
             {
                 float x = (c.x + Hash(c.x, c.y, k * 3)) * CellSize, z = (c.y + Hash(c.x, c.y, k * 3 + 1)) * CellSize;
+                if ((x / IslandRadii.x) * (x / IslandRadii.x) + (z / IslandRadii.y) * (z / IslandRadii.y) > 0.95f) continue;   // never past the rim
                 Color p = PaintAt(x, z);
                 float keep = Hash(c.x, c.y, k * 3 + 2);
                 if (keep > p.r * (1f - p.g) * (1f - p.b)) continue;           // grass only where the ground is grassy
+                if (InWheat(x, z)) continue;                                   // the wheat field grows wheat instead
                 float y = HeightAt(x, z);
                 float s = 0.75f + Hash(c.x, c.y, k * 5 + 7) * 0.6f;
                 var m = Matrix4x4.TRS(new Vector3(x, y - 0.02f, z), Quaternion.Euler(0f, keep * 3600f, 0f), new Vector3(s, s * (0.8f + p.r * 0.4f), s));
                 if (Hash(c.x, c.y, k * 7 + 3) < p.a * 0.35f) flowers.Add(m); else grass.Add(m);
             }
+            var wheat = new List<Matrix4x4>();
+            if (WheatMesh)
+            {
+                int nw = Mathf.RoundToInt(CellSize * CellSize * WheatDensity);
+                for (int k = 0; k < nw; k++)
+                {
+                    float x = (c.x + Hash(c.x, c.y, k * 3 + 90001)) * CellSize, z = (c.y + Hash(c.x, c.y, k * 3 + 90002)) * CellSize;
+                    if (!InWheat(x, z)) continue;
+                    float s = 0.85f + Hash(c.x, c.y, k * 5 + 90003) * 0.35f;
+                    wheat.Add(Matrix4x4.TRS(new Vector3(x, HeightAt(x, z) + 0.28f, z), Quaternion.Euler(0f, Hash(c.x, c.y, k) * 360f, 0f), new Vector3(s, s, s)));
+                }
+            }
+            wheatCells[c] = wheat.ToArray();
             grassCells[c] = grass.ToArray();
             flowerCells[c] = flowers.ToArray();
+        }
+
+        bool InWheat(float x, float z)
+        {
+            bool inside = false;
+            foreach (var r in WheatFields) if (r.Contains(new Vector2(x, z))) { inside = true; break; }
+            if (!inside) return false;
+            foreach (var hole in WheatHoles) if ((new Vector2(x - hole.x, z - hole.y)).sqrMagnitude < hole.z * hole.z) return false;
+            return true;
         }
 
         void Update()
@@ -98,7 +141,7 @@ namespace LastSkyfarer.World
             Shader.SetGlobalVector(FadeId, new Vector4(p.x, p.y, p.z, Radius));
             int r = Mathf.CeilToInt(Radius / CellSize);
             var cc = new Vector2Int(Mathf.FloorToInt(p.x / CellSize), Mathf.FloorToInt(p.z / CellSize));
-            grassBatch.Clear(); flowerBatch.Clear();
+            grassBatch.Clear(); flowerBatch.Clear(); wheatBatch.Clear();
             var planes = GeometryUtility.CalculateFrustumPlanes(cam);
             for (int dz = -r; dz <= r; dz++)
                 for (int dx = -r; dx <= r; dx++)
@@ -110,9 +153,11 @@ namespace LastSkyfarer.World
                     if (!grassCells.ContainsKey(c)) Build(c);
                     Add(grassBatch, grassCells[c], GrassMesh, GrassMaterial);
                     if (FlowerMesh && FlowerMaterial) Add(flowerBatch, flowerCells[c], FlowerMesh, FlowerMaterial);
+                    if (WheatMesh && WheatMaterial) Add(wheatBatch, wheatCells[c], WheatMesh, WheatMaterial);
                 }
             Flush(grassBatch, GrassMesh, GrassMaterial);
             Flush(flowerBatch, FlowerMesh, FlowerMaterial);
+            Flush(wheatBatch, WheatMesh, WheatMaterial);
         }
 
         void Add(List<Matrix4x4> batch, Matrix4x4[] items, Mesh mesh, Material mat)

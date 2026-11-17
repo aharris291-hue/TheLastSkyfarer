@@ -64,7 +64,7 @@ Shader "LastSkyfarer/StylisedCharacter"
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     AmbientOcclusionFactor ssao = GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS));
-                    half aoI = ssao.indirectAmbientOcclusion, aoD = ssao.directAmbientOcclusion;
+                    half aoI = lerp(1.0, ssao.indirectAmbientOcclusion, 0.45), aoD = lerp(1.0, ssao.directAmbientOcclusion, 0.3);   // gentle on smooth cloth: no blotches
                 #else
                     half aoI = 1.0, aoD = 1.0;
                 #endif

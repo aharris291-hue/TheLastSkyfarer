@@ -7,6 +7,16 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: MI_Cloth_Red
+    second: {fileID: 2100000, guid: 0a421113299f34142b32671aa36eeceb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_FlowerBed
+    second: {fileID: 2100000, guid: 9180485abe83a414e8086530446f0317, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MI_FoliageBlossom
     second: {fileID: 2100000, guid: d62f7352bc00e6c4885792df211c5537, type: 2}
   - first:

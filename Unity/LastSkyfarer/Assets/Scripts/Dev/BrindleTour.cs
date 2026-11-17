@@ -59,7 +59,7 @@ namespace LastSkyfarer.Dev
             yield return Shot("5_upper_cliffs_view", 2.5f);
 
             // Character close-ups: Bram at the Windsong Tavern, then Kieran in the square (morning light).
-            foreach (var (npcId, shot) in new[] { ("NPC_Bram", "6_bram"), ("NPC_Tessa", "6c_tessa"), ("NPC_Elara", "6d_elara") })
+            foreach (var (npcId, shot) in new[] { ("NPC_Bram", "6_bram"), ("NPC_Tessa", "6c_tessa"), ("NPC_Elara", "6d_elara"), ("NPC_Maren", "6e_maren"), ("NPC_Rowan", "6f_rowan") })
             {
                 var npc = Level.Story.Database.FindInteractable(npcId);
                 if (npc == null) continue;
@@ -74,6 +74,31 @@ namespace LastSkyfarer.Dev
             }
             yield return Place("Morning", new Vector3(-5f, 0.05f, -15f), 25f, 7f, 10f, 25f);
             yield return CloseUp("7_kieran_closeup", K.transform.position, 25f + 20f, 2.0f, 1.35f);
+            Rig.enabled = true;
+
+            // Every area of Brindle, morning and sunset (free camera; Kieran parked out of view).
+            K.Teleport(new Vector3(0f, 0.05f, -60f), 0f);
+            var vistas = new (string, Vector3, Vector3)[]
+            {
+                ("a_whispermill", new Vector3(-252f, 3.2f, 280f), new Vector3(-282f, 7f, 302f)),
+                ("a_orchard", new Vector3(-344f, 2.0f, 30f), new Vector3(-386f, 2.5f, 4f)),
+                ("a_bluff", new Vector3(574f, 23.5f, 62f), new Vector3(596f, 22.5f, 80f)),
+                ("a_skywatch", new Vector3(18f, 28.5f, 460f), new Vector3(40f, 26.8f, 482f)),
+                ("a_cloud_edge", new Vector3(-80f, 3.4f, 527f), new Vector3(-100f, 2f, 548f)),
+                ("a_upper_cliffs", new Vector3(296f, 17.6f, 268f), new Vector3(326f, 16.5f, 312f)),
+                ("a_island_from_sky", new Vector3(520f, 10f, -900f), new Vector3(0f, -70f, 0f)),
+            };
+            foreach (var tod in new[] { "Morning", "Sunset" })
+                foreach (var (vname, pos, look) in vistas)
+                {
+                    Level.TimeOfDay.Apply(tod, true);
+                    Rig.enabled = false;
+                    Level.Cam.transform.position = pos;
+                    Level.Cam.transform.LookAt(look);
+                    Level.Cam.fieldOfView = 60f;
+                    yield return Shot(vname + "_" + tod.ToLower(), 1.0f);
+                }
+            Level.Cam.fieldOfView = 80f;
             Rig.enabled = true;
 
             // Frame rate: 10 s running round the square with the camera turning, then 8 s gliding.
