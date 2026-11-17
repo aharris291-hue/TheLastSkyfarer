@@ -195,6 +195,7 @@ void ALSBrindleCheck::Build()
 			if (KM && Mesh->GetSkeletalMeshAsset() != KM)
 			{
 				Mesh->SetSkeletalMeshAsset(KM);
+				Mesh->EmptyOverrideMaterials(); // the player blueprint overrides the mannequin's materials; use Kieran's own
 			}
 			if (A)
 			{
@@ -257,6 +258,21 @@ void ALSBrindleCheck::Build()
 			K->GetCharacterMovement()->Velocity = FVector(0.f, 1400.f, 0.f);
 			K->Glider->TryDeploy();
 		});
+		if (bKieranTest)   // TEST ONLY: face Kieran in the village square at morning, sunset and night
+		{
+			auto FaceKieran = [this, Story](const TCHAR* Tod)
+			{
+				Story->SetTimeOfDay(Tod);
+				const FVector P(40.f, 45.f, 1.2f);
+				Place(P, -130.f);
+				const FRotator Face(0.f, -130.f, 0.f);
+				const FVector Cam = P * CmPerM + Face.Vector() * 260.f + FVector(0.f, 0.f, 40.f);
+				ShotFrom(Cam, (P * CmPerM + FVector(0.f, 0.f, 10.f) - Cam).Rotation());
+			};
+			Probe(TEXT("kieran front morning"), [FaceKieran]() { FaceKieran(TEXT("Morning")); });
+			Probe(TEXT("kieran front sunset"), [FaceKieran]() { FaceKieran(TEXT("Sunset")); });
+			Probe(TEXT("kieran front night"), [FaceKieran]() { FaceKieran(TEXT("Night")); });
+		}
 		Add(TEXT("probe done"), [this](float T)
 		{
 			GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));

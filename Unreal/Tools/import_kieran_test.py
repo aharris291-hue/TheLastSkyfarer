@@ -37,25 +37,38 @@ t.destination_path = DST
 t.automated, t.save, t.replace_existing = True, True, True
 AT.import_asset_tasks([t])
 tex = unreal.load_asset(DST + "/T_Kieran_BaseColor")
+tex.set_editor_property("never_stream", True)                # keep full detail: a streamed atlas averages to flat grey
+tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_CHARACTER)
+EAL.save_loaded_asset(tex)
 MEL = unreal.MaterialEditingLibrary
 
 
 def make_mat(name, metallic, rough):
-    m = get_or_create(name, unreal.Material, unreal.MaterialFactoryNew())
-    s = MEL.create_material_expression(m, unreal.MaterialExpressionTextureSample, -400, 0)
-    s.texture = tex
-    MEL.connect_material_property(s, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
-    for prop, val, y in ((unreal.MaterialProperty.MP_METALLIC, metallic, 200), (unreal.MaterialProperty.MP_ROUGHNESS, rough, 300)):
-        c = MEL.create_material_expression(m, unreal.MaterialExpressionConstant, -200, y)
-        c.r = val
+    """Fresh material every run (earlier runs stacked nodes into one asset): baked texture to base colour,
+    with a little self-light so he never drops to a black silhouette in shade."""
+    path = DST + "/" + name
+    if EAL.does_asset_exist(path):
+        EAL.delete_asset(path)
+    m = AT.create_asset(name, DST, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property("used_with_skeletal_mesh", True)   # without this the cooked game falls back to the grey default
+    s_ = MEL.create_material_expression(m, unreal.MaterialExpressionTextureSample, -600, 0)
+    s_.set_editor_property("texture", tex)
+    MEL.connect_material_property(s_, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    lift = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -300, 200)
+    lift.set_editor_property("const_b", 0.04)
+    MEL.connect_material_expressions(s_, "RGB", lift, "A")
+    MEL.connect_material_property(lift, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    for prop, val, y in ((unreal.MaterialProperty.MP_METALLIC, metallic, 300), (unreal.MaterialProperty.MP_ROUGHNESS, rough, 400)):
+        c = MEL.create_material_expression(m, unreal.MaterialExpressionConstant, -300, y)
+        c.set_editor_property("r", val)
         MEL.connect_material_property(c, "", prop)
     MEL.recompile_material(m)
     EAL.save_loaded_asset(m)
     return m
 
 
-m_main = make_mat("M_KieranTest", 0.0, 0.7)
-m_metal = make_mat("M_KieranTest_Metal", 1.0, 0.35)
+m_main = make_mat("M_KieranPaint", 0.0, 0.7)
+m_metal = make_mat("M_KieranPaint_Metal", 1.0, 0.35)
 
 # 2. the skeletal mesh with its own skeleton
 opts = unreal.FbxImportUI()
@@ -74,11 +87,13 @@ t.automated, t.save, t.replace_existing = True, True, True
 AT.import_asset_tasks([t])
 mesh = unreal.load_asset(DST + "/SK_KieranTest")
 log("mesh", mesh, "skeleton", mesh.skeleton if mesh else None)
-mats = mesh.get_editor_property("materials")
-for i, sm in enumerate(mats):
-    sm.material_interface = m_metal if "Metal" in str(sm.material_slot_name) else m_main
-mesh.set_editor_property("materials", mats)
+new = []
+for sm in mesh.get_editor_property("materials"):
+    mi = m_metal if "Metal" in str(sm.material_slot_name) else m_main
+    new.append(unreal.SkeletalMaterial(material_interface=mi, material_slot_name=sm.material_slot_name))
+mesh.set_editor_property("materials", new)
 EAL.save_loaded_asset(mesh)
+log("slots", [(str(x.material_slot_name), x.material_interface.get_name()) for x in mesh.get_editor_property("materials")])
 
 # 3. IK rigs and a retargeter from the UE5 mannequin to Kieran
 src_mesh = unreal.load_asset("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple") or unreal.load_asset("/Game/Characters/Mannequins/Meshes/SKM_Quinn_Simple")
