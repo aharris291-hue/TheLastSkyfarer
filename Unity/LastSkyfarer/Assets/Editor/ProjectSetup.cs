@@ -49,6 +49,7 @@ namespace LastSkyfarer.EditorTools
             }
             var lv = levels.GetArrayElementAtIndex(lowIndex);
             lv.FindPropertyRelative("name").stringValue = "Low";
+            lv.FindPropertyRelative("excludedTargetPlatforms").ClearArray();   // the copied mobile level excluded desktop builds
             lv.FindPropertyRelative("customRenderPipeline").objectReferenceValue = low;
             lv.FindPropertyRelative("vSyncCount").intValue = 0;          // the game caps at 30 fps itself
             lv.FindPropertyRelative("antiAliasing").intValue = 0;
