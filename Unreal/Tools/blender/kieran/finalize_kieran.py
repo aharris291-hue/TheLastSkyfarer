@@ -304,8 +304,21 @@ glb = os.path.join(EXP, "Kieran_Thorn_GameReady.glb")
 fbx = os.path.join(EXP, "Kieran_Thorn_GameReady.fbx")
 bpy.ops.export_scene.gltf(filepath=glb, use_selection=True, export_format="GLB", export_skins=True, export_animations=False,
                           export_apply=False)
+# Unreal works in centimetres: rescale this game copy so 1 Blender unit = 1 cm and the skeleton imports 1:1
+# (otherwise the root bone carries a 100x scale that retargeted animations ignore and the mesh collapses)
+rig.name = "Armature"   # Unreal drops a top node named Armature
+sc.unit_settings.scale_length = 0.01
+for o in (rig, game):
+    o.select_set(True)
+bpy.context.view_layer.objects.active = rig
+game.parent = None
+rig.scale = (100, 100, 100)
+game.scale = (100, 100, 100)
+bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+game.parent = rig
 bpy.ops.export_scene.fbx(filepath=fbx, use_selection=True, add_leaf_bones=False, bake_anim=False, mesh_smooth_type="FACE",
-                         armature_nodetype="NULL", primary_bone_axis="Y", secondary_bone_axis="X")
+                         armature_nodetype="NULL", primary_bone_axis="Y", secondary_bone_axis="X",
+                         apply_unit_scale=True, apply_scale_options="FBX_SCALE_NONE", global_scale=1.0)
 REPORT["glb_bytes"] = os.path.getsize(glb)
 REPORT["fbx_bytes"] = os.path.getsize(fbx)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KDIR, "Kieran_Thorn_GameReady_scene.blend"), copy=True)
