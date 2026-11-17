@@ -1,0 +1,16 @@
+{
+ "atlas": "D:/TheLastSkyfarer/repo/Unity/SourceArt/Characters/Tessa/export\\T_Tessa_BaseColor.png",
+ "game_triangles": 48488,
+ "game_vertices": 36378,
+ "materials": 2,
+ "bones": 53,
+ "glb_bytes": 6503380,
+ "fbx_bytes": 2184924,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 48473,
+  "skinned": true
+ }
+}

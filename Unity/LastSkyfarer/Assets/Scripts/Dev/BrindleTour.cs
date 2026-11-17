@@ -59,34 +59,18 @@ namespace LastSkyfarer.Dev
             yield return Shot("5_upper_cliffs_view", 2.5f);
 
             // Character close-ups: Bram at the Windsong Tavern, then Kieran in the square (morning light).
-            var bram = Level.Story.Database.FindInteractable("NPC_Bram");
-            if (bram != null)
+            foreach (var (npcId, shot) in new[] { ("NPC_Bram", "6_bram"), ("NPC_Tessa", "6c_tessa"), ("NPC_Elara", "6d_elara") })
             {
+                var npc = Level.Story.Database.FindInteractable(npcId);
+                if (npc == null) continue;
                 Level.TimeOfDay.Apply("Morning", true);
-                K.Teleport(bram.Position + Quaternion.Euler(0f, bram.Yaw, 0f) * new Vector3(1.6f, 0f, 2.4f), bram.Yaw + 200f);
-                // Aim from where he actually faces (the Humanoid body direction), not from the placement yaw.
-                float facing = bram.Yaw;
-                foreach (var an in FindObjectsByType<Animator>(FindObjectsSortMode.None))
-                    if (an.isHuman && !an.GetComponentInParent<KieranController>() && Vector3.Distance(an.transform.position, bram.Position) < 2f)
-                    {
-                        an.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                        yield return null;
-                        // The head's centroid sits behind the face (hair, ponytail).
-                        var head = an.GetBoneTransform(HumanBodyBones.Head);
-                        var smr = an.GetComponentInChildren<SkinnedMeshRenderer>();
-                        var baked = new Mesh(); smr.BakeMesh(baked, true);
-                        Vector3 sum = Vector3.zero; int count = 0;
-                        foreach (var vtx in baked.vertices)
-                        {
-                            Vector3 w = smr.transform.TransformPoint(vtx);
-                            if (Vector3.Distance(w, head.position + Vector3.up * 0.05f) < 0.16f) { sum += w; count++; }
-                        }
-                        Vector3 f = sum / Mathf.Max(count, 1) - head.position; f.y = 0f;
-                        if (f.sqrMagnitude > 1e-6f) facing = Quaternion.LookRotation(f).eulerAngles.y + 180f;   // the hair and ponytail outweigh the face: it is the other way
-                        Debug.Log($"LS_TOUR facing Bram: placed {bram.Yaw:F0}, body faces {facing:F0}");
-                    }
-                yield return CloseUp("6_bram_closeup", bram.Position, facing + 18f, 2.3f, 1.55f);
-                yield return CloseUp("6b_bram_full", bram.Position, facing - 30f, 3.6f, 1.0f);
+                K.Teleport(npc.Position + Quaternion.Euler(0f, npc.Yaw, 0f) * new Vector3(2.5f, 0f, -2.5f), npc.Yaw);
+                yield return null;
+                float facing = npc.Yaw;
+                // Villager prefabs face their root's forward (VillagerSetup checks the toes), and the root takes the
+                // placement yaw.
+                yield return CloseUp(shot + "_closeup", npc.Position, facing + 15f, 2.2f, 1.45f);
+                yield return CloseUp(shot + "_full", npc.Position, facing - 30f, 3.6f, 0.95f);
             }
             yield return Place("Morning", new Vector3(-5f, 0.05f, -15f), 25f, 7f, 10f, 25f);
             yield return CloseUp("7_kieran_closeup", K.transform.position, 25f + 20f, 2.0f, 1.35f);

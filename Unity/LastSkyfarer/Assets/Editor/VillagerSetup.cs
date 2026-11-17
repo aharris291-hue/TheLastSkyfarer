@@ -16,13 +16,13 @@ namespace LastSkyfarer.EditorTools
         const string ControllerPath = "Assets/Art/Characters/Villagers/Villager.controller";
         const string IdlePath = "Assets/Art/Characters/Kieran/Animations/Mixamo_Idle.fbx";
         // speaker id (Speakers.json) -> villager name (folder Assets/Art/Characters/<Name>, model <Export>_GameReady.fbx)
-        public static readonly (string speaker, string name, string export)[] Cast = { ("tavern", "Bram", "Bram_Holloway") };
+        public static readonly (string speaker, string name, string export)[] Cast = { ("tavern", "Bram", "Bram_Holloway"), ("tessa", "Tessa", "Tessa_Reed"), ("villager", "Elara", "Elara_Greenborough") };
 
         public static void Run()
         {
             Directory.CreateDirectory(PrefabDir);
             Directory.CreateDirectory(Path.GetDirectoryName(ControllerPath));
-            var idle = AssetDatabase.LoadAllAssetsAtPath(IdlePath).OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview"));
+            var idle = CalmIdle(AssetDatabase.LoadAllAssetsAtPath(IdlePath).OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview")));
             AssetDatabase.DeleteAsset(ControllerPath);
             var ac = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
             var st = ac.layers[0].stateMachine.AddState("Idle");
@@ -31,6 +31,38 @@ namespace LastSkyfarer.EditorTools
             foreach (var (speaker, name, export) in Cast) Build(name, export, ac);
             AssetDatabase.SaveAssets();
             Debug.Log("LS_VILLAGERS_OK");
+        }
+
+        /// <summary>A calmer idle for villagers who stand and talk: the Mixamo idle with its head turns, shoulder
+        /// shrugs and arm swing damped towards their average, so nobody is caught mid-glance with arms wide.</summary>
+        static AnimationClip CalmIdle(AnimationClip src)
+        {
+            const string path = "Assets/Art/Characters/Villagers/Villager_Idle.anim";
+            var clip = new AnimationClip { name = "Villager_Idle" };
+            foreach (var b in AnimationUtility.GetCurveBindings(src))
+            {
+                var curve = AnimationUtility.GetEditorCurve(src, b);
+                string n = b.propertyName;
+                float damp = n.Contains("Head") || n.Contains("Neck") ? 0.25f
+                           : n.Contains("Arm") || n.Contains("Shoulder") || n.Contains("Forearm") || n.Contains("Hand") ? 0.45f
+                           : n.Contains("Spine") || n.Contains("Chest") ? 0.5f : 1f;
+                if (damp < 1f && curve.length > 1)
+                {
+                    float mean = 0f; foreach (var k in curve.keys) mean += k.value; mean /= curve.length;
+                    if (n.Contains("Arm Down-Up")) mean -= 0.04f;                       // arms a touch closer to the body
+                    var keys = curve.keys;
+                    for (int i = 0; i < keys.Length; i++) { keys[i].value = mean + (keys[i].value - mean) * damp; keys[i].inTangent *= damp; keys[i].outTangent *= damp; }
+                    curve.keys = keys;
+                }
+                AnimationUtility.SetEditorCurve(clip, b, curve);
+            }
+            var settings = AnimationUtility.GetAnimationClipSettings(src);
+            settings.loopTime = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(clip, path);
+            Debug.Log($"LS_VILLAGER calm idle: {AnimationUtility.GetCurveBindings(clip).Length} curves, {clip.length:F1} s, humanoid {clip.humanMotion}");
+            return clip;
         }
 
         static void Build(string name, string export, AnimatorController ac)
@@ -77,6 +109,22 @@ namespace LastSkyfarer.EditorTools
             anim.avatar = avatar;
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            // Make sure the villager faces the prefab's forward (+Z): in the idle pose the toes must lie in front of
+            // the ankles. If they do not, turn the model round, so turning to face Kieran shows the face, not the back.
+            AnimationClip clip = ac.layers[0].stateMachine.defaultState.motion as AnimationClip;
+            clip.SampleAnimation(go, 0f);
+            var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
+            var baked = new Mesh(); smr.BakeMesh(baked, true);
+            Vector3 ankle = (anim.GetBoneTransform(HumanBodyBones.LeftFoot).position + anim.GetBoneTransform(HumanBodyBones.RightFoot).position) * 0.5f;
+            float toes = 0f; int n = 0;
+            foreach (var v in baked.vertices)
+            {
+                var w = smr.transform.TransformPoint(v);
+                if (w.y < ankle.y - 0.04f) { toes += w.z - ankle.z; n++; }
+            }
+            toes /= Mathf.Max(n, 1);
+            if (toes < 0f) go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            Debug.Log($"LS_VILLAGER {name}: toes {toes * 100f:F1} cm ahead of the ankles{(toes < 0f ? " - turned to face forward" : "")}");
             PrefabUtility.SaveAsPrefabAsset(root, $"{PrefabDir}/{name}.prefab");
             Object.DestroyImmediate(root);
         }
