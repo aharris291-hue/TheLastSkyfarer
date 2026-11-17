@@ -411,14 +411,14 @@ def curls(body, rig, B, seed=11):
         if up < 0.42 and front < -0.02:
             continue                                      # tidy nape
         n = (v.normal + Vector((0, 0, 0.25))).normalized()
-        depth = 0.012 + 0.05 * max(0.0, up - 0.25) ** 0.8  # tall on top, close at the sides like the drawings
+        depth = 0.02 + 0.055 * max(0.0, up - 0.2) ** 0.7   # rounded: full on top, still generous at the sides
         if front > 0.04 and up > 0.55:
             depth *= 1.1
         for k in range(2):
             t = random.uniform(0.25, 1.0)
             e = mb.elements.new()
             e.co = v.co + n * depth * t + Vector((random.uniform(-.004, .004), random.uniform(-.004, .004), random.uniform(-.003, .003)))
-            e.radius = random.uniform(0.016, 0.024)
+            e.radius = random.uniform(0.018, 0.027)
             e.stiffness = 1.2
             if t > 0.8:
                 surface.append((e.co.copy(), n))
@@ -640,7 +640,7 @@ def dress(body, rig):
         c0 = sum(fv, Vector()) / len(fv)
         for v in bmh.verts:   # leather thickness, a slightly squared toe box
             d = v.co - c0
-            v.co = c0 + Vector((d.x * 1.3, d.y * 1.14, d.z * 1.16))
+            v.co = c0 + Vector((d.x * 1.4, d.y * 1.18, d.z * 1.2))
             v.co.z = max(v.co.z, 0.012)
         meh = bpy.data.meshes.new("Kieran_bootfoot_" + s)
         bmh.to_mesh(meh)
@@ -654,13 +654,18 @@ def dress(body, rig):
         sm.factor, sm.iterations = 1.0, 6
         for p in meh.polygons:
             p.use_smooth = True
+        meh.materials.append(mat("boot_dark"))          # toe cap: front of the foot shell
+        toe_front = min(v.co.y for v in meh.vertices)
+        for p in meh.polygons:
+            if p.center.y < toe_front + 0.045 and p.center.z < 0.07:
+                p.material_index = 1
         # sole: the boot footprint, a little proud of the upper, flat on the ground
         sole_me = meh.copy()
         sole = bpy.data.objects.new("Kieran_sole_" + s, sole_me)
         bpy.context.scene.collection.objects.link(sole)
         for v in sole_me.vertices:
             d = v.co - c0
-            v.co = Vector((c0.x + d.x * 1.06, c0.y + d.y * 1.05, min(v.co.z, 0.034)))
+            v.co = Vector((c0.x + d.x * 1.06, c0.y + d.y * 1.05, min(v.co.z, 0.038)))
         sole_me.materials.clear()
         sole_me.materials.append(mat("sole"))
         rm2 = sole.modifiers.new("remesh", "REMESH")

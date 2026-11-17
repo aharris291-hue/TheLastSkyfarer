@@ -28,6 +28,8 @@ rig = bpy.data.objects["Kieran_Rig"]
 sc = bpy.context.scene
 sc.view_settings.view_transform = "Standard"
 sc.view_settings.exposure = -1.6
+for l in bpy.data.lights:   # neutral white light, so the comparison judges the materials, not the lamp colour
+    l.color = (1.0, 1.0, 1.0)
 
 
 def render(name, yaw, res=(800, 1200), pad=1.06):
@@ -234,6 +236,8 @@ bpy.context.view_layer.objects.active = game
 bpy.ops.object.mode_set(mode="EDIT")
 bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.002, scale_to_bounds=True)
+bpy.ops.uv.average_islands_scale()
+bpy.ops.uv.pack_islands(rotate=True, margin=0.0015)
 bpy.ops.object.mode_set(mode="OBJECT")
 atlas = bpy.data.images.new("T_Kieran_BaseColor", 2048, 2048, alpha=False)
 for m in game.data.materials:
