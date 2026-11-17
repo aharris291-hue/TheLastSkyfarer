@@ -82,7 +82,7 @@ namespace LastSkyfarer.Player
             if (Input.Jump.WasPressedThisFrame()) JumpPressed();
             if (Input.Sprint.WasPressedThisFrame()) StartSprint();
             if (Input.Sprint.WasReleasedThisFrame()) StopSprint();
-            if (Input.WalkToggle.WasPressedThisFrame() && Mode != MoveMode.Gliding) WalkMode = !WalkMode;
+            if (Input.WalkToggle.WasPressedThisFrame() && Mode != MoveMode.Gliding && Mode != MoveMode.Climbing) WalkMode = !WalkMode;
             if (Sprinting && Now - sprintStart >= SprintDuration) StopSprint();
 
             switch (Mode)
@@ -104,6 +104,16 @@ namespace LastSkyfarer.Player
             float yaw = CameraYawSource ? CameraYawSource.eulerAngles.y : transform.eulerAngles.y;
             Quaternion q = Quaternion.Euler(0f, yaw, 0f);
             return q * new Vector3(m.x, 0f, m.y);
+        }
+
+        public Vector3 WorldMoveDirection => MoveDirection();
+
+        /// <summary>Throws Kieran into the air with a velocity (climb hops, jump-offs).</summary>
+        public void Launch(Vector3 v)
+        {
+            Mode = MoveMode.Falling;
+            velocity = v;
+            jumpedSinceGrounded = true;
         }
 
         public float TargetSpeed => Sprinting ? SprintSpeed : (WalkMode ? WalkSpeed : RunSpeed);
