@@ -81,6 +81,9 @@ namespace LastSkyfarer.Dev
             k.TryDeploy();
             yield return Shot("4_gliding_side", () => Frame(k.transform.position, 90f, 5.5f, 0.4f), 1.5f);
             yield return Shot("5_gliding_front", () => Frame(k.transform.position, 35f, 5.5f, 1.4f), 0.6f);
+            var grip = k.GetComponentInChildren<KieranGlideRig>();
+            if (grip) { var e = grip.GripError(); Debug.Log($"LS_SHOWCASE grip left {e.x * 100f:F1} cm, right {e.y * 100f:F1} cm from the bar"); }
+            yield return Shot("5b_gliding_above", () => Frame(k.transform.position, 150f, 6.5f, 3.0f), 0.3f);
             while (k.Mode == MoveMode.Gliding) yield return null;
             yield return new WaitForSeconds(0.8f);
 

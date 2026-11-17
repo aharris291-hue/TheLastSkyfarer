@@ -26,6 +26,7 @@ namespace LastSkyfarer.World
         [Range(0f, 1f)] public float EdgeFalloff = 0.4f;
         [Tooltip("Invisible and inactive until revealed (by Piko or the Wind Resonator).")] public bool StartsHidden;
         [Tooltip("The impossible current glows Aerian blue.")] public bool ImpossibleRoute;
+        [Tooltip("Story flag that reveals this hidden wind (revealed_wind_1); the impossible route opens with compass_active.")] public string RevealFlag = "";
 
         public bool Revealed { get; private set; }
         public bool IsActive => !StartsHidden || Revealed;

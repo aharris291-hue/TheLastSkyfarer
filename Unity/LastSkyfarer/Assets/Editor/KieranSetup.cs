@@ -120,6 +120,7 @@ namespace LastSkyfarer.EditorTools
             var lm = T(land, loco, 0.15f); lm.AddCondition(AnimatorConditionMode.Greater, 0.5f, "Speed");   // running off a landing
             T(land, loco, 0.2f, exit: true);
             T(land, fall, 0.1f).AddCondition(AnimatorConditionMode.IfNot, 0, "Grounded");
+            var acLayers = ac.layers; acLayers[0].iKPass = true; ac.layers = acLayers;   // hands to the glider bar
             AssetDatabase.SaveAssets();
 
             // 5. Player prefab: controller and collision for 5 ft 8 in, model as a child with the Animator.
@@ -150,10 +151,87 @@ namespace LastSkyfarer.EditorTools
             var b = new Bounds(); bool first = true;
             foreach (var r in model.GetComponentsInChildren<Renderer>()) { if (first) { b = r.bounds; first = false; } else b.Encapsulate(r.bounds); }
             Debug.Log($"LS_KIERAN model height {b.size.y:F3} m, bottom {b.min.y:F3}, width {b.size.x:F3}");
+            BuildGlider(root, model, anim, C("Kieran_Glide"));
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             Object.DestroyImmediate(root);
             AssetDatabase.SaveAssets();
             Debug.Log("LS_KIERAN_SETUP_OK");
+        }
+
+        // ------------------------------------------------------------ Elias's glider and the grip (glide_pose.py measurements)
+        static void BuildGlider(GameObject root, GameObject model, Animator anim, AnimationClip glide)
+        {
+            // Where his shoulders are in the glide pose, relative to the player root (+Z is the way he flies).
+            glide.SampleAnimation(model, 0f);
+            Vector3 L(HumanBodyBones bone) => root.transform.InverseTransformPoint(anim.GetBoneTransform(bone).position);
+            Vector3 shoulders = (L(HumanBodyBones.LeftUpperArm) + L(HumanBodyBones.RightUpperArm)) * 0.5f;
+            Debug.Log($"LS_KIERAN glide pose: shoulders {shoulders}, head {L(HumanBodyBones.Head)}, hips {L(HumanBodyBones.Hips)}, hands {L(HumanBodyBones.LeftHand)} {L(HumanBodyBones.RightHand)}");
+            Vector3 bar = shoulders + new Vector3(0f, -0.38f, 0.30f);      // 30 cm ahead of and 38 cm below the shoulders
+            const float half = 0.26f;                                       // a shoulder-width grip
+
+            var glider = new GameObject("Glider");
+            glider.transform.SetParent(root.transform, false);
+            var sail = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/MI_Sailcloth.mat");
+            var wood = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/MI_Wood.mat");
+            var brass = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Materials/MI_Brass.mat");
+            var rodMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/Art/Generated/Cylinder48.asset") ?? Resources.GetBuiltinResource<Mesh>("Cylinder.fbx");
+            void Rod(string name, Vector3 a, Vector3 c, float d, Material m)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(glider.transform, false);
+                go.transform.localPosition = (a + c) * 0.5f;
+                go.transform.localRotation = Quaternion.FromToRotation(Vector3.up, c - a);
+                go.transform.localScale = new Vector3(d, (c - a).magnitude, d);
+                go.AddComponent<MeshFilter>().sharedMesh = rodMesh;
+                go.AddComponent<MeshRenderer>().sharedMaterial = m;
+            }
+            Vector3 apex = bar + new Vector3(0f, 0.95f, 0.25f);
+            Vector3 nose = apex + new Vector3(0f, 0.10f, 1.30f), tail = apex + new Vector3(0f, 0.05f, -1.90f);
+            Vector3 tipL = apex + new Vector3(-3.4f, 0.28f, -1.55f), tipR = apex + new Vector3(3.4f, 0.28f, -1.55f);
+            Rod("ControlBar", bar + Vector3.left * 0.45f, bar + Vector3.right * 0.45f, 0.035f, brass);
+            Rod("Upright_L", bar + Vector3.left * 0.45f, apex, 0.03f, wood);
+            Rod("Upright_R", bar + Vector3.right * 0.45f, apex, 0.03f, wood);
+            Rod("Keel", nose, tail, 0.045f, wood);
+            Rod("LeadingEdge_L", nose, tipL, 0.04f, wood);
+            Rod("LeadingEdge_R", nose, tipR, 0.04f, wood);
+            Rod("CrossSpar", Vector3.Lerp(nose, tipL, 0.55f), Vector3.Lerp(nose, tipR, 0.55f), 0.03f, wood);
+            // The sail: two billowing panels, drawn from both sides.
+            var mesh = new Mesh { name = "GliderSail" };
+            Vector3 billowL = Vector3.Lerp(Vector3.Lerp(nose, tipL, 0.5f), tail, 0.45f) + Vector3.up * 0.22f;
+            Vector3 billowR = Vector3.Lerp(Vector3.Lerp(nose, tipR, 0.5f), tail, 0.45f) + Vector3.up * 0.22f;
+            var v = new[] { nose, tipL, tail, billowL, tipR, billowR };
+            var verts = new System.Collections.Generic.List<Vector3>();
+            var tris = new System.Collections.Generic.List<int>();
+            void Tri(Vector3 a, Vector3 c, Vector3 e) { int i = verts.Count; verts.AddRange(new[] { a, c, e, a, e, c }); tris.AddRange(new[] { i, i + 1, i + 2, i + 3, i + 4, i + 5 }); }
+            Tri(nose, billowL, tipL); Tri(tipL, billowL, tail); Tri(nose, tail, billowL);
+            Tri(nose, tipR, billowR); Tri(tipR, tail, billowR); Tri(nose, billowR, tail);
+            mesh.SetVertices(verts); mesh.SetTriangles(tris, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds();
+            string meshPath = Root + "/GliderSail.asset";
+            AssetDatabase.DeleteAsset(meshPath);
+            AssetDatabase.CreateAsset(mesh, meshPath);
+            var sailGo = new GameObject("Sail");
+            sailGo.transform.SetParent(glider.transform, false);
+            sailGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+            sailGo.AddComponent<MeshRenderer>().sharedMaterial = sail;
+
+            // Grips: wrists just behind and above the bar so the palms close over it, fingers forward and curled down.
+            Transform Grip(string name, float side, float yaw)
+            {
+                var t = new GameObject(name).transform;
+                t.SetParent(root.transform, false);
+                t.localPosition = bar + new Vector3(side * half, 0.06f, -0.05f);
+                t.localRotation = Quaternion.AngleAxis(25f, Vector3.right) * Quaternion.AngleAxis(yaw, Vector3.up);
+                return t;
+            }
+            var rig = model.AddComponent<KieranGlideRig>();
+            rig.Kieran = root.GetComponent<KieranController>();
+            rig.Glider = glider;
+            rig.LeftGrip = Grip("Grip_L", -1f, 90f);
+            rig.RightGrip = Grip("Grip_R", 1f, -90f);
+            glider.SetActive(false);
+            // Back to the bind pose before saving the prefab.
+            AssetDatabase.LoadAllAssetsAtPath(Root + "/Animations/Mixamo_Idle.fbx").OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview")).SampleAnimation(model, 0f);
+            Debug.Log($"LS_KIERAN glider: bar {bar}, apex {apex}, span {(tipR - tipL).magnitude:F1} m");
         }
     }
 }

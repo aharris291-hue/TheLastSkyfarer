@@ -68,6 +68,7 @@ namespace LastSkyfarer.Story
         public string Speaker = "";
         public string Prompt = "";
         public Vector3 Position;
+        public Vector3 Size;                    // inspectables: the shape Kieran looks at (metres)
         public float Yaw;
         public float Radius = 2f;
         public List<string> AvailableIf = new List<string>();
