@@ -93,6 +93,14 @@ def mat(key):
     if kind == "skin":
         b.inputs["Subsurface Weight"].default_value = 0.15
         b.inputs["Subsurface Radius"].default_value = (0.9, 0.45, 0.25)
+        ca = nt.nodes.new("ShaderNodeVertexColor")
+        ca.layer_name = "paint"
+        mul = nt.nodes.new("ShaderNodeMix")
+        mul.data_type, mul.blend_type = "RGBA", "MULTIPLY"
+        mul.inputs[0].default_value = 1.0
+        L.new(ramp.outputs["Color"], mul.inputs[6])
+        L.new(ca.outputs["Color"], mul.inputs[7])
+        L.new(mul.outputs[2], b.inputs["Base Color"])
     return m
 
 
@@ -392,37 +400,60 @@ def curls(body, rig, B, seed=11):
     hl = (head1 - head0).length
     idx = [v.index for v in body.data.vertices if vg and any(g.group == vg.index and g.weight > 0.4 for g in v.groups)]
     random.seed(seed)
-    cu = bpy.data.curves.new("Kieran_hair", "CURVE")
-    cu.dimensions, cu.bevel_resolution, cu.resolution_u = "3D", 2, 5
-    cu.bevel_depth = 1.0
+    mb = bpy.data.metaballs.new("Kieran_hair_mass")
+    mb.resolution = mb.render_resolution = 0.0055
+    mb.threshold = 0.25
+    surface = []
     for i in idx:
         v = body.data.vertices[i]
         up = (v.co.z - head0.z) / hl                     # 0 at the base of the skull, 1 at the crown
         front = -v.co.y + head0.y                         # positive toward the face
-        if up < 0.45 and front < -0.02:
+        if up < 0.42 and front < -0.02:
             continue                                      # tidy nape
-        for k in range(3 if up > 0.65 else 2):
-            n = (v.normal + Vector((0, 0, 0.35)) + Vector((random.uniform(-.2, .2), random.uniform(-.2, .2), 0))).normalized()
-            a = n.orthogonal().normalized()
-            b = n.cross(a)
-            L = (0.024 + 0.034 * max(0.0, up - 0.3)) * random.uniform(0.8, 1.2)
-            if front > 0.03 and up > 0.6:
-                L *= 1.15                                 # curls tumbling over the forehead
-            turns = random.uniform(1.0, 1.8)
-            r = random.uniform(0.005, 0.008)
-            thick = random.uniform(0.0065, 0.0095)
-            ph = random.uniform(0, 2 * math.pi)
-            base = v.co + Vector((random.uniform(-.004, .004), random.uniform(-.004, .004), random.uniform(-.003, .003)))
-            sp = cu.splines.new("NURBS")
-            sp.points.add(11)
-            for j in range(12):
-                t = j / 11
-                ang = ph + t * turns * 2 * math.pi
-                p = base + n * (L * t) + (a * math.cos(ang) + b * math.sin(ang)) * r * min(1.0, t * 3)
-                sp.points[j].co = (p.x, p.y, p.z, 1)
-                sp.points[j].radius = thick * (1.0 - 0.45 * t)
-            sp.use_endpoint_u, sp.order_u = True, 4
-    o = bpy.data.objects.new("Kieran_hair", cu)
+        n = (v.normal + Vector((0, 0, 0.25))).normalized()
+        depth = 0.012 + 0.05 * max(0.0, up - 0.25) ** 0.8  # tall on top, close at the sides like the drawings
+        if front > 0.04 and up > 0.55:
+            depth *= 1.1
+        for k in range(2):
+            t = random.uniform(0.25, 1.0)
+            e = mb.elements.new()
+            e.co = v.co + n * depth * t + Vector((random.uniform(-.004, .004), random.uniform(-.004, .004), random.uniform(-.003, .003)))
+            e.radius = random.uniform(0.016, 0.024)
+            e.stiffness = 1.2
+            if t > 0.8:
+                surface.append((e.co.copy(), n))
+    mobj = bpy.data.objects.new("Kieran_hair", mb)
+    bpy.context.scene.collection.objects.link(mobj)
+    bpy.context.view_layer.update()
+    for o in bpy.context.selected_objects:
+        o.select_set(False)
+    bpy.context.view_layer.objects.active = mobj
+    mobj.select_set(True)
+    bpy.ops.object.convert(target="MESH")
+    hair_mesh = bpy.context.active_object
+    hair_mesh.name = "Kieran_hair"
+    hair_mesh.data.materials.append(mat("hair"))
+    for p in hair_mesh.data.polygons:
+        p.use_smooth = True
+    attach(hair_mesh, rig, "head")
+    # small tight coils on the outside of the mass give the curl texture of the drawings
+    cu = bpy.data.curves.new("Kieran_hair_coils", "CURVE")
+    cu.dimensions, cu.bevel_resolution, cu.resolution_u, cu.bevel_depth = "3D", 1, 4, 1.0
+    random.shuffle(surface)
+    for co, n in surface[:900]:
+        a_ = n.orthogonal().normalized()
+        b_ = n.cross(a_)
+        L, r, th, ph = random.uniform(0.008, 0.016), random.uniform(0.004, 0.006), random.uniform(0.004, 0.0055), random.uniform(0, 6.28)
+        sp = cu.splines.new("NURBS")
+        sp.points.add(7)
+        for j in range(8):
+            t = j / 7
+            ang = ph + t * 1.6 * 2 * math.pi
+            q = co + n * (0.006 + L * t) + (a_ * math.cos(ang) + b_ * math.sin(ang)) * r
+            sp.points[j].co = (q.x, q.y, q.z, 1)
+            sp.points[j].radius = th * (1 - 0.4 * t)
+        sp.use_endpoint_u, sp.order_u = True, 4
+    o = bpy.data.objects.new("Kieran_hair_coils", cu)
     bpy.context.scene.collection.objects.link(o)
     cu.materials.append(mat("hair"))
     attach(o, rig, "head")
@@ -434,6 +465,37 @@ def curls(body, rig, B, seed=11):
         if sum(1 for i in p.vertices if i in on) >= 3:
             p.material_index = slot
     return o
+
+
+def paint_skin(body, B):
+    """Hand-painted touches as vertex colour: warm cheeks and nose, deeper lips, soft shadow round the eyes."""
+    me = body.data
+    attr = me.color_attributes.new("paint", "BYTE_COLOR", "POINT")
+    h0, h1 = B["head"]
+    hl = (h1 - h0).length
+    lips = body.vertex_groups.get("lips")
+    lip_idx = {v.index for v in me.vertices if lips and any(g.group == lips.index and g.weight > 0.3 for g in v.groups)}
+    eyes = [b for n, b in B.items() if n.startswith("eye")] if any(n.startswith("eye") for n in B) else []
+    face_y = min(v.co.y for v in me.vertices if abs(v.co.z - (h0.z + hl * 0.3)) < 0.02 and abs(v.co.x) < 0.02)
+    for v in me.vertices:
+        c = [1.0, 1.0, 1.0]
+        co = v.co
+        rel = (co.z - h0.z) / hl
+        if 0.0 < rel < 0.6 and co.y < face_y + 0.06:
+            for sx in (-1, 1):   # cheeks
+                d = (Vector((co.x, co.z)) - Vector((sx * 0.042, h0.z + hl * 0.22))).length
+                w = max(0.0, 1 - d / 0.03) * 0.12
+                c = [c[0] + w * 0.4, c[1] - w * 0.25, c[2] - w * 0.35]
+            d = (Vector((co.x, co.z)) - Vector((0, h0.z + hl * 0.25))).length   # nose tip
+            w = max(0.0, 1 - d / 0.02) * 0.08
+            c = [c[0] + w * 0.3, c[1] - w * 0.2, c[2] - w * 0.3]
+            for sx in (-1, 1):   # soft shadow round the eyes
+                d = (Vector((co.x, co.z)) - Vector((sx * 0.033, h0.z + hl * 0.4))).length
+                w = max(0.0, 1 - d / 0.025) * 0.12
+                c = [c[0] - w, c[1] - w * 1.1, c[2] - w]
+        if v.index in lip_idx:
+            c = [0.82, 0.62, 0.6]
+        attr.data[v.index].color = (max(0, min(1, c[0])), max(0, min(1, c[1])), max(0, min(1, c[2])), 1.0)
 
 
 # ------------------------------------------------------------------ the whole outfit
@@ -453,6 +515,7 @@ def dress(body, rig):
     # skin: painted tone; keep MPFB's eye textures, brown irises
     body.data.materials.clear()
     body.data.materials.append(mat("skin"))
+    paint_skin(body, B)
     brown = os.path.join(os.environ["APPDATA"], "Blender Foundation", "Blender", "5.2", "extensions", ".user", "blender_org", "mpfb",
                          "data", "eyes", "materials", "brown_eye.png")
     for o in bpy.data.objects:
@@ -577,7 +640,7 @@ def dress(body, rig):
         c0 = sum(fv, Vector()) / len(fv)
         for v in bmh.verts:   # leather thickness, a slightly squared toe box
             d = v.co - c0
-            v.co = c0 + Vector((d.x * 1.2, d.y * 1.1, d.z * 1.12))
+            v.co = c0 + Vector((d.x * 1.3, d.y * 1.14, d.z * 1.16))
             v.co.z = max(v.co.z, 0.012)
         meh = bpy.data.meshes.new("Kieran_bootfoot_" + s)
         bmh.to_mesh(meh)
@@ -597,11 +660,15 @@ def dress(body, rig):
         bpy.context.scene.collection.objects.link(sole)
         for v in sole_me.vertices:
             d = v.co - c0
-            v.co = Vector((c0.x + d.x * 1.05, c0.y + d.y * 1.04, min(v.co.z, 0.03)))
+            v.co = Vector((c0.x + d.x * 1.06, c0.y + d.y * 1.05, min(v.co.z, 0.034)))
         sole_me.materials.clear()
         sole_me.materials.append(mat("sole"))
         rm2 = sole.modifiers.new("remesh", "REMESH")
         rm2.mode, rm2.voxel_size = "VOXEL", 0.005
+        tex = bpy.data.textures.new("lugs_" + s, "STUCCI")      # chunky lug tread on the underside
+        tex.noise_scale = 0.012
+        lug = sole.modifiers.new("lugs", "DISPLACE")
+        lug.texture, lug.texture_coords, lug.strength, lug.direction = tex, "GLOBAL", 0.004, "Z"
         attach(bf, rig, "foot_" + s)
         attach(sole, rig, "foot_" + s)
     for s in "lr":
@@ -610,13 +677,20 @@ def dress(body, rig):
         ring_band("Kieran_boot_cuff_" + s, c, rx, ry, 0.026, 0.006, "boot_dark", parent=rig, bone="calf_" + s)
         for k in range(6):   # crossed laces and brass eyelets up the front
             p0 = pt(seg, "shin_" + s, 0.64 + k * 0.06)
-            c2, rx2, ry2 = ring_at(body, cls, p0.z, ("shin_" + s, "foot_" + s), 0.012)
+            c2, rx2, ry2 = ring_at(body, cls, p0.z, ("shin_" + s, "foot_" + s), 0.027)
             yf = c2.y - ry2
             for sx in (-1, 1):
                 cyl("Kieran_eyelet_%s%d%d" % (s, k, sx), (c2.x + sx * 0.013, yf - 0.002, p0.z), 0.0025, 0.002, "brass",
                     rot=(math.radians(90), 0, 0), verts=12, parent=rig, bone="calf_" + s)
-            box("Kieran_lace_%s%d" % (s, k), (c2.x, yf - 0.004, p0.z), (0.014, 0.0015, 0.0018), "boot_dark", 0.2,
-                rot=(0, (k % 2 - 0.5) * 0.6, 0), parent=rig, bone="calf_" + s)
+            if k < 5:   # criss-cross: each lace runs from one side up to the other
+                p1 = pt(seg, "shin_" + s, 0.64 + (k + 1) * 0.06)
+                for sx in (-1, 1):
+                    a3 = Vector((c2.x + sx * 0.013, yf - 0.004, p0.z))
+                    b3 = Vector((c2.x - sx * 0.013, yf - 0.004, p1.z))
+                    mid = (a3 + b3) / 2
+                    ang = math.atan2(b3.z - a3.z, b3.x - a3.x)
+                    box("Kieran_lace_%s%d%d" % (s, k, sx), tuple(mid), ((b3 - a3).length / 2, 0.0016, 0.0016), "cuff", 0.3,
+                        rot=(0, -ang, 0), parent=rig, bone="calf_" + s)
 
     # Fingerless gloves: cover the palm and back of the hand, fingers free past the first knuckle
     G("Kieran_gloves", "gloves", lambda c, co: (c[0].startswith("hand") and c[1] < 0.52) or (c[0].startswith("farm") and c[1] > 0.9),
@@ -703,12 +777,42 @@ def dress(body, rig):
     box("Kieran_strap_buckle", (path[3][0], path[3][1] - 0.004, path[3][2]), (0.015, 0.002, 0.018), "steel", 0.3,
         rot=(0, math.radians(-35), 0), parent=rig, bone="spine_03")
     bag_c = Vector((rhip.x + 0.02, surf_y(rhip.x + 0.02, rhip.z, 0.035), rhip.z - 0.02))
-    bag_c = bag_c + Vector((0.03, 0.02, -0.04))
-    box("Kieran_satchel", tuple(bag_c), (0.07, 0.03, 0.09), "satchel", 0.6, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
-    box("Kieran_satchel_flap", (bag_c.x + 0.018, bag_c.y - 0.022, bag_c.z + 0.026), (0.077, 0.006, 0.06), "satchel_dark", 0.4,
-        rot=(math.radians(4), 0, math.radians(40)), parent=rig, bone="pelvis")
-    box("Kieran_satchel_buckle", (bag_c.x + 0.022, bag_c.y - 0.03, bag_c.z - 0.01), (0.012, 0.002, 0.015), "steel", 0.3,
-        rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
+    bag_c = bag_c + Vector((0.05, 0.035, -0.04))
+    bag = box("Kieran_satchel", tuple(bag_c), (0.08, 0.034, 0.095), "satchel", 0.9, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
+    sub = bag.modifiers.new("soft", "SUBSURF")
+    sub.levels = sub.render_levels = 2
+    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, 0))
+    flap = bpy.context.active_object
+    flap.name = "Kieran_satchel_flap"
+    fm = flap.data
+    bmf = bmesh.new()
+    gw, gh = 8, 10
+    grid = [[bmf.verts.new((( i / gw - 0.5) * 0.172, -0.036 - 0.03 * math.sin(math.pi * 0.5 * j / gh) * 0.3,
+                            0.095 - 0.12 * j / gh + 0.02 * (1 - math.cos(math.pi * 0.5 * j / gh)))) for i in range(gw + 1)] for j in range(gh + 1)]
+    for j in range(gh):
+        for i in range(gw):
+            bmf.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
+    for v in bmf.verts:   # the flap wraps over the top of the bag
+        if v.co.z > 0.085:
+            v.co.y += (v.co.z - 0.085) * 3.5
+    bmf.to_mesh(fm)
+    bmf.free()
+    flap.location = bag_c
+    flap.rotation_euler = (0, 0, math.radians(40))
+    fm.materials.append(mat("satchel_dark"))
+    so = flap.modifiers.new("thick", "SOLIDIFY")
+    so.thickness = 0.005
+    sf = flap.modifiers.new("soft", "SUBSURF")
+    sf.levels = sf.render_levels = 2
+    for p in fm.polygons:
+        p.use_smooth = True
+    attach(flap, rig, "pelvis")
+    rot = Matrix.Rotation(math.radians(40), 3, "Z")
+    for sx in (-1, 1):   # buckle straps down the flap
+        loc = bag_c + rot @ Vector((sx * 0.04, -0.045, -0.005))
+        box("Kieran_satchel_tab_%d" % sx, tuple(loc), (0.008, 0.003, 0.03), "belt", 0.3, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
+        loc2 = bag_c + rot @ Vector((sx * 0.04, -0.049, -0.03))
+        box("Kieran_satchel_buckle_%d" % sx, tuple(loc2), (0.01, 0.002, 0.008), "steel", 0.3, rot=(0, 0, math.radians(40)), parent=rig, bone="pelvis")
 
     # Compass on the belt at the left hip: metal case, readable dial, cardinal marks and needle
     cx, cz = -0.1, waist_z - 0.055
@@ -725,6 +829,33 @@ def dress(body, rig):
     box("Kieran_compass_needle_s", (cx, cy - 0.0078, cz - 0.008), (0.002, 0.0005, 0.009), "steel", 0.1, parent=rig, bone="pelvis")
     torus("Kieran_compass_bail", (cx, cy, cz + 0.035), 0.007, 0.0018, "steel", rot=(math.radians(90), 0, 0), parent=rig, bone="pelvis")
 
+    def seam(name, pts, key, radius=0.0016):
+        cu = bpy.data.curves.new(name, "CURVE")
+        cu.dimensions, cu.bevel_depth, cu.bevel_resolution = "3D", radius, 1
+        sp = cu.splines.new("POLY")
+        sp.points.add(len(pts) - 1)
+        for i, q in enumerate(pts):
+            sp.points[i].co = (q[0], q[1], q[2], 1)
+        o = bpy.data.objects.new(name, cu)
+        bpy.context.scene.collection.objects.link(o)
+        cu.materials.append(mat(key))
+        o.parent = rig
+        o["weights_from"] = "Kieran.body"    # skinned from the body at export, so seams follow the cloth
+        return o
+    yoke_z = neck_z - 0.1
+    seam("Kieran_jacket_yoke", [(x / 20 * 0.36 - 0.18, back_y(x / 20 * 0.36 - 0.18, yoke_z, 0.017), yoke_z) for x in range(21)], "jacket_dark")
+    for sx in (-1, 1):
+        seam("Kieran_jacket_backseam_%d" % sx, [(sx * 0.07, back_y(sx * 0.07, z, 0.018), z) for z in np.linspace(yoke_z - 0.01, hip_z + 0.02, 12)],
+             "jacket_dark")
+        pz = hip_z - 0.07
+        py = back_y(sx * 0.07, pz, 0.016)
+        box("Kieran_back_pocket_%d" % sx, (sx * 0.07, py, pz), (0.04, 0.004, 0.045), "trousers", 0.3, rot=(math.radians(8), 0, 0),
+            parent=rig, bone="pelvis")
+        seam("Kieran_trouser_sideseam_%d" % sx, [(sx * (ring_at(body, cls, z, ("thigh_l" if sx > 0 else "thigh_r",), 0.02)[1] +
+                                                     ring_at(body, cls, z, ("thigh_l" if sx > 0 else "thigh_r",), 0.02)[0].x * sx),
+                                                 ring_at(body, cls, z, ("thigh_l" if sx > 0 else "thigh_r",), 0.02)[0].y, z)
+                                                for z in np.linspace(hip_z - 0.02, pt(seg, "thigh_" + ("l" if sx > 0 else "r"), 0.95).z, 10)],
+             "jacket_dark", 0.0012)
     # Remove skin hidden under the clothes (no poke-through, fewer polygons)
     bm = bmesh.new()
     bm.from_mesh(body.data)

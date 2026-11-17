@@ -109,7 +109,7 @@ for name, yaw in VIEWS:
 for o in sc.objects:
     o.select_set(False)
 # hair: lighter coil tubes for real time
-hair = bpy.data.objects.get("Kieran_hair")
+hair = bpy.data.objects.get("Kieran_hair_coils")
 if hair:
     hair.data.bevel_resolution = 0
     hair.data.resolution_u = 2
@@ -223,6 +223,65 @@ bone_names = {b.name for b in rig.data.bones}
 for vg in list(game.vertex_groups):
     if vg.name not in bone_names:
         game.vertex_groups.remove(vg)
+# --- bake every material's colour into one 2048 atlas so the game mesh needs only two materials
+metal_names = {m.name for m in game.data.materials if m and ("brass" in m.name or "steel" in m.name or "button" in m.name)}
+render_uv = game.data.uv_layers.active.name if game.data.uv_layers.active else None
+atlas_uv = game.data.uv_layers.new(name="atlas")
+game.data.uv_layers.active = atlas_uv
+for u in game.data.uv_layers:
+    u.active_render = (u.name == render_uv)
+bpy.context.view_layer.objects.active = game
+bpy.ops.object.mode_set(mode="EDIT")
+bpy.ops.mesh.select_all(action="SELECT")
+bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.002, scale_to_bounds=True)
+bpy.ops.object.mode_set(mode="OBJECT")
+atlas = bpy.data.images.new("T_Kieran_BaseColor", 2048, 2048, alpha=False)
+for m in game.data.materials:
+    if not m or not m.use_nodes:
+        continue
+    n = m.node_tree.nodes.new("ShaderNodeTexImage")
+    n.image = atlas
+    uvn = m.node_tree.nodes.new("ShaderNodeUVMap")
+    uvn.uv_map = "atlas"
+    m.node_tree.links.new(uvn.outputs["UV"], n.inputs["Vector"])
+    m.node_tree.nodes.active = n
+sc.render.engine = "CYCLES"
+sc.cycles.samples = 4
+sc.cycles.device = "CPU"
+for o in sc.objects:
+    o.select_set(o == game)
+bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, margin=6, use_clear=True, target="IMAGE_TEXTURES")
+atlas.filepath_raw = os.path.join(EXP, "T_Kieran_BaseColor.png")
+atlas.file_format = "PNG"
+atlas.save()
+REPORT["atlas"] = atlas.filepath_raw
+# replace the many authored materials with two that sample the atlas
+def atlas_mat(name, metallic, rough):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    t = nt.nodes.new("ShaderNodeTexImage")
+    t.image = atlas
+    uvn = nt.nodes.new("ShaderNodeUVMap")
+    uvn.uv_map = "atlas"
+    nt.links.new(uvn.outputs["UV"], t.inputs["Vector"])
+    nt.links.new(t.outputs["Color"], b.inputs["Base Color"])
+    b.inputs["Metallic"].default_value = metallic
+    b.inputs["Roughness"].default_value = rough
+    return m
+m_main = atlas_mat("M_Kieran", 0.0, 0.7)
+m_metal = atlas_mat("M_Kieran_Metal", 1.0, 0.35)
+old = [m.name if m else "" for m in game.data.materials]
+idx_map = [1 if name in metal_names else 0 for name in old]
+for p in game.data.polygons:
+    p.material_index = idx_map[p.material_index] if p.material_index < len(idx_map) else 0
+game.data.materials.clear()
+game.data.materials.append(m_main)
+game.data.materials.append(m_metal)
+for u in list(game.data.uv_layers):     # the atlas becomes the only UV map
+    if u.name != "atlas":
+        game.data.uv_layers.remove(u)
 game.parent = rig
 arm = game.modifiers.new("Armature", "ARMATURE")
 arm.object = rig

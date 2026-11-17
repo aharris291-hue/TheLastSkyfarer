@@ -8,7 +8,7 @@ This is a draft for Adam's approval. Nothing here is imported into Unreal yet. T
 |---|---|
 | `Kieran_Thorn_Master.blend` | Editable master with all external textures packed in. Separate objects for the body, every garment, the hair and each accessory, with the 53-bone rig. I re-opened it after packing to check it: 126 objects, 53 bones, 5 images packed, none missing. |
 | `Kieran_Thorn_GameReady_scene.blend` | The joined, game-budget version, set up in a scene. |
-| `export/Kieran_Thorn_GameReady.glb` (4.6 MB) and `.fbx` (1.9 MB) | Game exports. I re-imported the GLB into an empty scene to check it: 1 skinned mesh, 1 armature with 53 bones, 46,244 triangles. |
+| `export/Kieran_Thorn_GameReady.glb` and `.fbx`, `export/T_Kieran_BaseColor.png` | Game exports with one baked 2048 colour atlas and 2 materials (cloth/skin and metal). I re-imported the GLB into an empty scene to check it: 1 skinned mesh, 1 armature with 53 bones, 44,966 triangles. |
 | `export/export_report.json` | The numbers above, as written by the export script. |
 | `renders/Kieran_Front.png`, `_ThreeQuarterFront`, `_Side`, `_ThreeQuarterRear`, `_Rear` | The five reference angles. |
 | `renders/Kieran_QA_vs_turnaround.png` | The five renders laid over the five drawings for comparison. |
@@ -53,15 +53,24 @@ This is a draft for Adam's approval. Nothing here is imported into Unreal yet. T
 
 All six poses render without mesh collapse. The clothing, cuffs, boots and accessories follow the rig. Two notes: the knees-bent test lifts the feet (there's no root motion, so he floats), and the walk test is a single stride pose.
 
+## Refinement pass 2 (done)
+
+- **Hair** is now a soft, chunky mass of fused curl clusters (metaballs) with small coils on the surface. It's tall on top and close at the sides, like the drawings.
+- **Face** has a gentler smile, and the skin has hand-painted touches as vertex colour: warm cheeks and nose, deeper lips, soft shadow round the eyes.
+- **Boots** are chunkier, with lug-tread soles and criss-cross laces on the boot face.
+- **Satchel** is a soft, rounded messenger bag with a curved flap and two buckle straps. It now hangs clear of his hand.
+- **Jacket** has a back yoke and back seams. The trousers have back patch pockets and side seams. The arms hang a little more relaxed.
+- **Game textures:** all colours are baked into one 2048 atlas, so 25 materials became 2.
+
 ## Honest gaps (what still falls short of the drawings)
 
-1. **Hair.** The curl clumps read spikier and thinner than the soft, chunky curls in the drawing, and the drawing's hairline sits lower over the forehead.
+1. **Hair.** It's now a soft clustered mass, but its outline is still a little smaller and lumpier than the drawing's rounded curls.
 2. **Face.** The expression is closer to neutral than the drawing's gentle smile, and the skin is a flat painted tone with no hand-painted texture yet.
 3. **Boots.** They measure about 5% narrower than the drawing and lack its chunky lug soles, toe cap and bold criss-cross lacing.
 4. **Satchel.** It's boxy; the drawing shows a soft, rounded messenger bag with buckle straps.
 5. **Jacket.** No back yoke seams, epaulettes or stitching yet.
 6. **Trousers.** No pockets, and the folds are subtle.
 7. **Pose.** The arms hang straighter than in the drawings. The stance is a rest pose, not the drawings' relaxed attitude.
-8. **Textures.** Materials are procedural, so the GLB and FBX carry flat base colours across 25 materials. Before importing to Unreal, the colours need baking into one texture atlas (1 to 3 materials) for a cheaper and more faithful look.
+8. **Textures.** The colours are baked into one atlas, but the UV packing is loose (many small islands), so some of the 2048 texture is wasted. A tidier unwrap would give sharper texture detail.
 9. **Skeleton.** It uses Unreal-style bone names, but it is not the full UE5 Manny hierarchy (no spine_04/05 or IK bones). Using the mannequin's animations will need an IK Retargeter.
 10. **Not in Unreal yet.** It hasn't been tested at 30 fps in-game. That happens after Adam approves the design.
