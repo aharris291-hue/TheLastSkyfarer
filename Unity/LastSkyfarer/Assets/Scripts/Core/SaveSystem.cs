@@ -13,7 +13,7 @@ namespace LastSkyfarer.Core
     public class QuestProgress
     {
         public string Quest;
-        public string State = "Inactive";            // Inactive, Active, Completed, Failed
+        public string State = "None";                // None, Active, Complete
         public List<IntEntry> Objectives = new List<IntEntry>();
     }
 
