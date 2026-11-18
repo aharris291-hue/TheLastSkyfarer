@@ -12,8 +12,23 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: MI_CliffRock
+    second: {fileID: 2100000, guid: dc007c427b871f143b88e46a5de78c30, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: MI_FlowerBed
     second: {fileID: 2100000, guid: 9180485abe83a414e8086530446f0317, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_Foliage
+    second: {fileID: 2100000, guid: 2316e429dd1b6f741a890d15712b3373, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_Glass
+    second: {fileID: 2100000, guid: 2cc5618788571d241bef16d98578eb64, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -24,6 +39,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: MI_RoofBlue
     second: {fileID: 2100000, guid: 695bac74877e17340a8226c020f3a09a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MI_RoofTerracotta
+    second: {fileID: 2100000, guid: f54c7067463f62c4a838082b2da16b08, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

@@ -71,9 +71,11 @@ namespace LastSkyfarer.Dev
                 // placement yaw.
                 yield return CloseUp(shot + "_closeup", npc.Position, facing + 15f, 2.2f, 1.45f);
                 yield return CloseUp(shot + "_full", npc.Position, facing - 30f, 3.6f, 0.95f);
+                yield return FaceShot(shot + "_face", npc.Position, facing + 20f);
             }
             yield return Place("Morning", new Vector3(-5f, 0.05f, -15f), 25f, 7f, 10f, 25f);
             yield return CloseUp("7_kieran_closeup", K.transform.position, 25f + 20f, 2.0f, 1.35f);
+            yield return FaceShot("7b_kieran_face", K.transform.position, 25f + 15f);
             Rig.enabled = true;
 
             // Every area of Brindle, morning and sunset (free camera; Kieran parked out of view).
@@ -150,6 +152,24 @@ namespace LastSkyfarer.Dev
             cam.LookAt(target);
             Level.Cam.fieldOfView = 40f;
             yield return Shot(name, 1.2f);
+            Level.Cam.fieldOfView = 80f;
+        }
+
+        /// <summary>A tight portrait of the head (eyes, skin, hair) from the given side.</summary>
+        IEnumerator FaceShot(string name, Vector3 feet, float yawFromFront)
+        {
+            Rig.enabled = false;
+            Animator an = null; float best = 3f;
+            foreach (var a in FindObjectsByType<Animator>(FindObjectsSortMode.None))
+                if (a.isHuman && Vector3.Distance(a.transform.position, feet) < best) { best = Vector3.Distance(a.transform.position, feet); an = a; }
+            if (an) an.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            yield return null;
+            var head = an ? an.GetBoneTransform(HumanBodyBones.Head).position + Vector3.up * 0.08f : feet + Vector3.up * 1.6f;
+            var cam = Level.Cam.transform;
+            cam.position = head + Quaternion.Euler(0f, yawFromFront, 0f) * Vector3.forward * 0.85f + Vector3.up * 0.03f;
+            cam.LookAt(head);
+            Level.Cam.fieldOfView = 32f;
+            yield return Shot(name, 0.8f);
             Level.Cam.fieldOfView = 80f;
         }
 

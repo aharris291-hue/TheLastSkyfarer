@@ -29,6 +29,8 @@ namespace LastSkyfarer.EditorTools
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.materialImportMode = ModelImporterMaterialImportMode.None;
             mi.importAnimation = false;
+            mi.importNormals = ModelImporterNormals.Calculate;      // pass 3: smooth hair and faces, crisp creases above 70 degrees
+            mi.normalSmoothingAngle = 70f;
             mi.SaveAndReimport();
             var avatar = AssetDatabase.LoadAllAssetsAtPath(ModelPath).OfType<Avatar>().FirstOrDefault();
             Debug.Log($"LS_KIERAN avatar valid {avatar && avatar.isValid} human {avatar && avatar.isHuman} mapped {(avatar ? avatar.humanDescription.human.Length : 0)} bones");
@@ -58,6 +60,7 @@ namespace LastSkyfarer.EditorTools
             }
 
             // 3. Painted materials (URP Lit) from the baked atlas.
+            { var ti = (TextureImporter)AssetImporter.GetAtPath(TexPath); if (ti.maxTextureSize != 4096) { ti.maxTextureSize = 4096; ti.SaveAndReimport(); } }   // pass 3: 4K atlas
             var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(TexPath);
             Material Mat(string n, float metallic, float smooth)
             {
@@ -70,6 +73,8 @@ namespace LastSkyfarer.EditorTools
                 m.SetFloat("_Metallic", metallic);
                 m.SetFloat("_Specular", 0.1f + smooth * 0.4f);
                 m.SetColor("_ShadowTint", new Color(0.86f, 0.76f, 0.82f)); m.SetFloat("_Ambient", 1.35f);
+                m.SetTexture("_MaskMap", LinearMask(Root + "/Model/T_Kieran_Mask.png"));
+                m.SetTexture("_BrushNoise", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Textures/T_BrushNoise.png"));
                 EditorUtility.SetDirty(m);
                 return m;
             }
@@ -235,6 +240,20 @@ namespace LastSkyfarer.EditorTools
             // Back to the bind pose before saving the prefab.
             AssetDatabase.LoadAllAssetsAtPath(Root + "/Animations/Mixamo_Idle.fbx").OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview")).SampleAnimation(model, 0f);
             Debug.Log($"LS_KIERAN glider: bar {bar}, apex {apex}, span {(tipR - tipL).magnitude:F1} m");
+        }
+
+        /// <summary>The hair/skin/eye mask is data, not colour: import it linear, uncompressed.</summary>
+        static Texture2D LinearMask(string path)
+        {
+            var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (ti == null) { Debug.LogWarning("LS_MASK missing " + path); return null; }
+            if (ti.sRGBTexture || ti.textureCompression != TextureImporterCompression.Uncompressed)
+            {
+                ti.sRGBTexture = false;
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
     }
 }

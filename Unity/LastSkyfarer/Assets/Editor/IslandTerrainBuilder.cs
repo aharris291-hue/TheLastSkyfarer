@@ -229,8 +229,12 @@ namespace LastSkyfarer.EditorTools
                 for (int i = 0; i <= seg; i++)
                 {
                     float a = i * Mathf.PI * 2f / seg;
-                    float n = j < 2 ? -0.004f : (Mathf.PerlinNoise(Mathf.Cos(a) * 3f + seed, Mathf.Sin(a) * 3f + layer * 0.4f) - 0.5f) * 0.05f;
-                    float k = (j == 0 ? 0.985f : 1f) * (flare + lip + n);
+                    // Big, slow bulges and bays round the plateau (pass 3), small strata on top of them; the rim only
+                    // ever pulls inwards, so it never leaves the collision box.
+                    float big = Mathf.PerlinNoise(Mathf.Cos(a) * 1.3f + seed * 3.1f, Mathf.Sin(a) * 1.3f + seed) - 0.5f;
+                    float rim = 0.985f - 0.07f * Mathf.Clamp01(big + 0.5f);
+                    float n = j < 2 ? 0f : big * 0.16f + (Mathf.PerlinNoise(Mathf.Cos(a) * 3f + seed, Mathf.Sin(a) * 3f + layer * 0.4f) - 0.5f) * 0.06f;
+                    float k = j < 2 ? rim : (flare + lip + n);
                     v.Add(Ring(a, k, y + (j > 1 ? (Mathf.PerlinNoise(a * 4f, depth) - 0.5f) * 0.8f : 0f)));
                     float under = j > 1 && depth % 2.6f < 1.0f ? 0.6f : 0.95f;
                     // The top ring is shared with the grass cap, painted for the ground shader (grass, a few flowers).

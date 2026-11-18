@@ -84,6 +84,7 @@ namespace LastSkyfarer.EditorTools
             ["MI_Cloth_Red"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#C8553D", B = "#A8402E", BrushScale = 1.2f, StrokeMix = 0.6f },
             ["MI_Cloth_Blue"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#4F7FB8", B = "#3D6799", BrushScale = 1.2f, StrokeMix = 0.6f },
             ["MI_Cloth_Yellow"] = new Paint { Bump = 0.3f, Spec = 0.03f, Rim = 0.3f, A = "#E8C24A", B = "#D1A53A", BrushScale = 1.2f, StrokeMix = 0.6f },
+            ["MI_Glass"] = new Paint { Bump = 0.0f, Spec = 1.0f, Gloss = 160f, Rim = 0.5f, A = "#2F4A58", B = "#3A5A6A", BrushScale = 0.5f, StrokeMix = 0.2f, ShadeAmount = 1f },
             ["MI_NotePaper"] = new Paint { A = "#F6EBD2", B = "#E8D7B2", BrushScale = 0.4f, Emission = "#3A2E1A" },
         };
         static readonly Dictionary<string, Material> Mats = new Dictionary<string, Material>();
@@ -454,7 +455,7 @@ namespace LastSkyfarer.EditorTools
                 placed.Add((go, new Item { Name = go.name }));
             }
             BuildStoryPlacements(Group("Story"), meshes);
-            var ground = BuildGround(Group("Island"), placed, byName);
+            var ground = BuildGround(Group("Island"), placed, byName, kit);
 
             // Light, sky and the level.
             var sunGo = new GameObject("Sun");
@@ -558,7 +559,7 @@ namespace LastSkyfarer.EditorTools
         static readonly string[] SnapKeys = { "Orchard_", "_Trunk", "_Canopy", "Tree", "Rock_", "RimRock", "Grass_", "Wheat_", "Petals", "Fence", "Beehive", "Orchard_Crate", "Ladder" };
         static readonly string[] SkipKeys = { "Island_", "CloudPuff", "CloudSea", "MistIsland", "Sky", "FloatingIsle", "Workshop_", "Compartment_", "Square_Paving", "Bluff_EdgeWall" };
 
-        static IslandGround BuildGround(Transform parent, List<(GameObject go, Item it)> placed, Dictionary<string, GameObject> byName)
+        static IslandGround BuildGround(Transform parent, List<(GameObject go, Item it)> placed, Dictionary<string, GameObject> byName, Dictionary<string, GameObject> kit)
         {
             var input = new IslandTerrainBuilder.Input();
             foreach (var (go, it) in placed)
@@ -639,6 +640,7 @@ namespace LastSkyfarer.EditorTools
                 var sz = it.Scale.ToV();
                 ig.Plateaus.Add(new Vector4(it.Pos.x, it.Pos.z, sz.x * 0.5f, sz.z * 0.5f));
                 ig.PlateauHeights.Add(it.Pos.y + sz.y);
+                PlateauRocks(parent, kit, it.Pos.ToV(), sz, seed * 17);
             }
             // Grass grows on the low terraces too (Cloud Edge, the Upper Cliffs lookout); their kit tops stay.
             foreach (var (go, it) in placed.Where(p => p.it.Mesh == "SM_Plateau" && p.it.Scale != null && p.it.Scale.y <= 5f))
@@ -654,6 +656,35 @@ namespace LastSkyfarer.EditorTools
                 kv.Value.transform.localScale *= 0.65f;
             }
             return ig;
+        }
+
+        /// <summary>Hand-placed-looking breakup round a rocky plateau (pass 3): boulders leaning against its foot,
+        /// half buried, and a few smaller stones on the rim. Visual only, like the rest of the kit.</summary>
+        static void PlateauRocks(Transform parent, Dictionary<string, GameObject> kit, Vector3 c, Vector3 size, int seed)
+        {
+            var rnd = new System.Random(seed);
+            float hx = size.x * 0.5f, hz = size.z * 0.5f, h = size.y;
+            Vector3 Edge(float a, float k)
+            {
+                float ca = Mathf.Cos(a), sa = Mathf.Sin(a);
+                return new Vector3(c.x + Mathf.Sign(ca) * Mathf.Pow(Mathf.Abs(ca), 0.5f) * hx * k, 0f, c.z + Mathf.Sign(sa) * Mathf.Pow(Mathf.Abs(sa), 0.5f) * hz * k);
+            }
+            var group = new GameObject("PlateauRocks").transform;
+            group.SetParent(parent, false);
+            int n = Mathf.RoundToInt((size.x + size.z) / 7f);
+            for (int i = 0; i < n; i++)
+            {
+                bool rim = rnd.NextDouble() < 0.25;
+                float a = (float)(i + rnd.NextDouble() * 0.6) / n * Mathf.PI * 2f;
+                var p = Edge(a, rim ? 0.9f : 1.06f + (float)rnd.NextDouble() * 0.06f);
+                p.y = rim ? c.y + h - 0.4f : c.y - 0.8f + (float)rnd.NextDouble() * h * 0.25f;
+                float s = rim ? 1.0f + (float)rnd.NextDouble() * 1.2f : 2.2f + (float)rnd.NextDouble() * 3.5f;
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(kit["SM_Rock_" + rnd.Next(3)]);
+                go.transform.SetParent(group, false);
+                go.transform.SetPositionAndRotation(p, Quaternion.Euler((float)rnd.NextDouble() * 20f - 10f, (float)rnd.NextDouble() * 360f, (float)rnd.NextDouble() * 20f - 10f));
+                go.transform.localScale = new Vector3(s, s * (0.7f + (float)rnd.NextDouble() * 0.6f), s);
+                foreach (var t in go.GetComponentsInChildren<Transform>(true)) { t.gameObject.layer = BrindleLevel.FirstCullLayer + 3; GameObjectUtility.SetStaticEditorFlags(t.gameObject, StaticEditorFlags.BatchingStatic); }
+            }
         }
 
         static Mesh SaveMesh(string name, Mesh m)

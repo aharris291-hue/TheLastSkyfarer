@@ -27,10 +27,20 @@ Material:
         m_Texture: {fileID: 2800000, guid: b53b32a3595a9054180958351d65ec4d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BrushNoise:
+        m_Texture: {fileID: 2800000, guid: 90c50136a90394d4485c758dd0fb883a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskMap:
+        m_Texture: {fileID: 2800000, guid: f226ad62d13c77e47b4d7528d3bb3d94, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Ambient: 1.35
+    - _EyeShine: 1.6
     - _Gloss: 24
+    - _HairShine: 0.45
     - _Metallic: 1
     - _RampSoftness: 0.35
     - _Rim: 0.6
@@ -40,5 +50,6 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShadowTint: {r: 0.86, g: 0.76, b: 0.82, a: 1}
+    - _SkinScatter: {r: 0.9, g: 0.37999994, b: 0.25999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

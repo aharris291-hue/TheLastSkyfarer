@@ -5,6 +5,7 @@
     on the jacket and sleeves no longer stretch towards the hands and legs when he moves;
   * thin trim (hem piping, seams, straps) is kept as simple four-sided tubes and left out of the triangle-budget
     decimation, which had collapsed it into loose slivers that looked like stretched lines;
+  * a hair / skin / eye mask is baked in the atlas layout (T_<Name>_Mask.png) for the character shader;
   * outputs go to Unity/SourceArt/Characters/Kieran/export (the Unreal export folder is left untouched);
   * the slow preview renders and the turnaround QA sheet are skipped.
 
@@ -43,6 +44,9 @@ patch('prot = sum(tri_count(o) for o in game_parts if any(k in o.name for k in P
       'prot = sum(tri_count(o) for o in game_parts if any(k in o.name for k in PROTECT) or o.get("thin"))')
 patch('rest = [o for o in game_parts if not any(k in o.name for k in PROTECT)]',
       'rest = [o for o in game_parts if not any(k in o.name for k in PROTECT) and not o.get("thin")]')
+patch('REPORT["atlas"] = atlas.filepath_raw\n', 'REPORT["atlas"] = atlas.filepath_raw\n# Unity polish pass 3: a mask in the same layout for the character shader (R hair, G skin, B eyes).\nmask_img = bpy.data.images.new("T_Mask", 2048, 2048, alpha=False)\ndef _mask_colour(m):\n    n = m.name.lower()\n    if any(k in n for k in ("hair", "beard", "eyebrow", "eyelash", "coils", "braid", "bun", "ponytail")):\n        return (1.0, 0.0, 0.0, 1.0)\n    if any(k in n for k in ("eye", "cornea", "high-poly", "iris", "pupil")):\n        return (0.0, 0.0, 1.0, 1.0)\n    if any(k in n for k in ("skin", "teeth", "tongue", ".body")):\n        return (0.0, 1.0, 0.0, 1.0)\n    return (0.0, 0.0, 0.0, 1.0)\nfor m in game.data.materials:\n    if not m or not m.use_nodes:\n        continue\n    nt = m.node_tree\n    for n in nt.nodes:\n        if n.type == "TEX_IMAGE" and n.image == atlas:\n            n.image = mask_img\n    out = next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"), None)\n    if out:\n        b = nt.nodes.new("ShaderNodeBsdfPrincipled")\n        b.inputs["Base Color"].default_value = _mask_colour(m)\n        nt.links.new(b.outputs[0], out.inputs["Surface"])\nbpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"}, margin=6, use_clear=True, target="IMAGE_TEXTURES")\nmask_img.filepath_raw = os.path.splitext(atlas.filepath_raw)[0].replace("BaseColor", "Mask") + ".png"\nmask_img.file_format = "PNG"\nmask_img.save()\nprint("LS_MASK", mask_img.filepath_raw, flush=True)\n')
+patch('hair = bpy.data.objects.get("Kieran_hair_coils")', 'for _o in [o for o in sc.objects if o.name.endswith(("_hair_coils", "_strands"))]:\n    bpy.data.objects.remove(_o, do_unlink=True)   # Unity pass 3: decimation shattered these; the shader draws strands\nhair = bpy.data.objects.get("Kieran_hair_coils")')
+patch('atlas = bpy.data.images.new("T_Kieran_BaseColor", 2048, 2048, alpha=False)', 'atlas = bpy.data.images.new("T_Kieran_BaseColor", 4096, 4096, alpha=False)   # Unity pass 3: sharper eyes and faces')
 code = code.split("# ------------------------------------------------------------------ 4b. QA sheet")[0]
 exec(compile(code, SRC, "exec"), {"__name__": "__main__", "__file__": SRC})
 print("LS_UNITY_EXPORT_OK", OUT, flush=True)

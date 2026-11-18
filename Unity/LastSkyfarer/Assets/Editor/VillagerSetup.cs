@@ -76,6 +76,8 @@ namespace LastSkyfarer.EditorTools
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.materialImportMode = ModelImporterMaterialImportMode.None;
             mi.importAnimation = false;
+            mi.importNormals = ModelImporterNormals.Calculate;      // pass 3: smooth hair and faces, crisp creases above 70 degrees
+            mi.normalSmoothingAngle = 70f;
             mi.SaveAndReimport();
             var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
             Debug.Log($"LS_VILLAGER {name}: avatar valid {avatar && avatar.isValid}, human {avatar && avatar.isHuman}");
@@ -89,9 +91,12 @@ namespace LastSkyfarer.EditorTools
                 m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(tex));
                 m.SetFloat("_Metallic", metallic); m.SetFloat("_Specular", spec);
                 m.SetColor("_ShadowTint", new Color(0.86f, 0.76f, 0.82f)); m.SetFloat("_Ambient", 1.35f);
+                m.SetTexture("_MaskMap", LinearMask($"{dir}/T_{name}_Mask.png"));
+                m.SetTexture("_BrushNoise", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Textures/T_BrushNoise.png"));
                 EditorUtility.SetDirty(m);
                 return m;
             }
+            { var ti = (TextureImporter)AssetImporter.GetAtPath(tex); if (ti != null && ti.maxTextureSize != 4096) { ti.maxTextureSize = 4096; ti.SaveAndReimport(); } }   // pass 3: 4K atlas
             var cloth = Mat("M_" + name, 0f, 0.15f);
             var metal = Mat("M_" + name + "_Metal", 1f, 0.6f);
             var root = new GameObject(name);
@@ -128,6 +133,20 @@ namespace LastSkyfarer.EditorTools
             Debug.Log($"LS_VILLAGER {name}: toes {toes * 100f:F1} cm ahead of the ankles{(toes < 0f ? " - turned to face forward" : "")}");
             PrefabUtility.SaveAsPrefabAsset(root, $"{PrefabDir}/{name}.prefab");
             Object.DestroyImmediate(root);
+        }
+
+        /// <summary>The hair/skin/eye mask is data, not colour: import it linear, uncompressed.</summary>
+        static Texture2D LinearMask(string path)
+        {
+            var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (ti == null) { Debug.LogWarning("LS_MASK missing " + path); return null; }
+            if (ti.sRGBTexture || ti.textureCompression != TextureImporterCompression.Uncompressed)
+            {
+                ti.sRGBTexture = false;
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
     }
 }
