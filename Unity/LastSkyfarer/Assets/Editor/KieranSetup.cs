@@ -86,6 +86,34 @@ namespace LastSkyfarer.EditorTools
             }
             var cloth = Mat("M_Kieran");
             var metal = Mat("M_Kieran_Metal");
+            // Pass 2: the edge curl cards round the hair: alpha-cut coiled strands, both sides, matte.
+            Material cards = null;
+            var strands = Tex(Root + "/Model/T_Kieran_HairStrands.png", srgb: true, normal: false);
+            if (strands)
+            {
+                string cp = Root + "/M_Kieran_HairCards.mat";
+                cards = AssetDatabase.LoadAssetAtPath<Material>(cp);
+                var lit = Shader.Find("Universal Render Pipeline/Lit");
+                if (!cards) { cards = new Material(lit); AssetDatabase.CreateAsset(cards, cp); }
+                cards.shader = lit;
+                cards.SetTexture("_BaseMap", strands); cards.SetColor("_BaseColor", Color.white);
+                cards.SetFloat("_AlphaClip", 1f); cards.SetFloat("_Cutoff", 0.45f); cards.EnableKeyword("_ALPHATEST_ON");
+                cards.SetFloat("_Cull", 0f);                       // both sides
+                cards.SetFloat("_Metallic", 0f); cards.SetFloat("_Smoothness", 0.12f);
+                cards.SetFloat("_WorkflowMode", 1f);
+                cards.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                cards.SetOverrideTag("RenderType", "TransparentCutout");
+                EditorUtility.SetDirty(cards);
+            }
+            // Materials by name, not slot: Unity drops empty submeshes (there are no faces left in the metal slot, the
+            // map carries the metal), so slot numbers shift. The importer remaps each FBX material to ours.
+            AssetDatabase.SaveAssets();
+            mi.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+            mi.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), "M_Kieran"), cloth);
+            mi.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), "M_Kieran_Metal"), metal);
+            if (cards) mi.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), "M_Kieran_HairCards"), cards);
+            mi.SaveAndReimport();
+            avatar = AssetDatabase.LoadAllAssetsAtPath(ModelPath).OfType<Avatar>().FirstOrDefault();   // fresh after the reimport
 
             // 4. Animator.
             AnimationClip C(string n) => AssetDatabase.LoadAllAssetsAtPath($"{AnimDir}/{n}.fbx").OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview"));
@@ -151,7 +179,11 @@ namespace LastSkyfarer.EditorTools
             foreach (var r in model.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 var mats = r.sharedMaterials;
-                for (int i = 0; i < mats.Length; i++) mats[i] = i == 1 ? metal : cloth;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    string n = mats[i] ? mats[i].name : "";
+                    mats[i] = n.Contains("HairCards") && cards ? cards : n.Contains("Metal") ? metal : cloth;
+                }
                 r.sharedMaterials = mats;
                 r.updateWhenOffscreen = false;
             }

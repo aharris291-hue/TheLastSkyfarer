@@ -25,6 +25,7 @@ import numpy as np
 from mathutils import Matrix, Vector, bvhtree, noise
 
 HP_NAME = "Kieran_HighPoly"
+HAIR_SITES = []   # clump roots (world position, normal): the edge curl cards grow from these
 
 
 def hp_collection():
@@ -170,11 +171,11 @@ def build_hair(seed=11):
     rnd = random.Random(seed)
     head_c = Vector((0.0, -0.045, 1.70))
 
-    # Even spread of clump roots (rejection sampling on a 1.1 cm spacing).
+    # Even spread of clump roots (rejection sampling; pass 2: 7.8 mm spacing, so each bump reads as one curl).
     roots, grid = [], {}
-    cell = 0.011
+    cell = 0.0078
     tries = 0
-    while tries < 40000 and len(roots) < 1100:
+    while tries < 120000 and len(roots) < 2400:
         tries += 1
         f = src.faces[min(bisect.bisect(cum, rnd.random() * total), len(src.faces) - 1)]
         a, b, c = (v.co for v in f.verts)
@@ -191,6 +192,7 @@ def build_hair(seed=11):
             continue
         grid.setdefault(key, []).append(p)
         roots.append((p, n))
+    HAIR_SITES[:] = roots   # also where the edge curl cards grow
     src.free()
 
     hp = bmesh.new()
@@ -203,27 +205,27 @@ def build_hair(seed=11):
         tang = Vector((rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1)))
         tang = (tang - n * tang.dot(n)).normalized()
         axis = (n * 0.85 + tang * 0.35 + Vector((0, 0, -1)) * 0.25 * side).normalized()
-        length = rnd.uniform(0.018, 0.03) * (1.1 if n.z > 0.5 else 0.9)
-        base = p - n * 0.013
+        length = rnd.uniform(0.014, 0.024) * (1.1 if n.z > 0.5 else 0.9)
+        base = p - n * 0.010
         u = axis.cross(Vector((0, 0, 1)) if abs(axis.z) < 0.9 else Vector((1, 0, 0))).normalized()
         v = axis.cross(u)
-        clump_r = rnd.uniform(0.0042, 0.0058)
+        clump_r = rnd.uniform(0.0028, 0.0038)
         tone = rnd.uniform(0.8, 1.35)
         hand = 1 if rnd.random() < 0.5 else -1
         # Envelope for the game shell: an ellipsoid round the clump.
         mid = base + axis * length * 0.55
         ico = bmesh.ops.create_icosphere(env, subdivisions=1, radius=1.0)
-        sm = Matrix((u * (clump_r + 0.0045), v * (clump_r + 0.0045), axis * length * 0.5)).transposed().to_4x4()
+        sm = Matrix((u * (clump_r + 0.003), v * (clump_r + 0.003), axis * length * 0.5)).transposed().to_4x4()
         bmesh.ops.transform(env, matrix=Matrix.Translation(mid) @ sm, verts=ico["verts"])
-        for k in range(rnd.randint(4, 6)):
+        for k in range(rnd.randint(3, 5)):
             off_a = rnd.uniform(0, 2 * math.pi)
             off_r = clump_r * math.sqrt(rnd.random()) * 0.8
             start = base + (u * math.cos(off_a) + v * math.sin(off_a)) * off_r
-            hr = rnd.uniform(0.0026, 0.0036)
-            pitch = rnd.uniform(0.0065, 0.008)
+            hr = rnd.uniform(0.0018, 0.0025)
+            pitch = rnd.uniform(0.0048, 0.006)
             phase = rnd.uniform(0, 2 * math.pi)
             L = length * rnd.uniform(0.8, 1.1)
-            steps = max(8, int(L / 0.0011))
+            steps = max(8, int(L / 0.0008))
             pts = []
             for i in range(steps + 1):
                 t = L * i / steps
@@ -231,7 +233,7 @@ def build_hair(seed=11):
                 droop = Vector((0, 0, -1)) * side * 0.35 * L * (t / L) ** 2
                 rr = hr * (1.0 - 0.25 * t / L)
                 pts.append(start + axis * t + (u * math.cos(ang) + v * math.sin(ang)) * rr + droop)
-            tr = rnd.uniform(0.0011, 0.0015)
+            tr = rnd.uniform(0.0008, 0.0011)
             c = base_dark * tone * rnd.uniform(0.9, 1.1)
             tube(hp, pts, lambda s, tr=tr: tr * (1.0 - 0.45 * s * s), 6, (c.x, c.y, c.z, 1.0), col)
             coils += 1
@@ -274,14 +276,14 @@ def build_hair(seed=11):
     bpy.ops.object.join()
     rm = shell.modifiers.new("remesh", "REMESH")
     rm.mode = "VOXEL"
-    rm.voxel_size = 0.0028
+    rm.voxel_size = 0.0019
     smo = shell.modifiers.new("smooth", "SMOOTH")
     smo.factor = 0.6
     smo.iterations = 3
     dec = shell.modifiers.new("dec", "DECIMATE")
     dg = bpy.context.evaluated_depsgraph_get()
     n_full = len(shell.evaluated_get(dg).data.polygons) * 2
-    dec.ratio = min(1.0, 14000 / max(1, n_full))
+    dec.ratio = min(1.0, 22000 / max(1, n_full))
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
     game_me = bpy.data.meshes.new_from_object(shell.evaluated_get(dg))
@@ -510,6 +512,8 @@ def hp_copy(o, rig):
     me = bpy.data.meshes.new_from_object(o.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
     fold_mesh(o, me, rig, True)
     me.transform(o.matrix_world)
+    import kieran_pass2
+    kieran_pass2.hp_body(o.name, me)   # pass 2: the sculpted face and hands
     hp = add_hp(o.name + "_HP", me)
     return hp
 
@@ -537,7 +541,7 @@ def prioritise_uvs(game, scale_head=2.0, scale_hands=1.45):
 
 
 # ------------------------------------------------------------------ bakes
-SMOOTH = [("skin", 0.0, 0.38), ("lip", 0.0, 0.45), ("hair", 0.0, 0.1), ("eyebrow", 0.0, 0.15), ("eyelash", 0.0, 0.15),
+SMOOTH = [("skin", 0.0, 0.38), ("lip", 0.0, 0.45), ("hair", 0.0, 0.1), ("nails", 0.0, 0.42), ("eyebrow", 0.0, 0.15), ("eyelash", 0.0, 0.15),
           ("high-poly", 0.0, 0.62), ("teeth", 0.0, 0.45), ("jacket", 0.0, 0.1), ("shirt", 0.0, 0.08), ("trousers", 0.0, 0.1),
           ("scarf", 0.0, 0.06), ("cuff", 0.0, 0.1), ("gloves", 0.0, 0.3), ("boot", 0.0, 0.28), ("sole", 0.0, 0.18),
           ("belt", 0.0, 0.32), ("satchel", 0.0, 0.3), ("brass", 1.0, 0.5), ("button", 1.0, 0.45), ("steel", 1.0, 0.52),
@@ -841,6 +845,12 @@ def make_lods(game, rig, ratios=(0.5, 0.22)):
         o = game.copy()
         o.data = game.data.copy()
         o.name = "Kieran_GameReady_LOD%d" % i
+        if i == len(ratios):   # the farthest LOD drops the edge curl cards
+            bm2 = bmesh.new()
+            bm2.from_mesh(o.data)
+            bmesh.ops.delete(bm2, geom=[f for f in bm2.faces if f.material_index == 2], context="FACES")
+            bm2.to_mesh(o.data)
+            bm2.free()
         game.users_collection[0].objects.link(o)
         for m in [m for m in o.modifiers if m.type == "ARMATURE"]:
             m.show_viewport = False

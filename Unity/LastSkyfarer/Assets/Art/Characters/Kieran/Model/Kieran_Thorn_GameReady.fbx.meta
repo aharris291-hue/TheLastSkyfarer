@@ -3,9 +3,24 @@ guid: aa869d2526b259a45811bcbbd366f360
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_Kieran
+    second: {fileID: 2100000, guid: e101b655d6056cc449c648fc6ed48dbd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_Kieran_HairCards
+    second: {fileID: 2100000, guid: 5a2beb6fc7897494b86d2dee012f778a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: M_Kieran_Metal
+    second: {fileID: 2100000, guid: ddac88a96ab4bb54190d4e0d7b090810, type: 2}
   materials:
-    materialImportMode: 0
+    materialImportMode: 2
     materialName: 0
     materialSearch: 1
     materialLocation: 1
