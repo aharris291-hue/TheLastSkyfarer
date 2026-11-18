@@ -24,6 +24,7 @@ Shader "LastSkyfarer/StylisedCharacter"
         _HairShine ("Hair sheen", Range(0, 1)) = 0.45
         _SkinScatter ("Skin scatter colour", Color) = (0.9, 0.38, 0.26, 1)
         _EyeShine ("Eye catchlight", Range(0, 3)) = 1.6
+        _EyeBright ("Eye brightness", Range(0.5, 2.5)) = 1.15
     }
     SubShader
     {
@@ -33,7 +34,7 @@ Shader "LastSkyfarer/StylisedCharacter"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST;
             half4 _BaseColor, _ShadowTint;
-            half _Warmth, _RampSoftness, _Rim, _RimPower, _Specular, _Gloss, _Metallic, _Ambient, _HairShine, _EyeShine;
+            half _Warmth, _RampSoftness, _Rim, _RimPower, _Specular, _Gloss, _Metallic, _Ambient, _HairShine, _EyeShine, _EyeBright;
             half4 _SkinScatter;
         CBUFFER_END
         TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
@@ -73,7 +74,7 @@ Shader "LastSkyfarer/StylisedCharacter"
                 half hair = mask.r, skin = mask.g, eye = mask.b;
                 half strand = SAMPLE_TEXTURE2D(_BrushNoise, sampler_BrushNoise, i.uv * 14.0).r;
                 albedo *= lerp(1.0, 0.72 + strand * 0.5, hair);            // strand clumps
-                albedo *= 1.0 + eye * 0.12;
+                albedo *= lerp(1.0, _EyeBright, eye);
                 half3 n = normalize(i.normalWS);
                 half3 v = SafeNormalize(GetWorldSpaceViewDir(i.positionWS));
                 Light sun = GetMainLight(TransformWorldToShadowCoord(i.positionWS));

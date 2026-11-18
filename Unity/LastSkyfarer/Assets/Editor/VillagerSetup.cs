@@ -98,6 +98,7 @@ namespace LastSkyfarer.EditorTools
             }
             { var ti = (TextureImporter)AssetImporter.GetAtPath(tex); if (ti != null && ti.maxTextureSize != 4096) { ti.maxTextureSize = 4096; ti.SaveAndReimport(); } }   // pass 3: 4K atlas
             var cloth = Mat("M_" + name, 0f, 0.15f);
+            cloth.SetFloat("_EyeBright", name == "Tessa" ? 1.5f : 1.15f);          // Tessa's green eyes read brighter
             var metal = Mat("M_" + name + "_Metal", 1f, 0.6f);
             var root = new GameObject(name);
             var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(model));
@@ -115,6 +116,10 @@ namespace LastSkyfarer.EditorTools
             anim.avatar = avatar;
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            // Character pass: hand-styled hair cards and proper eyes, grown at the bind pose.
+            var style = name == "Tessa" ? HairStyle.CurlsLong : name == "Elara" ? HairStyle.CurlsMedium : name == "Bram" ? HairStyle.CombedBack : HairStyle.CombedShort;
+            CharacterDetail.Build(go, anim, name, dir, CharacterDetail.LoadPng(tex), CharacterDetail.LoadPng($"{dir}/T_{name}_Mask.png"), style,
+                                  beard: name == "Bram" || name == "Rowan");
             // Make sure the villager faces the prefab's forward (+Z): in the idle pose the toes must lie in front of
             // the ankles. If they do not, turn the model round, so turning to face Kieran shows the face, not the back.
             AnimationClip clip = ac.layers[0].stateMachine.defaultState.motion as AnimationClip;

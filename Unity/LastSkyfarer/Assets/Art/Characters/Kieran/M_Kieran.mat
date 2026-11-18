@@ -106,6 +106,7 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _EyeBright: 1.15
     - _EyeShine: 1.6
     - _Gloss: 24
     - _GlossMapScale: 0

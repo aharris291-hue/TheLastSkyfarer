@@ -38,6 +38,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Ambient: 1.35
+    - _EyeBright: 1.15
     - _EyeShine: 1.6
     - _Gloss: 24
     - _HairShine: 0.45

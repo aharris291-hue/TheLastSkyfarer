@@ -154,6 +154,9 @@ namespace LastSkyfarer.EditorTools
             anim.avatar = avatar;
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+            // Character pass: hair cards (tight curls) and proper eyes, grown at the bind pose.
+            CharacterDetail.Build(model, anim, "Kieran", Root, CharacterDetail.LoadPng(TexPath), CharacterDetail.LoadPng(Root + "/Model/T_Kieran_Mask.png"),
+                                  HairStyle.CurlTufts, false);
             var driver = root.AddComponent<KieranAnimator>();
             driver.Animator = anim;
             var b = new Bounds(); bool first = true;
