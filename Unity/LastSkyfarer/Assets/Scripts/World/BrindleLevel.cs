@@ -84,6 +84,7 @@ namespace LastSkyfarer.World
             Story.OnFlagChanged += (f, s) => { if (f == "has_glider" || f == "compass_active" || f == BrindleStoryDirector.RevealedWindFlag) ApplyStoryState(); };
 
             if (HasArg("-LSBrindleTour")) gameObject.AddComponent<LastSkyfarer.Dev.BrindleTour>().Level = this;
+            else if (HasArg("-LSCharacterLab")) gameObject.AddComponent<LastSkyfarer.Dev.CharacterLab>().Level = this;
         }
 
         void Start()

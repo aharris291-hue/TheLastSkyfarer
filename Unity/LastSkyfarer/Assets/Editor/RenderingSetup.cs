@@ -79,6 +79,11 @@ namespace LastSkyfarer.EditorTools
             Set("Radius", p => p.floatValue = radius);
             Set("Samples", p => p.enumValueIndex = samplesLow ? 2 : 1);   // Low / Medium
             Set("Source", p => p.enumValueIndex = 1);                      // depth and normals (our shaders write them)
+            // Character fidelity pass: smooth, low-noise occlusion. The blue-noise pattern at Low samples left blotches on
+            // skin and cloth once the characters moved to URP Lit; interleaved gradient noise with the bilateral blur
+            // gives the same contact shading without the mottling.
+            Set("AOMethod", p => p.enumValueIndex = 1);                     // InterleavedGradient
+            Set("BlurQuality", p => p.enumValueIndex = 0);                  // High (bilateral)
             s.serializedObject.ApplyModifiedPropertiesWithoutUndo();
             ssao.SetActive(true);
             EditorUtility.SetDirty(ssao);

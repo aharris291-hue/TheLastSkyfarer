@@ -29,8 +29,10 @@ namespace LastSkyfarer.EditorTools
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.materialImportMode = ModelImporterMaterialImportMode.None;
             mi.importAnimation = false;
-            mi.importNormals = ModelImporterNormals.Calculate;      // pass 3: smooth hair and faces, crisp creases above 70 degrees
-            mi.normalSmoothingAngle = 70f;
+            // Fidelity overhaul: the normals come from Blender exactly as the normal map was baked against, and the
+            // tangents are MikkTSpace like Blender's, so the baked detail lands where it was sculpted.
+            mi.importNormals = ModelImporterNormals.Import;
+            mi.importTangents = ModelImporterTangents.CalculateMikk;
             mi.SaveAndReimport();
             var avatar = AssetDatabase.LoadAllAssetsAtPath(ModelPath).OfType<Avatar>().FirstOrDefault();
             Debug.Log($"LS_KIERAN avatar valid {avatar && avatar.isValid} human {avatar && avatar.isHuman} mapped {(avatar ? avatar.humanDescription.human.Length : 0)} bones");
@@ -59,27 +61,31 @@ namespace LastSkyfarer.EditorTools
                 Debug.Log($"LS_KIERAN clip {name}: {(clip ? clip.length : -1):F2} s, humanoid {(clip && clip.humanMotion)}, avatar ok {(av && av.isValid)}");
             }
 
-            // 3. Painted materials (URP Lit) from the baked atlas.
-            { var ti = (TextureImporter)AssetImporter.GetAtPath(TexPath); if (ti.maxTextureSize != 4096) { ti.maxTextureSize = 4096; ti.SaveAndReimport(); } }   // pass 3: 4K atlas
-            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(TexPath);
-            Material Mat(string n, float metallic, float smooth)
+            // 3. Physically based materials (URP Lit) from the baked maps: base colour, the normal map baked from the
+            //    high-poly, and one mask with metallic (R), occlusion (G) and smoothness (A). Smoothness comes only
+            //    from the map (skin about 0.38, cloth 0.06-0.1, leather about 0.3, brass 0.5): nothing is glossed up.
+            var tex = Tex(TexPath, srgb: true, normal: false);
+            var nrm = Tex(Root + "/Model/T_Kieran_Normal.png", srgb: false, normal: true);
+            var mas = Tex(Root + "/Model/T_Kieran_MetalAOSmooth.png", srgb: false, normal: false);
+            Material Mat(string n)
             {
                 string p = Root + "/" + n + ".mat";
                 var m = AssetDatabase.LoadAssetAtPath<Material>(p);
-                var shader = Shader.Find("LastSkyfarer/StylisedCharacter");      // polish pass 1: stylised shading
+                var shader = Shader.Find("Universal Render Pipeline/Lit");
                 if (!m) { m = new Material(shader); AssetDatabase.CreateAsset(m, p); }
                 m.shader = shader;
-                m.SetTexture("_BaseMap", tex);
-                m.SetFloat("_Metallic", metallic);
-                m.SetFloat("_Specular", 0.1f + smooth * 0.4f);
-                m.SetColor("_ShadowTint", new Color(0.86f, 0.76f, 0.82f)); m.SetFloat("_Ambient", 1.35f);
-                m.SetTexture("_MaskMap", LinearMask(Root + "/Model/T_Kieran_Mask.png"));
-                m.SetTexture("_BrushNoise", AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Textures/T_BrushNoise.png"));
+                m.SetTexture("_BaseMap", tex); m.SetColor("_BaseColor", Color.white);
+                m.SetTexture("_BumpMap", nrm); m.SetFloat("_BumpScale", 1f); m.EnableKeyword("_NORMALMAP");
+                m.SetTexture("_MetallicGlossMap", mas); m.SetFloat("_Metallic", 1f); m.SetFloat("_Smoothness", 1f);   // scales: the map decides
+                m.SetFloat("_SmoothnessTextureChannel", 0f); m.EnableKeyword("_METALLICSPECGLOSSMAP");
+                m.SetTexture("_OcclusionMap", mas); m.SetFloat("_OcclusionStrength", 1f); m.EnableKeyword("_OCCLUSIONMAP");
+                m.SetFloat("_SpecularHighlights", 1f); m.SetFloat("_EnvironmentReflections", 1f);
+                m.SetFloat("_WorkflowMode", 1f);
                 EditorUtility.SetDirty(m);
                 return m;
             }
-            var cloth = Mat("M_Kieran", 0f, 0.25f);
-            var metal = Mat("M_Kieran_Metal", 1f, 0.6f);
+            var cloth = Mat("M_Kieran");
+            var metal = Mat("M_Kieran_Metal");
 
             // 4. Animator.
             AnimationClip C(string n) => AssetDatabase.LoadAllAssetsAtPath($"{AnimDir}/{n}.fbx").OfType<AnimationClip>().First(a => !a.name.StartsWith("__preview"));
@@ -154,9 +160,17 @@ namespace LastSkyfarer.EditorTools
             anim.avatar = avatar;
             anim.applyRootMotion = false;
             anim.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-            // Character pass: hair cards (tight curls) and proper eyes, grown at the bind pose.
-            CharacterDetail.Build(model, anim, "Kieran", Root, CharacterDetail.LoadPng(TexPath), CharacterDetail.LoadPng(Root + "/Model/T_Kieran_Mask.png"),
-                                  HairStyle.CurlTufts, false);
+            // Fidelity overhaul: the hair is modelled clumps now (no alpha cards) and the eyes have no added wet layers.
+            // Level of detail: the full model wherever he is a sizeable part of the screen.
+            var lod = model.GetComponent<LODGroup>();
+            if (lod)
+            {
+                var lods = lod.GetLODs();
+                float[] h = { 0.22f, 0.07f, 0.008f };
+                for (int i = 0; i < lods.Length && i < h.Length; i++) lods[i].screenRelativeTransitionHeight = h[i];
+                lod.SetLODs(lods);
+                Debug.Log($"LS_KIERAN LODs {lods.Length}");
+            }
             var driver = root.AddComponent<KieranAnimator>();
             driver.Animator = anim;
             var b = new Bounds(); bool first = true;
@@ -246,6 +260,24 @@ namespace LastSkyfarer.EditorTools
         }
 
         /// <summary>The hair/skin/eye mask is data, not colour: import it linear, uncompressed.</summary>
+        /// <summary>Imports a character map at 4096: colour (sRGB), a normal map, or linear data (the PBR mask).</summary>
+        static Texture2D Tex(string path, bool srgb, bool normal)
+        {
+            var ti = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (ti == null) { Debug.LogWarning("LS_KIERAN missing " + path); return null; }
+            var type = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            if (ti.textureType != type || ti.sRGBTexture != srgb || ti.maxTextureSize != 4096 || ti.mipmapEnabled == false)
+            {
+                ti.textureType = type;
+                ti.sRGBTexture = srgb;
+                ti.maxTextureSize = 4096;
+                ti.mipmapEnabled = true;
+                ti.alphaSource = TextureImporterAlphaSource.FromInput;
+                ti.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
         static Texture2D LinearMask(string path)
         {
             var ti = (TextureImporter)AssetImporter.GetAtPath(path);
