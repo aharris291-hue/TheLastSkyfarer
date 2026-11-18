@@ -31,6 +31,7 @@ func _ready() -> void:
 	test_save_system()
 	test_quest_logic()
 	test_input_remap()
+	test_sprite_quality()
 	await test_level_geometry()
 	await test_playthrough()
 	_say("== %d passed, %d failed ==" % [passed, failed])
@@ -210,6 +211,41 @@ func test_input_remap() -> void:
 
 
 # --- Level geometry ------------------------------------------------------------------
+
+## Visual regressions from the first demo build: Kieran's feet were cut off
+## in the jump frames and his body was half transparent.
+func test_sprite_quality() -> void:
+	var frames := {"idle": 5, "walk": 6, "run": 6, "jump": 4, "glide": 3}
+	for anim in frames.keys():
+		var img: Image = load("res://assets/characters/kieran/kieran_%s.png" % anim).get_image()
+		if img.is_compressed():
+			img.decompress()
+		var n: int = frames[anim]
+		var fw := img.get_width() / n
+		var h := img.get_height()
+		var clipped := 0
+		var solid := 0
+		var visible := 0
+		for f in n:
+			# The bottom 3 rows of every frame stay empty: nothing touches the edge.
+			for x in range(f * fw, (f + 1) * fw):
+				for y in range(h - 3, h):
+					if img.get_pixel(x, y).a > 0.05:
+						clipped += 1
+			for x in range(f * fw, (f + 1) * fw, 2):
+				for y in range(0, h, 2):
+					var a := img.get_pixel(x, y).a
+					if a > 0.05:
+						visible += 1
+						if a > 0.98:
+							solid += 1
+		ok(clipped == 0, "kieran_%s frames are not clipped at the bottom" % anim)
+		ok(visible > 0 and float(solid) / visible > 0.85, "kieran_%s body is opaque (%.0f%% solid)" % [anim, 100.0 * solid / maxi(visible, 1)])
+	# NPC sprites are pre-sized for the game (no 3x minification shimmer).
+	for path in ["tessa/tessa_side", "bram/bram_side", "elara/elara_side", "maren/maren_placeholder", "piko/piko_side"]:
+		var t: Texture2D = load("res://assets/characters/%s.png" % path)
+		ok(t.get_height() <= 240, "%s is pre-sized (%d px tall)" % [path, t.get_height()])
+
 
 func test_level_geometry() -> void:
 	_say("-- level geometry: Skywatch climb reachability")

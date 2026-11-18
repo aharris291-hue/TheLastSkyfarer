@@ -1,0 +1,16 @@
+{
+ "atlas": "D:/TheLastSkyfarer/repo/Unity/SourceArt/Characters/Elara/export\\T_Elara_BaseColor.png",
+ "game_triangles": 40525,
+ "game_vertices": 30610,
+ "materials": 2,
+ "bones": 53,
+ "glb_bytes": 6891096,
+ "fbx_bytes": 1776940,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 40525,
+  "skinned": true
+ }
+}

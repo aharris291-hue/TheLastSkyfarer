@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 800" font-family="Georgia, serif">
+  <rect width="1100" height="800" fill="#efe3c6"/>
+  <text x="30" y="42" font-size="26" fill="#3b2f22">The Last Skyfarer: master world map (Phase 1 draft)</text>
+  <text x="30" y="66" font-size="14" fill="#6b5a44">Layout follows Adam's "World Above the Clouds" map, read as rings around Brindle Isle (D-9). Not to scale.</text>
+  <g transform="translate(0,40)">
+  <!-- rings -->
+  <circle cx="470" cy="410" r="130" fill="none" stroke="#b9a882" stroke-dasharray="4 6"/>
+  <circle cx="470" cy="410" r="235" fill="none" stroke="#b9a882" stroke-dasharray="4 6"/>
+  <circle cx="470" cy="410" r="320" fill="none" stroke="#b9a882" stroke-dasharray="4 6"/>
+  <text x="470" y="274" font-size="11" fill="#9a8a68" text-anchor="middle">inner ring</text>
+  <text x="470" y="170" font-size="11" fill="#9a8a68" text-anchor="middle">middle ring</text>
+  <text x="470" y="86" font-size="11" fill="#9a8a68" text-anchor="middle">outer ring</text>
+  <!-- storm wall -->
+  <circle cx="470" cy="410" r="345" fill="none" stroke="#4c5a73" stroke-width="20" opacity="0.75"/>
+  <text x="128" y="410" font-size="15" fill="#f2ead8" text-anchor="middle" transform="rotate(-90 128 410)">THE STORM WALL</text>
+  <!-- lost continent -->
+  <path d="M890 160 C990 150 1080 230 1075 380 C1080 520 1010 640 900 660 C960 560 960 280 890 160 Z" fill="#cdbf9c" stroke="#7a6a4c"/>
+  <text x="935" y="380" font-size="17" fill="#3b2f22">Lost</text>
+  <text x="925" y="400" font-size="17" fill="#3b2f22">Continent</text>
+  <circle cx="985" cy="440" r="7" fill="#3b2f22"/><text x="955" y="465" font-size="12" fill="#3b2f22">Aerion Prime</text>
+  <text x="950" y="480" font-size="11" fill="#6b5a44">(City of Winds)</text>
+  <!-- skyroutes -->
+  <g fill="none" stroke="#3f7fbf" stroke-width="2.5" stroke-dasharray="9 6">
+    <path d="M470 410 Q 540 420 590 440"/>
+    <path d="M470 410 Q 400 330 330 290"/>
+    <path d="M330 290 Q 270 380 270 500"/>
+    <path d="M590 440 Q 680 360 720 300"/>
+    <path d="M270 500 Q 360 620 460 640"/>
+    <path d="M460 640 Q 580 650 660 590"/>
+    <path d="M720 300 Q 740 450 660 590"/>
+    <path d="M590 440 Q 760 470 905 430"/>
+    <path d="M330 290 Q 450 200 560 210"/>
+  </g>
+  <text x="905" y="500" font-size="11" fill="#2f5f8f">the route shown in the</text><text x="905" y="514" font-size="11" fill="#2f5f8f">Skyfarer recording (Ch. 6),</text><text x="905" y="528" font-size="11" fill="#2f5f8f">opened by the breach (Ch. 19)</text>
+  <path d="M545 240 Q 600 330 600 425" fill="none" stroke="#a7cbc4" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
+  <!-- regions -->
+  <g stroke="#5f4e36" stroke-width="1.2">
+    <ellipse cx="470" cy="410" rx="62" ry="44" fill="#a9c982"/>
+    <ellipse cx="330" cy="290" rx="72" ry="48" fill="#8fbf6a"/>
+    <ellipse cx="560" cy="210" rx="58" ry="34" fill="#a7cbc4"/>
+    <ellipse cx="595" cy="442" rx="26" ry="20" fill="#c3d7d3"/>
+    <ellipse cx="270" cy="500" rx="70" ry="48" fill="#7fc0c9"/>
+    <ellipse cx="725" cy="295" rx="68" ry="50" fill="#d98f5c"/>
+    <ellipse cx="460" cy="642" rx="72" ry="40" fill="#b8b1a3"/>
+    <ellipse cx="665" cy="590" rx="70" ry="46" fill="#a58fc9"/>
+  </g>
+  <g font-size="15" fill="#2a2118" text-anchor="middle">
+    <text x="470" y="405">Brindle Isle</text><text x="470" y="422" font-size="11">Windrest Village</text>
+    <text x="330" y="287">Verdant Reach</text><text x="330" y="304" font-size="11">Oakspire</text>
+    <text x="560" y="207">Mistreef Archipelago</text><text x="560" y="223" font-size="11">fog chain</text>
+    <text x="598" y="478" font-size="13">Veilmist Isle</text>
+    <text x="270" y="497">Azure Expanse</text><text x="270" y="514" font-size="11">Tidehome</text>
+    <text x="725" y="292">Ember Peaks</text><text x="725" y="309" font-size="11">Ashfall City</text>
+    <text x="460" y="638">Shattered Sky</text><text x="460" y="655" font-size="11">Driftgrave, Horizon's End</text>
+    <text x="665" y="587">Starfall Basin</text><text x="665" y="604" font-size="11">Lumina's Rest</text>
+  </g>
+  <!-- beacons -->
+  <g fill="#4bb3ff" stroke="#173a5e" stroke-width="1.5">
+    <polygon points="612,428 617,438 607,438"/>
+    <polygon points="360,262 366,274 354,274"/>
+    <polygon points="752,262 758,274 746,274"/>
+    <polygon points="245,470 251,482 239,482"/>
+    <polygon points="690,560 696,572 684,572"/>
+  </g>
+</g>
+  <!-- legend -->
+  <g font-size="13" fill="#3b2f22" transform="translate(-10,40)">
+    <rect x="30" y="610" width="250" height="120" fill="#f6eedb" stroke="#b9a882"/>
+    <line x1="45" y1="635" x2="85" y2="635" stroke="#3f7fbf" stroke-width="2.5" stroke-dasharray="9 6"/><text x="95" y="640">Skyroute</text>
+    <polygon points="65,652 71,664 59,664" fill="#4bb3ff" stroke="#173a5e"/><text x="95" y="664">Beacon (5)</text>
+    <line x1="45" y1="685" x2="85" y2="685" stroke="#4c5a73" stroke-width="10" opacity="0.75"/><text x="95" y="690">Storm Wall</text>
+    <circle cx="65" cy="710" r="6" fill="#3b2f22"/><text x="95" y="715">Settlement</text>
+  </g>
+</svg>

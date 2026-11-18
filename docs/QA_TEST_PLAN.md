@@ -2,7 +2,7 @@
 
 ## Automated (run before every commit)
 
-`godot --headless --path . res://tests/test_runner.tscn`. Current result: **331 passed, 0 failed.**
+`godot --headless --path . res://tests/test_runner.tscn`. Current result: **346 passed, 0 failed.**
 
 | Suite | Checks |
 |---|---|
@@ -10,6 +10,7 @@
 | Save system | Round trip, slots, autosave, corrupt main file falls back to .bak, newer-version warning |
 | Quests | Start, objective counts, hidden objectives appear on time, completion and rewards |
 | Input remap | Remap, persistence, reset |
+| Sprite quality | Kieran frames are not clipped at the bottom and the body is opaque; NPC textures are pre-sized |
 | Geometry | Every required jump is within Kieran's jump height; glide route reachable |
 | Playthrough bot | Plays from New Game to the demo end card through every main beat |
 

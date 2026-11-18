@@ -9,7 +9,8 @@ signal landed
 signal glide_started
 signal glide_ended
 
-const SPRITE_SCALE := 1.8
+const SPRITE_SCALE := 0.84         # frames are drawn at 2x the sheet size
+const FEET_PAD := 6.0              # transparent rows under the feet in every frame
 const ANIMS := {
 	# name: [texture, frame count, fps, loop]
 	"idle": ["res://assets/characters/kieran/kieran_idle.png", 5, 5.0, true],
@@ -86,7 +87,8 @@ func _build_frames() -> void:
 	sprite.sprite_frames = frames
 	# Feet sit at the node origin.
 	sprite.centered = true
-	sprite.offset = Vector2(0, -52)
+	var h := float(frames.get_frame_texture("idle", 0).get_height())
+	sprite.offset = Vector2(0, -(h * 0.5 - FEET_PAD))
 
 
 func _physics_process(delta: float) -> void:

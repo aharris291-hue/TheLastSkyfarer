@@ -1,0 +1,1007 @@
+{
+  "Note": "Brindle Isle story placements for Unity (metres, Unity axes: x east, y up, z north). Ported from Unreal/Tools/build_brindle_greybox.py; this file is now the source.",
+  "Interactables": [
+    {
+      "Id": "Inspect_WorkshopDoor_Inside",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Go outside",
+      "Position": {
+        "x": -3000.0,
+        "y": 1.2,
+        "z": -6.9
+      },
+      "Size": {
+        "x": 1.6,
+        "y": 2.4,
+        "z": 0.2
+      },
+      "Yaw": 0.0,
+      "Radius": 2.8,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "compass_active"
+          ],
+          "Conversation": "",
+          "Do": [
+            {
+              "Type": "Event",
+              "Arg": "leave",
+              "Amount": 1
+            }
+          ],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "workshop_leave_night",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Maps",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Study the maps",
+      "Position": {
+        "x": -3000.0,
+        "y": 0.95,
+        "z": 3.0
+      },
+      "Size": {
+        "x": 2.6,
+        "y": 0.05,
+        "z": 1.8
+      },
+      "Yaw": 0.0,
+      "Radius": 3.3,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "!searched_maps"
+          ],
+          "Conversation": "inspect_maps",
+          "Do": [],
+          "Repeat": false
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Sketches",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Look at the sketches",
+      "Position": {
+        "x": -2995.1,
+        "y": 1.8,
+        "z": 3.0
+      },
+      "Size": {
+        "x": 0.1,
+        "y": 1.4,
+        "z": 2.0
+      },
+      "Yaw": 0.0,
+      "Radius": 3.0,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "!searched_sketches"
+          ],
+          "Conversation": "inspect_sketches",
+          "Do": [],
+          "Repeat": false
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Notes",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Read the weather logs",
+      "Position": {
+        "x": -3004.3,
+        "y": 1.2,
+        "z": -3.0
+      },
+      "Size": {
+        "x": 0.2,
+        "y": 2.2,
+        "z": 3.6
+      },
+      "Yaw": 0.0,
+      "Radius": 3.8,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "!searched_notes"
+          ],
+          "Conversation": "inspect_notes",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "inspect_shelf",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Portrait",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Look at the portrait",
+      "Position": {
+        "x": -2995.1,
+        "y": 2.0,
+        "z": -3.0
+      },
+      "Size": {
+        "x": 0.1,
+        "y": 1.3,
+        "z": 1.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [],
+          "Conversation": "inspect_portrait",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Instruments",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Examine the instruments",
+      "Position": {
+        "x": -3003.5,
+        "y": 0.8,
+        "z": 5.5
+      },
+      "Size": {
+        "x": 1.2,
+        "y": 1.2,
+        "z": 1.2
+      },
+      "Yaw": 0.0,
+      "Radius": 2.6,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [],
+          "Conversation": "inspect_instruments",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Floorboard",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Lift the floorboard",
+      "Position": {
+        "x": -2998.5,
+        "y": 0.03,
+        "z": 0.0
+      },
+      "Size": {
+        "x": 1.0,
+        "y": 0.06,
+        "z": 1.6
+      },
+      "Yaw": 0.0,
+      "Radius": 2.8,
+      "AvailableIf": [
+        "obj:hidden_workshop:search"
+      ],
+      "Rules": [
+        {
+          "If": [
+            "!compartment_open"
+          ],
+          "Conversation": "compartment",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [
+            "compartment_open",
+            "!compass_active"
+          ],
+          "Conversation": "final_entry",
+          "Do": [],
+          "Repeat": false
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Glider",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Approach",
+      "Position": {
+        "x": 664.0,
+        "y": 20.6,
+        "z": 48.0
+      },
+      "Size": {
+        "x": 5.0,
+        "y": 0.15,
+        "z": 2.2
+      },
+      "Yaw": 0.0,
+      "Radius": 4.5,
+      "AvailableIf": [
+        "compass_active"
+      ],
+      "Rules": [
+        {
+          "If": [
+            "compass_active",
+            "!piko_joined"
+          ],
+          "Conversation": "piko_meeting",
+          "Do": [],
+          "Repeat": false
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "NPC_Maren",
+      "Kind": "npc",
+      "Speaker": "maren",
+      "Prompt": "Talk to Maren",
+      "Position": {
+        "x": 62.0,
+        "y": 0.0,
+        "z": 47.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 225,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "!obj:morning_deliveries:report"
+          ],
+          "Conversation": "maren_intro",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [
+            "quest:morning_deliveries:active",
+            "obj:morning_deliveries:tavern",
+            "obj:morning_deliveries:tessa",
+            "obj:morning_deliveries:cliffs"
+          ],
+          "Conversation": "maren_return",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [
+            "quest:morning_deliveries:active"
+          ],
+          "Conversation": "maren_waiting",
+          "Do": [],
+          "Repeat": true
+        },
+        {
+          "If": [
+            "quest:morning_deliveries:complete",
+            "!deed_received"
+          ],
+          "Conversation": "maren_deed",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "maren_after",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "NPC_Bram",
+      "Kind": "npc",
+      "Speaker": "tavern",
+      "Prompt": "Talk",
+      "Position": {
+        "x": 110.0,
+        "y": 0.0,
+        "z": -60.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 225,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "item:parcel_tavern"
+          ],
+          "Conversation": "tavern_deliver",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "tavern_after",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "NPC_Tessa",
+      "Kind": "npc",
+      "Speaker": "tessa",
+      "Prompt": "Talk to Tessa",
+      "Position": {
+        "x": 36.0,
+        "y": 25.6,
+        "z": 476.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 200,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "item:parcel_tessa"
+          ],
+          "Conversation": "tessa_deliver",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "tessa_after",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "NPC_Elara",
+      "Kind": "npc",
+      "Speaker": "villager",
+      "Prompt": "Talk",
+      "Position": {
+        "x": -98.0,
+        "y": 1.0,
+        "z": 535.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "item:parcel_cliffs"
+          ],
+          "Conversation": "villager_deliver",
+          "Do": [],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "villager_after",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "NPC_Rowan",
+      "Kind": "npc",
+      "Speaker": "rowan",
+      "Prompt": "Talk to Rowan",
+      "Position": {
+        "x": 14.0,
+        "y": 0.0,
+        "z": -8.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 180,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "deed_received",
+            "!rowan_inheritance_done"
+          ],
+          "Conversation": "rowan_inheritance",
+          "Do": [
+            {
+              "Type": "SetFlag",
+              "Arg": "rowan_inheritance_done",
+              "Amount": 1
+            }
+          ],
+          "Repeat": false
+        },
+        {
+          "If": [
+            "quest:morning_deliveries:active",
+            "!rowan_morning_done",
+            "!deed_received"
+          ],
+          "Conversation": "rowan_morning",
+          "Do": [
+            {
+              "Type": "SetFlag",
+              "Arg": "rowan_morning_done",
+              "Amount": 1
+            }
+          ],
+          "Repeat": false
+        },
+        {
+          "If": [],
+          "Conversation": "rowan_repeat",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_BulletinBoard",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Read",
+      "Position": {
+        "x": -18.0,
+        "y": 1.5,
+        "z": 10.0
+      },
+      "Size": {
+        "x": 3.0,
+        "y": 2.5,
+        "z": 0.3
+      },
+      "Yaw": 0.0,
+      "Radius": 3.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [],
+          "Conversation": "board",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Fountain",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Look",
+      "Position": {
+        "x": 0.0,
+        "y": 2.2,
+        "z": 0.0
+      },
+      "Size": {
+        "x": 7.5,
+        "y": 0.1,
+        "z": 7.5
+      },
+      "Yaw": 0.0,
+      "Radius": 5.75,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [],
+          "Conversation": "fountain",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_Windmill",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Look",
+      "Position": {
+        "x": -276.0,
+        "y": 2.0,
+        "z": 296.0
+      },
+      "Size": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.5,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [],
+          "Conversation": "windmill",
+          "Do": [],
+          "Repeat": true
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Inspect_WorkshopDoor",
+      "Kind": "inspect",
+      "Speaker": "",
+      "Prompt": "Enter workshop",
+      "Position": {
+        "x": 594.8,
+        "y": 21.5,
+        "z": 75.0
+      },
+      "Size": {
+        "x": 0.3,
+        "y": 3.0,
+        "z": 2.0
+      },
+      "Yaw": 0.0,
+      "Radius": 3.0,
+      "AvailableIf": [],
+      "Rules": [
+        {
+          "If": [
+            "!deed_received"
+          ],
+          "Conversation": "workshop_locked_ch1",
+          "Do": [],
+          "Repeat": true
+        },
+        {
+          "If": [
+            "!has_glider"
+          ],
+          "Conversation": "",
+          "Do": [
+            {
+              "Type": "Event",
+              "Arg": "enter_workshop",
+              "Amount": 1
+            }
+          ],
+          "Repeat": false
+        }
+      ],
+      "JournalId": ""
+    },
+    {
+      "Id": "Note_note_cloud_edge",
+      "Kind": "note",
+      "Speaker": "",
+      "Prompt": "Pick up",
+      "Position": {
+        "x": -112.0,
+        "y": 1.5,
+        "z": 550.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.0,
+      "AvailableIf": [],
+      "Rules": [],
+      "JournalId": "note_cloud_edge"
+    },
+    {
+      "Id": "Note_note_wind",
+      "Kind": "note",
+      "Speaker": "",
+      "Prompt": "Pick up",
+      "Position": {
+        "x": -262.0,
+        "y": 3.6,
+        "z": 300.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.0,
+      "AvailableIf": [],
+      "Rules": [],
+      "JournalId": "note_wind"
+    },
+    {
+      "Id": "Note_note_sky_map",
+      "Kind": "note",
+      "Speaker": "",
+      "Prompt": "Pick up",
+      "Position": {
+        "x": 40.0,
+        "y": 25.5,
+        "z": 512.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.0,
+      "AvailableIf": [],
+      "Rules": [],
+      "JournalId": "note_sky_map"
+    },
+    {
+      "Id": "Note_note_three_decades",
+      "Kind": "note",
+      "Speaker": "",
+      "Prompt": "Pick up",
+      "Position": {
+        "x": 380.0,
+        "y": 17.1,
+        "z": 350.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.0,
+      "AvailableIf": [],
+      "Rules": [],
+      "JournalId": "note_three_decades"
+    },
+    {
+      "Id": "Note_note_each_island",
+      "Kind": "note",
+      "Speaker": "",
+      "Prompt": "Pick up",
+      "Position": {
+        "x": 920.0,
+        "y": -1.5,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "Yaw": 0.0,
+      "Radius": 2.0,
+      "AvailableIf": [],
+      "Rules": [],
+      "JournalId": "note_each_island"
+    }
+  ],
+  "Triggers": [
+    {
+      "Id": "Trigger_Opening",
+      "OnceFlag": "opening_seen",
+      "Conversation": "opening",
+      "Position": {
+        "x": 320.0,
+        "y": 17.0,
+        "z": 320.0
+      },
+      "Size": {
+        "x": 16.0,
+        "y": 8.0,
+        "z": 16.0
+      },
+      "Conditions": [],
+      "Actions": []
+    },
+    {
+      "Id": "Trigger_EdgeWarning",
+      "OnceFlag": "seen_edge_warning",
+      "Conversation": "edge_warning",
+      "Position": {
+        "x": -100.0,
+        "y": 2.0,
+        "z": 558.0
+      },
+      "Size": {
+        "x": 40.0,
+        "y": 8.0,
+        "z": 12.0
+      },
+      "Conditions": [],
+      "Actions": []
+    },
+    {
+      "Id": "Trigger_SkywatchHint",
+      "OnceFlag": "seen_skywatch_hint",
+      "Conversation": "skywatch_hint",
+      "Position": {
+        "x": 10.0,
+        "y": 2.0,
+        "z": 390.0
+      },
+      "Size": {
+        "x": 16.0,
+        "y": 8.0,
+        "z": 16.0
+      },
+      "Conditions": [
+        "item:parcel_tessa"
+      ],
+      "Actions": []
+    },
+    {
+      "Id": "Trigger_BluffEdgeWarning",
+      "OnceFlag": "seen_bluff_edge_warning",
+      "Conversation": "edge_warning",
+      "Position": {
+        "x": 676.0,
+        "y": 21.5,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 6.0,
+        "y": 6.0,
+        "z": 40.0
+      },
+      "Conditions": [
+        "!piko_joined"
+      ],
+      "Actions": []
+    },
+    {
+      "Id": "Trigger_LaunchReady",
+      "OnceFlag": "seen_launch_ready",
+      "Conversation": "launch_ready",
+      "Position": {
+        "x": 676.0,
+        "y": 21.5,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 6.0,
+        "y": 6.0,
+        "z": 40.0
+      },
+      "Conditions": [
+        "piko_joined"
+      ],
+      "Actions": []
+    },
+    {
+      "Id": "Trigger_Fog",
+      "OnceFlag": "reached_fog",
+      "Conversation": "wind_refuses",
+      "Position": {
+        "x": 1545.0,
+        "y": 10.0,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 16.0,
+        "y": 400.0,
+        "z": 400.0
+      },
+      "Conditions": [
+        "piko_joined"
+      ],
+      "Actions": []
+    }
+  ],
+  "Areas": [
+    {
+      "Id": "windrest",
+      "Position": {
+        "x": 40.0,
+        "y": 10.0,
+        "z": 0.0
+      },
+      "Size": {
+        "x": 520.0,
+        "y": 80.0,
+        "z": 460.0
+      }
+    },
+    {
+      "Id": "post_house",
+      "Position": {
+        "x": 70.0,
+        "y": 5.0,
+        "z": 55.0
+      },
+      "Size": {
+        "x": 24.0,
+        "y": 20.0,
+        "z": 28.0
+      }
+    },
+    {
+      "Id": "tavern",
+      "Position": {
+        "x": 120.0,
+        "y": 5.0,
+        "z": -70.0
+      },
+      "Size": {
+        "x": 28.0,
+        "y": 20.0,
+        "z": 32.0
+      }
+    },
+    {
+      "Id": "whispermill",
+      "Position": {
+        "x": -330.0,
+        "y": 10.0,
+        "z": 330.0
+      },
+      "Size": {
+        "x": 260.0,
+        "y": 60.0,
+        "z": 220.0
+      }
+    },
+    {
+      "Id": "skywatch",
+      "Position": {
+        "x": 40.0,
+        "y": 30.0,
+        "z": 480.0
+      },
+      "Size": {
+        "x": 50.0,
+        "y": 24.0,
+        "z": 50.0
+      }
+    },
+    {
+      "Id": "upper_cliffs",
+      "Position": {
+        "x": 330.0,
+        "y": 20.0,
+        "z": 300.0
+      },
+      "Size": {
+        "x": 140.0,
+        "y": 30.0,
+        "z": 120.0
+      }
+    },
+    {
+      "Id": "bluff",
+      "Position": {
+        "x": 600.0,
+        "y": 25.0,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 160.0,
+        "y": 40.0,
+        "z": 140.0
+      }
+    },
+    {
+      "Id": "workshop",
+      "Position": {
+        "x": 600.0,
+        "y": 24.0,
+        "z": 80.0
+      },
+      "Size": {
+        "x": 14.0,
+        "y": 12.0,
+        "z": 18.0
+      }
+    },
+    {
+      "Id": "cloud_edge",
+      "Position": {
+        "x": -100.0,
+        "y": 5.0,
+        "z": 545.0
+      },
+      "Size": {
+        "x": 70.0,
+        "y": 20.0,
+        "z": 50.0
+      }
+    },
+    {
+      "Id": "central_square",
+      "Position": {
+        "x": 0.0,
+        "y": 5.0,
+        "z": 0.0
+      },
+      "Size": {
+        "x": 48.0,
+        "y": 16.0,
+        "z": 48.0
+      }
+    },
+    {
+      "Id": "orchard_vale",
+      "Position": {
+        "x": -470.0,
+        "y": 8.0,
+        "z": 0.0
+      },
+      "Size": {
+        "x": 260.0,
+        "y": 30.0,
+        "z": 150.0
+      }
+    },
+    {
+      "Id": "open_sky",
+      "Position": {
+        "x": 1100.0,
+        "y": 0.0,
+        "z": 60.0
+      },
+      "Size": {
+        "x": 400.0,
+        "y": 200.0,
+        "z": 400.0
+      }
+    }
+  ]
+}

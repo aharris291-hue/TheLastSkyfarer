@@ -1,0 +1,1 @@
+{"targets": {"torso-scale-horiz-decr": 0.35, "l-eye-scale-incr": 0.5, "r-eye-scale-incr": 0.5, "mouth-angles-up": 1.0, "chin-width-decr": 0.25, "l-cheek-volume-incr": 0.2, "r-cheek-volume-incr": 0.2, "l-upperleg-scale-horiz-decr": 0.3, "r-upperleg-scale-horiz-decr": 0.3}, "leg_out": 0.055, "pheno": {"age": 0.24}, "arm_out": 0.24, "forearm_out": 0.16}

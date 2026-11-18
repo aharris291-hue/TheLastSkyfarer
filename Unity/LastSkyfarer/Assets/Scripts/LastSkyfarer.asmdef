@@ -1,0 +1,6 @@
+{
+    "name": "LastSkyfarer",
+    "rootNamespace": "LastSkyfarer",
+    "references": ["Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+    "autoReferenced": true
+}

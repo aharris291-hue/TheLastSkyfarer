@@ -1,0 +1,16 @@
+{
+ "atlas": "D:/TheLastSkyfarer/repo/Unity/SourceArt/Characters/Bram/export\\T_Bram_BaseColor.png",
+ "game_triangles": 41918,
+ "game_vertices": 31456,
+ "materials": 2,
+ "bones": 53,
+ "glb_bytes": 7444428,
+ "fbx_bytes": 1832716,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 41918,
+  "skinned": true
+ }
+}

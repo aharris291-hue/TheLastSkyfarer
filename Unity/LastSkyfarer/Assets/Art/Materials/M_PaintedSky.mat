@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_PaintedSky
+  m_Shader: {fileID: 4800000, guid: c69fe0ec9914afa45ab9bca6fb914692, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BrushNoise:
+        m_Texture: {fileID: 2800000, guid: 90c50136a90394d4485c758dd0fb883a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CloudCover: 0.42
+    - _CloudSpeed: 0.004
+    - _Stars: 0
+    - _SunSize: 0.0004
+    m_Colors:
+    - _BottomColor: {r: 0.7490196, g: 0.72156864, b: 0.8627451, a: 1}
+    - _CloudLit: {r: 1, g: 1, b: 1, a: 1}
+    - _CloudShade: {r: 0.7058824, g: 0.7529412, b: 0.8627451, a: 1}
+    - _HorizonColor: {r: 0.8117647, g: 0.8901961, b: 0.95686275, a: 1}
+    - _SunColor: {r: 1, g: 0.94509804, b: 0.8117647, a: 1}
+    - _TopColor: {r: 0.30980393, g: 0.56078434, b: 0.85882354, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

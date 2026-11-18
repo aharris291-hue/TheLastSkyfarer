@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_Elara
+  m_Shader: {fileID: 4800000, guid: b6dd32206bb2d8d43b1ba521f312a39a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 12355a99df15eb04498a1d9077f1a0f0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BrushNoise:
+        m_Texture: {fileID: 2800000, guid: 90c50136a90394d4485c758dd0fb883a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskMap:
+        m_Texture: {fileID: 2800000, guid: b3d85e5363a1abc4f85a285709b6eb97, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Ambient: 1.35
+    - _EyeBright: 1.15
+    - _EyeShine: 1.6
+    - _Gloss: 24
+    - _HairShine: 0.45
+    - _Metallic: 0
+    - _RampSoftness: 0.35
+    - _Rim: 0.6
+    - _RimPower: 3.5
+    - _Specular: 0.15
+    - _Warmth: 0.35
+    m_Colors:
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShadowTint: {r: 0.86, g: 0.76, b: 0.82, a: 1}
+    - _SkinScatter: {r: 0.9, g: 0.37999994, b: 0.25999996, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

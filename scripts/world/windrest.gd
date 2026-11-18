@@ -42,6 +42,7 @@ func _build_backdrop() -> void:
 	var far := Parallax2D.new()
 	far.scroll_scale = Vector2(0.18, 0.4)
 	far.z_index = -20
+	far.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	world.add_child(far)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
@@ -54,15 +55,77 @@ func _build_backdrop() -> void:
 		s.position = Vector2(i * 720.0 + rng.randf_range(-200, 200), rng.randf_range(80, 520))
 		s.modulate = Color(0.75, 0.82, 0.95, rng.randf_range(0.45, 0.75))
 		far.add_child(s)
+		# Distant islands bob slowly on the wind.
+		var bob := s.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+		var dy := rng.randf_range(8.0, 18.0)
+		var period := rng.randf_range(4.0, 7.0)
+		bob.tween_property(s, "position:y", dy, period).as_relative()
+		bob.tween_property(s, "position:y", -dy, period).as_relative()
+	_build_clouds()
 	# Soft painted hills in two hazy layers (the Brindle Isle interior).
 	_hills(0.5, 520.0, 230.0, Color(0.55, 0.7, 0.62), Color(0.75, 0.84, 0.86, 0.0), 11)
 	_hills(0.7, 640.0, 200.0, Color(0.42, 0.6, 0.42), Color(0.62, 0.74, 0.7, 0.0), 23)
+
+
+func _build_clouds() -> void:
+	# Two bands of soft clouds that drift on the wind, looping forever.
+	for band in [[0.12, 0.3, 160.0, -9.0, 0.55], [0.3, 0.55, 330.0, -18.0, 0.8]]:
+		var layer := Parallax2D.new()
+		layer.scroll_scale = Vector2(band[0], band[1])
+		layer.repeat_size = Vector2(5200, 0)
+		layer.repeat_times = 3
+		layer.autoscroll = Vector2(band[3], 0)
+		layer.z_index = -18 if band[0] < 0.2 else -16
+		world.add_child(layer)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = int(band[2])
+		for i in 7:
+			var c := Sprite2D.new()
+			c.texture = tex("res://assets/environments/fx/cloud_%d.png" % (i % 3))
+			var sc: float = rng.randf_range(0.5, 1.0) * float(band[4])
+			c.scale = Vector2(sc, sc * rng.randf_range(0.8, 1.0))
+			c.position = Vector2(i * 740.0 + rng.randf_range(-120, 120), band[2] + rng.randf_range(-90, 90))
+			c.modulate.a = rng.randf_range(0.55, 0.9)
+			c.flip_h = rng.randf() < 0.5
+			layer.add_child(c)
+
+
+## Leaves (and a few petals in the village) carried along by the wind.
+func _add_wind_motes(x0: float, x1: float, petals := false) -> void:
+	var p := CPUParticles2D.new()
+	p.texture = tex("res://assets/environments/fx/petal.png" if petals else "res://assets/environments/fx/leaf.png")
+	p.amount = int((x1 - x0) / 140.0)
+	p.lifetime = 9.0
+	p.preprocess = 9.0
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2((x1 - x0) * 0.5, 260)
+	p.position = Vector2((x0 + x1) * 0.5, GROUND - 420)
+	p.direction = Vector2(-1, 0.15)
+	p.spread = 25.0
+	p.gravity = Vector2(0, 14)
+	p.initial_velocity_min = 40.0
+	p.initial_velocity_max = 90.0
+	p.angular_velocity_min = -120.0
+	p.angular_velocity_max = 120.0
+	p.angle_min = 0.0
+	p.angle_max = 360.0
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.2
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 0))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	fade.add_point(0.15, Color(1, 1, 1, 0.95))
+	fade.add_point(0.85, Color(1, 1, 1, 0.95))
+	p.color_ramp = fade
+	p.z_index = 4
+	world.add_child(p)
 
 
 func _hills(scroll: float, base_y: float, amp: float, top_col: Color, bottom_col: Color, seed_: int) -> void:
 	var layer := Parallax2D.new()
 	layer.scroll_scale = Vector2(scroll, 0.85)
 	layer.z_index = -14 if scroll < 0.6 else -12
+	layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	world.add_child(layer)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_
@@ -76,26 +139,43 @@ func _hills(scroll: float, base_y: float, amp: float, top_col: Color, bottom_col
 		var y := base_y - amp * (0.55 + 0.25 * sin(x * 0.0011 + phase) + 0.2 * sin(x * 0.0037 + phase * 2.0))
 		y += maxf(0.0, x - (width - 900.0)) * 0.45     # slope down at the east end
 		pts.append(Vector2(x, y))
-		cols.append(top_col)
+		# ...and fade out there, so the end of the hills never shows an edge.
+		cols.append(Color(top_col, clampf((width - x) / 900.0, 0.0, 1.0)))
 		x += 60.0
-	pts.append(Vector2(width, base_y + 260))
+	pts.append(Vector2(width, base_y + 700))
 	cols.append(bottom_col)
-	pts.append(Vector2(-500, base_y + 260))
-	cols.append(bottom_col)
+	pts.append(Vector2(-500, base_y + 700))
+	cols.append(top_col)    # opaque; the solid body below continues it
 	var poly := Polygon2D.new()
 	poly.polygon = pts
 	poly.vertex_colors = cols
 	layer.add_child(poly)
+	# Solid ground colour below the hills, behind the island only, so no sky
+	# shows between the hills and the village. It fades out sideways before
+	# the hills slope away at the east end.
+	var solid := top_col
+	var clear := Color(solid, 0.0)
+	var y0 := base_y
+	var y1 := base_y + 900.0
+	var xe := width - 1100.0
+	var body := Polygon2D.new()
+	body.polygon = PackedVector2Array([Vector2(-500, y0), Vector2(xe, y0), Vector2(xe, y1), Vector2(-500, y1)])
+	body.color = solid
+	body.z_index = -1
+	layer.add_child(body)
+	var edge := Polygon2D.new()
+	edge.polygon = PackedVector2Array([Vector2(xe, y0), Vector2(xe + 400, y0), Vector2(xe + 400, y1), Vector2(xe, y1)])
+	edge.vertex_colors = PackedColorArray([solid, clear, clear, solid])
+	edge.z_index = -1
+	layer.add_child(edge)
 	# A few distant trees and windmills for scale.
 	for i in int(width / 900.0):
 		var px := rng.randf_range(0, width - 900.0)
 		var py := base_y - amp * (0.55 + 0.25 * sin(px * 0.0011 + phase) + 0.2 * sin(px * 0.0037 + phase * 2.0))
-		var s := Sprite2D.new()
 		var windmill := rng.randf() < 0.3
-		s.texture = tex("brindle/brindle_07_4x.png" if windmill else "brindle/brindle_17_4x.png")
+		var s := make_prop_sprite("brindle/brindle_07_4x.png" if windmill else "brindle/brindle_17_4x.png")
 		var hgt := (150.0 if windmill else 110.0) * (scroll + 0.3)
 		s.scale = Vector2.ONE * hgt / s.texture.get_height()
-		s.offset = Vector2(0, -s.texture.get_height() * 0.5)
 		s.position = Vector2(px, py + 12)
 		s.modulate = top_col.lerp(Color(1, 1, 1), 0.35)
 		layer.add_child(s)
@@ -104,7 +184,10 @@ func _hills(scroll: float, base_y: float, amp: float, top_col: Color, bottom_col
 # --- Areas --------------------------------------------------------------------------
 
 func _build_cloud_edge() -> void:
-	add_ground(160, 7360, GROUND)   # one continuous stretch: Cloud Edge to the Upper Cliffs
+	add_ground(160, 7360, GROUND)
+	_add_wind_motes(200, 3000)
+	_add_wind_motes(3000, 6600, true)
+	_add_wind_motes(6600, 9900)   # one continuous stretch: Cloud Edge to the Upper Cliffs
 	add_wall(120)
 	add_location("cloud_edge", 120, 1500)
 	for x in [260, 330, 400]:
@@ -123,7 +206,7 @@ func _build_cloud_edge() -> void:
 func _build_fields() -> void:
 	add_location("whispermill", 1560, 3000)
 	for x in [1760, 2380, 2900]:
-		add_prop("brindle/brindle_07_4x.png", Vector2(x, GROUND - 60), 560, -1, x == 2380, Color(0.92, 0.94, 1.0))
+		add_prop("brindle/brindle_07_4x.png", Vector2(x, GROUND - 14), 560, -1, x == 2380, Color(0.92, 0.94, 1.0))
 	add_inspect("windmill", Vector2(2380, GROUND), "Look", [{"dialogue": "windmill", "repeat": true}], Vector2(200, 220))
 	for x in [1650, 1720, 1900, 1970, 2600, 2670]:
 		add_prop("brindle/brindle_10_4x.png", Vector2(x, GROUND + 6), 70)
@@ -142,9 +225,9 @@ func _build_village() -> void:
 	var homes := [[3320, false, Color(1, 0.95, 0.9)], [4060, true, Color(0.95, 0.92, 1.0)],
 		[4420, false, Color(0.9, 0.95, 0.9)], [6280, true, Color(1, 1, 1)]]
 	for h in homes:
-		add_prop("brindle/brindle_06_4x.png", Vector2(h[0], GROUND - 40), 520, -1, h[1], h[2])
+		add_prop("brindle/brindle_06_4x.png", Vector2(h[0], GROUND - 14), 520, -1, h[1], h[2])
 	# Windsong Tavern
-	add_prop("brindle/brindle_06_4x.png", Vector2(3640, GROUND - 30), 600, -1, true, Color(1.0, 0.9, 0.78))
+	add_prop("brindle/brindle_06_4x.png", Vector2(3640, GROUND - 12), 600, -1, true, Color(1.0, 0.9, 0.78))
 	add_sign("Windsong Tavern", Vector2(3640, GROUND - 330))
 	add_prop("brindle/brindle_13_4x.png", Vector2(3860, GROUND + 6), 200)
 	add_location("tavern", 3420, 3880)
@@ -162,7 +245,7 @@ func _build_village() -> void:
 	add_prop("brindle/brindle_15_4x.png", Vector2(5420, GROUND - 120), 150, -1)
 	add_prop("brindle/brindle_18_4x.png", Vector2(5560, GROUND + 6), 210)
 	# Post House
-	add_prop("brindle/brindle_06_4x.png", Vector2(5980, GROUND - 30), 600, -1, false, Color(0.95, 0.98, 1.05))
+	add_prop("brindle/brindle_06_4x.png", Vector2(5980, GROUND - 12), 600, -1, false, Color(0.95, 0.98, 1.05))
 	add_sign("Post House", Vector2(5980, GROUND - 330), 34)
 	add_location("post_house", 5800, 6200)
 	add_npc("maren", "res://assets/characters/maren/maren_placeholder.png", Vector2(6080, GROUND), 192, false, [
@@ -215,7 +298,7 @@ func _build_bluff() -> void:
 	add_ground(8040, EDGE_X, BLUFF)
 	add_location("bluff", 8040, EDGE_X)
 	# Elias's workshop — the atlas house with its blue roof, as on the map.
-	add_prop("brindle/brindle_06_4x.png", Vector2(8700, BLUFF - 30), 620, -1, true, Color(0.95, 0.97, 1.08))
+	add_prop("brindle/brindle_06_4x.png", Vector2(8700, BLUFF - 12), 620, -1, true, Color(0.95, 0.97, 1.08))
 	add_sign("Workshop", Vector2(8600, BLUFF - 250), 28)
 	# Observation tower
 	add_prop("brindle/brindle_14_4x.png", Vector2(9330, BLUFF + 10), 760, -1, false, Color(0.9, 0.92, 1.0))
@@ -418,7 +501,7 @@ func _place_piko_on_glider() -> void:
 		return
 	_perched_piko = Sprite2D.new()
 	_perched_piko.texture = load("res://assets/characters/piko/piko_side.png")
-	_perched_piko.scale = Vector2(0.28, 0.28)
+	_perched_piko.scale = Vector2(0.87, 0.87)
 	_perched_piko.position = Vector2(9820 - 10, BLUFF - 130)
 	world.add_child(_perched_piko)
 

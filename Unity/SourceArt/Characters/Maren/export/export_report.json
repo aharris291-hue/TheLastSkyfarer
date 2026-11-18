@@ -1,0 +1,16 @@
+{
+ "atlas": "D:/TheLastSkyfarer/repo/Unity/SourceArt/Characters/Maren/export\\T_Maren_BaseColor.png",
+ "game_triangles": 42218,
+ "game_vertices": 31287,
+ "materials": 2,
+ "bones": 53,
+ "glb_bytes": 8167232,
+ "fbx_bytes": 1822188,
+ "reimport": {
+  "meshes": 1,
+  "armatures": 1,
+  "bones": 53,
+  "triangles": 42218,
+  "skinned": true
+ }
+}

@@ -468,7 +468,10 @@ def build_upscaled():
 
 
 if __name__ == "__main__":
-    steps = sys.argv[1:] or ["kieran", "portraits", "bodies", "environment", "ground", "standins", "workshop", "upscale", "maps"]
+    # Afterwards run tools/hd_pipeline.py, which replaces the game-size sprites
+    # (Kieran, NPCs, Piko, props, ground) with high-definition versions. The
+    # old Lanczos "upscale" step is kept for reference but no longer default.
+    steps = sys.argv[1:] or ["kieran", "portraits", "bodies", "environment", "ground", "standins", "workshop", "maps"]
     fn = {"kieran": build_kieran, "portraits": build_portraits, "bodies": build_bodies,
           "environment": build_environment, "maps": build_maps, "ground": build_ground, "standins": build_standins, "workshop": build_workshop_props, "upscale": build_upscaled}
     for s in steps:

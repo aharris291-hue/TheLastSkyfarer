@@ -48,6 +48,8 @@ Dialogue nodes, quest objectives and interactions use two small languages:
 ## Pipelines
 
 - `tools/sprite_pipeline.py` (Python, PIL, numpy): `python3 tools/sprite_pipeline.py [step ...]`. Steps: kieran, portraits, bodies, environment, ground, standins, workshop, upscale, maps.
+- `tools/hd_pipeline.py` (run after sprite_pipeline): upscales sources 4x with `tools/esrgan_upscale.py` (needs PyTorch and the model file named in that script; upscales are cached in `tools/cache/`, not committed) and writes the game-size Kieran, NPC, Piko, prop, ground, windmill rotor, workshop and ambient effect textures. Steps: upscale, kieran, bodies, environment, ground, rotor, workshop, fx.
+- Ambient motion: `level.gd` `make_prop_sprite()` gives windmills a turning rotor and trees and banners the `assets/shaders/sway.gdshader` material; Windrest adds drifting cloud layers (Parallax2D autoscroll), bobbing far islands and CPUParticles2D leaves.
 - `tools/audio_synth.py`: regenerates all placeholder music and SFX (needs ffmpeg for OGG).
 
 ## Build
